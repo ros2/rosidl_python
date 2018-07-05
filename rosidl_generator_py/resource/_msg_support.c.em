@@ -13,6 +13,7 @@
 @#######################################################################
 @
 #include <Python.h>
+#include <stdbool.h>
 
 #include <@(spec.base_type.pkg_name)/@(subfolder)/@(module_name)__struct.h>
 #include <@(spec.base_type.pkg_name)/@(subfolder)/@(module_name)__functions.h>
@@ -52,7 +53,7 @@ if not field.type.is_primitive_type() and field.type.is_array:
 msg_typename = '%s__%s__%s' % (spec.base_type.pkg_name, subfolder, spec.base_type.type)
 }@
 
-void * @(spec.base_type.pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg)
+bool @(spec.base_type.pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg, void * _ros_message)
 {
 @{
 full_classname = '%s.%s._%s.%s' % (spec.base_type.pkg_name, subfolder, module_name, spec.base_type.type)
@@ -80,7 +81,7 @@ full_classname = '%s.%s._%s.%s' % (spec.base_type.pkg_name, subfolder, module_na
         }
       }
       if (!class_name || !module_name) {
-        return NULL;
+        return false;
       }
       snprintf(full_classname_dest, sizeof(full_classname_dest), "%s.%s", module_name, class_name);
     }
@@ -88,7 +89,7 @@ full_classname = '%s.%s._%s.%s' % (spec.base_type.pkg_name, subfolder, module_na
         "@(full_classname)",
         full_classname_dest, @(len(full_classname))) == 0);
   }
-  @(msg_typename) * ros_message = @(msg_typename)__create();
+  @(msg_typename) * ros_message = _ros_message;
 @[if not spec.fields]@
   (void)ros_message;
 @[end if]@
@@ -96,64 +97,64 @@ full_classname = '%s.%s._%s.%s' % (spec.base_type.pkg_name, subfolder, module_na
   {  // @(field.name)
     PyObject * field = PyObject_GetAttrString(_pymsg, "@(field.name)");
     if (!field) {
-      return NULL;
+      return false;
     }
 @[  if not field.type.is_primitive_type()]@
 @{
 nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
 }@
-    typedef PyObject *(* convert_from_py_signature)(void *);
+    typedef bool (* convert_from_py_signature)(PyObject *, void *);
     convert_from_py_signature convert_from_py = NULL;
     // get conversion function
     {
       PyObject * msg_module = PyImport_ImportModule("@(field.type.pkg_name).msg._@convert_camel_case_to_lower_case_underscore(field.type.type)");
       if (!msg_module) {
         Py_DECREF(field);
-        return NULL;
+        return false;
       }
       PyObject * msg_class = PyObject_GetAttrString(msg_module, "@(field.type.type)");
       Py_DECREF(msg_module);
       if (!msg_class) {
         Py_DECREF(field);
-        return NULL;
+        return false;
       }
       PyObject * msg_metaclass = PyObject_GetAttrString(msg_class, "__class__");
       Py_DECREF(msg_class);
       if (!msg_metaclass) {
         Py_DECREF(field);
-        return NULL;
+        return false;
       }
       PyObject * convert_from_py_ = PyObject_GetAttrString(msg_metaclass, "_CONVERT_FROM_PY");
       Py_DECREF(msg_metaclass);
       if (!convert_from_py_) {
         Py_DECREF(field);
-        return NULL;
+        return false;
       }
       convert_from_py = (convert_from_py_signature)PyCapsule_GetPointer(convert_from_py_, NULL);
       Py_DECREF(convert_from_py_);
       if (!convert_from_py) {
         Py_DECREF(field);
-        return NULL;
+        return false;
       }
     }
 @[    if field.type.is_array]@
     PyObject * seq_field = PySequence_Fast(field, "expected a sequence in '@(field.name)'");
     if (!seq_field) {
       Py_DECREF(field);
-      return NULL;
+      return false;
     }
 @[      if field.type.array_size is None or field.type.is_upper_bound]@
     Py_ssize_t size = PySequence_Size(field);
     if (-1 == size) {
       Py_DECREF(seq_field);
       Py_DECREF(field);
-      return NULL;
+      return false;
     }
     if (!@(nested_type)__Array__init(&(ros_message->@(field.name)), size)) {
       PyErr_SetString(PyExc_RuntimeError, "unable to create @(nested_type)__Array ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
-      return NULL;
+      return false;
     }
     @(nested_type) * dest = ros_message->@(field.name).data;
 @[      else]@
@@ -161,49 +162,45 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
     @(nested_type) * dest = ros_message->@(field.name);
 @[      end if]@
     for (Py_ssize_t i = 0; i < size; ++i) {
-      @(nested_type) * item = (@(nested_type) *) convert_from_py(
-        PySequence_Fast_GET_ITEM(seq_field, i));
-      if (!item) {
+      if (!convert_from_py(PySequence_Fast_GET_ITEM(seq_field, i), &dest[i])) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
-        return NULL;
+        return false;
       }
-      memcpy(&dest[i], item, sizeof(@(nested_type)));
     }
     Py_DECREF(seq_field);
 @[    else]@
-    @(nested_type) * tmp = (@(nested_type) *) convert_from_py(field);
-    if (!tmp) {
-      return NULL;
+    if (!convert_from_py(field, &ros_message->@(field.name))) {
+      Py_DECREF(field);
+      return false;
     }
-    ros_message->@(field.name) = *tmp;
 @[    end if]@
 @[  elif field.type.is_array]@
     PyObject * seq_field = PySequence_Fast(field, "expected a sequence in '@(field.name)'");
     if (!seq_field) {
       Py_DECREF(field);
-      return NULL;
+      return false;
     }
 @[    if field.type.array_size is None or field.type.is_upper_bound]@
     Py_ssize_t size = PySequence_Size(field);
     if (-1 == size) {
       Py_DECREF(seq_field);
       Py_DECREF(field);
-      return NULL;
+      return false;
     }
 @[      if field.type.type == 'string']@
     if (!rosidl_generator_c__String__Array__init(&(ros_message->@(field.name)), size)) {
       PyErr_SetString(PyExc_RuntimeError, "unable to create String__Array ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
-      return NULL;
+      return false;
     }
 @[      else]@
     if (!rosidl_generator_c__@(field.type.type)__Array__init(&(ros_message->@(field.name)), size)) {
       PyErr_SetString(PyExc_RuntimeError, "unable to create @(field.type.type)__Array ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
-      return NULL;
+      return false;
     }
 @[      end if]@
     @primitive_msg_type_to_c(field.type.type) * dest = ros_message->@(field.name).data;
@@ -216,7 +213,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
       if (!item) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
-        return NULL;
+        return false;
       }
 @[    if field.type.type == 'char']@
       assert(PyUnicode_Check(item));
@@ -317,7 +314,12 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
   }
 @[end for]@
 
-  return ros_message;
+  return true;
+}
+
+void * @(spec.base_type.pkg_name)_@(module_name)__create_ros_message(void)
+{
+  return @(msg_typename)__create();
 }
 
 void @(spec.base_type.pkg_name)_@(module_name)__destroy_ros_message(void * raw_ros_message)

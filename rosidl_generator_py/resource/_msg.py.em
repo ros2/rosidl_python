@@ -175,7 +175,15 @@ class @(spec.base_type.type)(metaclass=Metaclass):
         return True
 @[for field in spec.fields]@
 
+@{
+import inspect
+import builtins
+}@
+@[if field.name in dict(inspect.getmembers(builtins)).keys()]@
+    @@property  # noqa: A003
+@[else]@
     @@property
+@[end if]@
     def @(field.name)(self):
         """Message field '@(field.name)'."""
         return self._@(field.name)

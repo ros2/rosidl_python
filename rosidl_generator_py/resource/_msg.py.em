@@ -175,12 +175,19 @@ class @(spec.base_type.type)(metaclass=Metaclass):
         return True
 @[for field in spec.fields]@
 
-    @@property
+@{
+import inspect
+import builtins
+noqa_string = ''
+if field.name in dict(inspect.getmembers(builtins)).keys():
+    noqa_string = '  # noqa: A003'
+}@
+    @@property@(noqa_string)
     def @(field.name)(self):
         """Message field '@(field.name)'."""
         return self._@(field.name)
 
-    @@@(field.name).setter
+    @@@(field.name).setter@(noqa_string)
     def @(field.name)(self, value):
         if __debug__:
 @[  if not field.type.is_primitive_type()]@

@@ -15,8 +15,8 @@
 @#######################################################################
 @
 #include <Python.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 @{
 static_includes = set([

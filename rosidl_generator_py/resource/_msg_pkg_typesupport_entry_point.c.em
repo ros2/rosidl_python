@@ -15,6 +15,7 @@
 @#######################################################################
 @
 #include <Python.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 @{
@@ -55,8 +56,9 @@ for spec, subfolder in service_specs:
 type_name = spec.base_type.type
 module_name = convert_camel_case_to_lower_case_underscore(type_name)
 }@
-void * @(spec.base_type.pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg);
+void * @(spec.base_type.pkg_name)_@(module_name)__create_ros_message(void);
 void @(spec.base_type.pkg_name)_@(module_name)__destroy_ros_message(void * raw_ros_message);
+bool @(spec.base_type.pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg, void * ros_message);
 PyObject * @(spec.base_type.pkg_name)_@(module_name)__convert_to_py(void * raw_ros_message);
 @[end for]@
 
@@ -79,7 +81,7 @@ static struct PyModuleDef @(package_name)__module = {
 @[for spec, subfolder in message_specs]@
 @{
 type_name = convert_camel_case_to_lower_case_underscore(spec.base_type.type)
-function_names = ['convert_from_py', 'destroy_ros_message', 'convert_to_py', 'type_support']
+function_names = ['create_ros_message', 'destroy_ros_message', 'convert_from_py', 'convert_to_py', 'type_support']
 }@
 
 ROSIDL_GENERATOR_C_IMPORT

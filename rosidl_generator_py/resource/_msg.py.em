@@ -21,6 +21,7 @@ import traceback
 class Metaclass(type):
     """Metaclass of message '@(spec.base_type.type)'."""
 
+    _CREATE_ROS_MESSAGE = None
     _CONVERT_FROM_PY = None
     _CONVERT_TO_PY = None
     _DESTROY_ROS_MESSAGE = None
@@ -42,6 +43,7 @@ class Metaclass(type):
             logger.debug(
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
+            cls._CREATE_ROS_MESSAGE = module.create_ros_message_msg_@(module_name)
             cls._CONVERT_FROM_PY = module.convert_from_py_msg_@(module_name)
             cls._CONVERT_TO_PY = module.convert_to_py_msg_@(module_name)
             cls._TYPE_SUPPORT = module.type_support_msg_@(module_name)
@@ -175,12 +177,19 @@ class @(spec.base_type.type)(metaclass=Metaclass):
         return True
 @[for field in spec.fields]@
 
-    @@property
+@{
+import inspect
+import builtins
+noqa_string = ''
+if field.name in dict(inspect.getmembers(builtins)).keys():
+    noqa_string = '  # noqa: A003'
+}@
+    @@property@(noqa_string)
     def @(field.name)(self):
         """Message field '@(field.name)'."""
         return self._@(field.name)
 
-    @@@(field.name).setter
+    @@@(field.name).setter@(noqa_string)
     def @(field.name)(self, value):
         if __debug__:
 @[  if not field.type.is_primitive_type()]@

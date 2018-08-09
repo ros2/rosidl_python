@@ -18,6 +18,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef WIN32
+#  define IMPORT_API __declspec(dllimport)
+#else
+#  define IMPORT_API
+#endif
+
 @{
 static_includes = set([
     '#include <rosidl_generator_c/message_type_support_struct.h>',
@@ -39,7 +45,9 @@ for spec, subfolder in message_specs:
   type_name = spec.base_type.type
   module_name = convert_camel_case_to_lower_case_underscore(type_name)
   key = '%s/%s/%s' % (spec.base_type.pkg_name, subfolder, module_name)
-  includes[key] = '#include <%s__type_support.h>' % key
+  includes[key + '_support'] = '#include <%s__type_support.h>' % key
+  includes[key + '_struct'] = '#include <%s__struct.h>' % key
+  includes[key + '_functions'] = '#include <%s__functions.h>' % key
 
 for spec, subfolder in service_specs:
   type_name = convert_camel_case_to_lower_case_underscore(spec.srv_name)
@@ -53,13 +61,27 @@ for spec, subfolder in service_specs:
 
 @[for spec, subfolder in message_specs]@
 @{
+pkg_name = spec.base_type.pkg_name
 type_name = spec.base_type.type
 module_name = convert_camel_case_to_lower_case_underscore(type_name)
+msg_typename = '%s__%s__%s' % (pkg_name, subfolder, type_name)
 }@
-void * @(spec.base_type.pkg_name)_@(module_name)__create_ros_message(void);
-void @(spec.base_type.pkg_name)_@(module_name)__destroy_ros_message(void * raw_ros_message);
-bool @(spec.base_type.pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg, void * ros_message);
-PyObject * @(spec.base_type.pkg_name)_@(module_name)__convert_to_py(void * raw_ros_message);
+
+static void * @(pkg_name)_@(module_name)__create_ros_message(void)
+{
+  return @(msg_typename)__create();
+}
+
+static void @(pkg_name)_@(module_name)__destroy_ros_message(void * raw_ros_message)
+{
+  @(msg_typename) * ros_message = (@(msg_typename) *)raw_ros_message;
+  @(msg_typename)__destroy(ros_message);
+}
+
+IMPORT_API
+bool @(pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg, void * ros_message);
+IMPORT_API
+PyObject * @(pkg_name)_@(module_name)__convert_to_py(void * raw_ros_message);
 @[end for]@
 
 static PyMethodDef @(package_name)__methods[] = {
@@ -86,7 +108,7 @@ function_names = ['create_ros_message', 'destroy_ros_message', 'convert_from_py'
 
 ROSIDL_GENERATOR_C_IMPORT
 const rosidl_message_type_support_t *
-ROSIDL_GET_MSG_TYPE_SUPPORT(@(spec.base_type.pkg_name), @(subfolder), @(spec.msg_name));
+ROSIDL_GET_MSG_TYPE_SUPPORT(@(pkg_name), @(subfolder), @(spec.msg_name));
 
 int8_t
 _register_msg_type__@(type_name)(PyObject * pymodule)
@@ -97,9 +119,9 @@ _register_msg_type__@(type_name)(PyObject * pymodule)
   PyObject * pyobject_@(function_name) = NULL;
   pyobject_@(function_name) = PyCapsule_New(
 @[    if function_name != 'type_support']@
-    (void *)&@(spec.base_type.pkg_name)_@(type_name)__@(function_name),
+    (void *)&@(pkg_name)_@(type_name)__@(function_name),
 @[    else]@
-    (void *)ROSIDL_GET_MSG_TYPE_SUPPORT(@(spec.base_type.pkg_name), @(subfolder), @(spec.msg_name)),
+    (void *)ROSIDL_GET_MSG_TYPE_SUPPORT(@(pkg_name), @(subfolder), @(spec.msg_name)),
 @[    end if]@
     NULL, NULL);
   if (!pyobject_@(function_name)) {

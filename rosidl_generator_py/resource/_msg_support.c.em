@@ -53,6 +53,28 @@ if not field.type.is_primitive_type() and field.type.is_array:
 msg_typename = '%s__%s__%s' % (spec.base_type.pkg_name, subfolder, spec.base_type.type)
 }@
 
+#ifdef WIN32
+#  define EXPORT_API __declspec(dllexport)
+#  define IMPORT_API __declspec(dllimport)
+#else
+#  define EXPORT_API __attribute__((visibility("default")))
+#  define IMPORT_API
+#endif
+
+@[for field in spec.fields]@
+@[  if not field.type.is_primitive_type()]@
+@[    if spec.base_type.pkg_name != field.type.pkg_name]@
+IMPORT_API
+@[    end if]@
+bool @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_from_py(PyObject * _pymsg, void * _ros_message);
+@[    if spec.base_type.pkg_name != field.type.pkg_name]@
+IMPORT_API
+@[    end if]@
+PyObject * @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_to_py(void * raw_ros_message);
+@[  end if]@
+@[end for]@
+
+EXPORT_API
 bool @(spec.base_type.pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg, void * _ros_message)
 {
 @{
@@ -103,40 +125,6 @@ full_classname = '%s.%s._%s.%s' % (spec.base_type.pkg_name, subfolder, module_na
 @{
 nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
 }@
-    typedef bool (* convert_from_py_signature)(PyObject *, void *);
-    convert_from_py_signature convert_from_py = NULL;
-    // get conversion function
-    {
-      PyObject * msg_module = PyImport_ImportModule("@(field.type.pkg_name).msg._@convert_camel_case_to_lower_case_underscore(field.type.type)");
-      if (!msg_module) {
-        Py_DECREF(field);
-        return false;
-      }
-      PyObject * msg_class = PyObject_GetAttrString(msg_module, "@(field.type.type)");
-      Py_DECREF(msg_module);
-      if (!msg_class) {
-        Py_DECREF(field);
-        return false;
-      }
-      PyObject * msg_metaclass = PyObject_GetAttrString(msg_class, "__class__");
-      Py_DECREF(msg_class);
-      if (!msg_metaclass) {
-        Py_DECREF(field);
-        return false;
-      }
-      PyObject * convert_from_py_ = PyObject_GetAttrString(msg_metaclass, "_CONVERT_FROM_PY");
-      Py_DECREF(msg_metaclass);
-      if (!convert_from_py_) {
-        Py_DECREF(field);
-        return false;
-      }
-      convert_from_py = (convert_from_py_signature)PyCapsule_GetPointer(convert_from_py_, NULL);
-      Py_DECREF(convert_from_py_);
-      if (!convert_from_py) {
-        Py_DECREF(field);
-        return false;
-      }
-    }
 @[    if field.type.is_array]@
     PyObject * seq_field = PySequence_Fast(field, "expected a sequence in '@(field.name)'");
     if (!seq_field) {
@@ -162,7 +150,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
     @(nested_type) * dest = ros_message->@(field.name);
 @[      end if]@
     for (Py_ssize_t i = 0; i < size; ++i) {
-      if (!convert_from_py(PySequence_Fast_GET_ITEM(seq_field, i), &dest[i])) {
+      if (!@(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_from_py(PySequence_Fast_GET_ITEM(seq_field, i), &dest[i])) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
         return false;
@@ -170,7 +158,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
     }
     Py_DECREF(seq_field);
 @[    else]@
-    if (!convert_from_py(field, &ros_message->@(field.name))) {
+    if (!@(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_from_py(field, &ros_message->@(field.name))) {
       Py_DECREF(field);
       return false;
     }
@@ -317,17 +305,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
   return true;
 }
 
-void * @(spec.base_type.pkg_name)_@(module_name)__create_ros_message(void)
-{
-  return @(msg_typename)__create();
-}
-
-void @(spec.base_type.pkg_name)_@(module_name)__destroy_ros_message(void * raw_ros_message)
-{
-  @(msg_typename) * ros_message = (@(msg_typename) *)raw_ros_message;
-  @(msg_typename)__destroy(ros_message);
-}
-
+EXPORT_API
 PyObject * @(spec.base_type.pkg_name)_@(module_name)__convert_to_py(void * raw_ros_message)
 {
   /* NOTE(esteve): Call constructor of @(spec.base_type.type) */
@@ -355,35 +333,6 @@ PyObject * @(spec.base_type.pkg_name)_@(module_name)__convert_to_py(void * raw_r
 @{
 nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
 }@
-    typedef PyObject *(* convert_to_py_signature)(void *);
-    convert_to_py_signature convert_to_py = NULL;
-    // get conversion function
-    {
-      PyObject * msg_module = PyImport_ImportModule("@(field.type.pkg_name).msg._@convert_camel_case_to_lower_case_underscore(field.type.type)");
-      if (!msg_module) {
-        return NULL;
-      }
-      PyObject * msg_class = PyObject_GetAttrString(msg_module, "@(field.type.type)");
-      Py_DECREF(msg_module);
-      if (!msg_class) {
-        return NULL;
-      }
-      PyObject * msg_metaclass = PyObject_GetAttrString(msg_class, "__class__");
-      Py_DECREF(msg_class);
-      if (!msg_metaclass) {
-        return NULL;
-      }
-      PyObject * convert_to_py_ = PyObject_GetAttrString(msg_metaclass, "_CONVERT_TO_PY");
-      Py_DECREF(msg_metaclass);
-      if (!convert_to_py_) {
-        return NULL;
-      }
-      convert_to_py = (convert_to_py_signature)PyCapsule_GetPointer(convert_to_py_, NULL);
-      Py_DECREF(convert_to_py_);
-      if (!convert_to_py) {
-        return NULL;
-      }
-    }
 @[    if field.type.is_array]@
 @[      if field.type.array_size is None or field.type.is_upper_bound]@
     size_t size = ros_message->@(field.name).size;
@@ -401,7 +350,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
 @[      else]@
       item = &(ros_message->@(field.name)[i]);
 @[      end if]@
-      PyObject * pyitem = convert_to_py(item);
+      PyObject * pyitem = @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_to_py(item);
       if (!pyitem) {
         Py_DECREF(field);
         return NULL;
@@ -412,7 +361,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
     }
     assert(PySequence_Check(field));
 @[    else]@
-    field = convert_to_py(&ros_message->@(field.name));
+    field = @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_to_py(&ros_message->@(field.name));
     if (!field) {
       return NULL;
     }

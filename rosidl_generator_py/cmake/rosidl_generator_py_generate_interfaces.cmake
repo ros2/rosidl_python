@@ -228,7 +228,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   target_link_libraries(
     ${_target_name}
     ${PythonExtra_LIBRARIES}
-    ${PROJECT_NAME}__${_typesupport_impl}
+    ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
   )
 
   target_include_directories(${_target_name}
@@ -239,7 +239,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   )
 
   rosidl_target_interfaces(${_target_name}
-    ${PROJECT_NAME} rosidl_typesupport_c)
+    ${rosidl_generate_interfaces_TARGET} rosidl_typesupport_c)
 
   ament_target_dependencies(${_target_name}
     "rosidl_generator_c"
@@ -258,7 +258,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   ament_target_dependencies(${_target_name}
     "rosidl_generator_c"
     "rosidl_generator_py"
-    "${PROJECT_NAME}__rosidl_generator_c"
+    "${rosidl_generate_interfaces_TARGET}__rosidl_generator_c"
   )
   set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
 

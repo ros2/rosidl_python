@@ -62,7 +62,10 @@ if(BUILD_TESTING)
   if(_typesupport_impls STREQUAL "")
     message(WARNING "No valid typesupport found for Python generator, skipping tests.")
   else()
-    rosidl_generate_interfaces(${PROJECT_NAME} ${message_files}
+    # Use a custom suffix for the target name here to detect regressions of this:
+    #   https://github.com/ros2/rosidl_python/issues/11
+    # The alternative style (just using ${PROJECT_NAME}) is used by most interface packages.
+    rosidl_generate_interfaces(${PROJECT_NAME}_custom ${message_files}
       ADD_LINTER_TESTS
       SKIP_INSTALL
     )

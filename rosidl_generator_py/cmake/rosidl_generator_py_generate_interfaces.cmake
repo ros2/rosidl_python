@@ -306,6 +306,8 @@ foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
 
   if(WIN32)
     target_link_libraries(${_target_name_lib} "${_pkg_base}/Lib/${_pkg_filename}.lib")
+  elseif(APPLE)
+    target_link_libraries(${_target_name_lib} "${_pkg_base}/Lib/lib${_pkg_filename}.dylib")
   else()
     target_link_libraries(${_target_name_lib} "${_pkg_base}/lib/lib${_pkg_filename}.so")
   endif()

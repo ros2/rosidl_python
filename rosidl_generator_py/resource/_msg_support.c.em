@@ -15,6 +15,7 @@
 #include <Python.h>
 #include <stdbool.h>
 
+#include <rosidl_generator_c/visibility_control.h>
 #include <@(spec.base_type.pkg_name)/@(subfolder)/@(module_name)__struct.h>
 #include <@(spec.base_type.pkg_name)/@(subfolder)/@(module_name)__functions.h>
 
@@ -53,28 +54,20 @@ if not field.type.is_primitive_type() and field.type.is_array:
 msg_typename = '%s__%s__%s' % (spec.base_type.pkg_name, subfolder, spec.base_type.type)
 }@
 
-#ifdef WIN32
-#  define EXPORT_API __declspec(dllexport)
-#  define IMPORT_API __declspec(dllimport)
-#else
-#  define EXPORT_API __attribute__((visibility("default")))
-#  define IMPORT_API
-#endif
-
 @[for field in spec.fields]@
 @[  if not field.type.is_primitive_type()]@
 @[    if spec.base_type.pkg_name != field.type.pkg_name]@
-IMPORT_API
+ROSIDL_GENERATOR_C_IMPORT
 @[    end if]@
 bool @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_from_py(PyObject * _pymsg, void * _ros_message);
 @[    if spec.base_type.pkg_name != field.type.pkg_name]@
-IMPORT_API
+ROSIDL_GENERATOR_C_IMPORT
 @[    end if]@
 PyObject * @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_to_py(void * raw_ros_message);
 @[  end if]@
 @[end for]@
 
-EXPORT_API
+ROSIDL_GENERATOR_C_EXPORT
 bool @(spec.base_type.pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg, void * _ros_message)
 {
 @{
@@ -305,7 +298,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
   return true;
 }
 
-EXPORT_API
+ROSIDL_GENERATOR_C_EXPORT
 PyObject * @(spec.base_type.pkg_name)_@(module_name)__convert_to_py(void * raw_ros_message)
 {
   /* NOTE(esteve): Call constructor of @(spec.base_type.type) */

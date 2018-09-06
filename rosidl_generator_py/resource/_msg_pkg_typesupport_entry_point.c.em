@@ -18,11 +18,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#ifdef WIN32
-#  define IMPORT_API __declspec(dllimport)
-#else
-#  define IMPORT_API
-#endif
+#include <rosidl_generator_c/visibility_control.h>
 
 @{
 static_includes = set([
@@ -78,9 +74,9 @@ static void @(pkg_name)_@(module_name)__destroy_ros_message(void * raw_ros_messa
   @(msg_typename)__destroy(ros_message);
 }
 
-IMPORT_API
+ROSIDL_GENERATOR_C_IMPORT
 bool @(pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg, void * ros_message);
-IMPORT_API
+ROSIDL_GENERATOR_C_IMPORT
 PyObject * @(pkg_name)_@(module_name)__convert_to_py(void * raw_ros_message);
 @[end for]@
 

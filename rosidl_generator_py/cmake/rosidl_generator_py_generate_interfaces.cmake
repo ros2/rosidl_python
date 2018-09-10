@@ -273,7 +273,6 @@ foreach(_typesupport_impl ${_typesupport_impls})
     ament_target_dependencies(${_target_name}
       ${_pkg_name}
     )
-
   endforeach()
 
   set_properties("")

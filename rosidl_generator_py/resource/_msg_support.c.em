@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <rosidl_generator_c/visibility_control.h>
+
 #include <@(spec.base_type.pkg_name)/@(subfolder)/@(module_name)__struct.h>
 #include <@(spec.base_type.pkg_name)/@(subfolder)/@(module_name)__functions.h>
 
@@ -53,7 +54,7 @@ if not field.type.is_primitive_type() and field.type.is_array:
 @{
 msg_typename = '%s__%s__%s' % (spec.base_type.pkg_name, subfolder, spec.base_type.type)
 }@
-
+@
 @[for field in spec.fields]@
 @[  if not field.type.is_primitive_type()]@
 @[    if spec.base_type.pkg_name != field.type.pkg_name]@

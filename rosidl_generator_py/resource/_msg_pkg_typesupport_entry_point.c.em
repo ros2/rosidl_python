@@ -18,8 +18,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <rosidl_generator_c/visibility_control.h>
-
 @{
 static_includes = set([
     '#include <rosidl_generator_c/message_type_support_struct.h>',

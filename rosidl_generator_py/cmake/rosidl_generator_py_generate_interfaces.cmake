@@ -247,6 +247,13 @@ foreach(_typesupport_impl ${_typesupport_impls})
   if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_DEBUG})
   endif()
+  set_properties("")
+  if(WIN32)
+    set_properties("_DEBUG")
+    set_properties("_MINSIZEREL")
+    set_properties("_RELEASE")
+    set_properties("_RELWITHDEBINFO")
+  endif()
   target_link_libraries(
     ${_target_name}
     ${_target_name_lib}
@@ -274,14 +281,6 @@ foreach(_typesupport_impl ${_typesupport_impls})
       ${_pkg_name}
     )
   endforeach()
-
-  set_properties("")
-  if(WIN32)
-    set_properties("_DEBUG")
-    set_properties("_MINSIZEREL")
-    set_properties("_RELEASE")
-    set_properties("_RELWITHDEBINFO")
-  endif()
 
   add_dependencies(${_target_name}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}

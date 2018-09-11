@@ -56,15 +56,16 @@ msg_typename = '%s__%s__%s' % (spec.base_type.pkg_name, subfolder, spec.base_typ
 }@
 @
 @[for field in spec.fields]@
+@{lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.type)}@
 @[  if not field.type.is_primitive_type()]@
 @[    if spec.base_type.pkg_name != field.type.pkg_name]@
 ROSIDL_GENERATOR_C_IMPORT
 @[    end if]@
-bool @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_from_py(PyObject * _pymsg, void * _ros_message);
+bool @(field.type.pkg_name)_@(lowercase_field_type)__convert_from_py(PyObject * _pymsg, void * _ros_message);
 @[    if spec.base_type.pkg_name != field.type.pkg_name]@
 ROSIDL_GENERATOR_C_IMPORT
 @[    end if]@
-PyObject * @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_to_py(void * raw_ros_message);
+PyObject * @(field.type.pkg_name)_@(lowercase_field_type)__convert_to_py(void * raw_ros_message);
 @[  end if]@
 @[end for]@
 
@@ -118,6 +119,7 @@ full_classname = '%s.%s._%s.%s' % (spec.base_type.pkg_name, subfolder, module_na
 @[  if not field.type.is_primitive_type()]@
 @{
 nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
+lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.type)
 }@
 @[    if field.type.is_array]@
     PyObject * seq_field = PySequence_Fast(field, "expected a sequence in '@(field.name)'");
@@ -144,7 +146,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
     @(nested_type) * dest = ros_message->@(field.name);
 @[      end if]@
     for (Py_ssize_t i = 0; i < size; ++i) {
-      if (!@(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_from_py(PySequence_Fast_GET_ITEM(seq_field, i), &dest[i])) {
+      if (!@(field.type.pkg_name)_@(lowercase_field_type)__convert_from_py(PySequence_Fast_GET_ITEM(seq_field, i), &dest[i])) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
         return false;
@@ -152,7 +154,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
     }
     Py_DECREF(seq_field);
 @[    else]@
-    if (!@(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_from_py(field, &ros_message->@(field.name))) {
+    if (!@(field.type.pkg_name)_@(lowercase_field_type)__convert_from_py(field, &ros_message->@(field.name))) {
       Py_DECREF(field);
       return false;
     }
@@ -326,6 +328,7 @@ PyObject * @(spec.base_type.pkg_name)_@(module_name)__convert_to_py(void * raw_r
 @[  if not field.type.is_primitive_type()]@
 @{
 nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
+lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.type)
 }@
 @[    if field.type.is_array]@
 @[      if field.type.array_size is None or field.type.is_upper_bound]@
@@ -344,7 +347,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
 @[      else]@
       item = &(ros_message->@(field.name)[i]);
 @[      end if]@
-      PyObject * pyitem = @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_to_py(item);
+      PyObject * pyitem = @(field.type.pkg_name)_@(lowercase_field_type)__convert_to_py(item);
       if (!pyitem) {
         Py_DECREF(field);
         return NULL;
@@ -355,7 +358,7 @@ nested_type = '%s__%s__%s' % (field.type.pkg_name, 'msg', field.type.type)
     }
     assert(PySequence_Check(field));
 @[    else]@
-    field = @(field.type.pkg_name)_@convert_camel_case_to_lower_case_underscore(field.type.type)__convert_to_py(&ros_message->@(field.name));
+    field = @(field.type.pkg_name)_@(lowercase_field_type)__convert_to_py(&ros_message->@(field.name));
     if (!field) {
       return NULL;
     }

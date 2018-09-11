@@ -301,8 +301,6 @@ endforeach()
 foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
   set(_pkg_install_base "${${_pkg_name}_DIR}/../../..")
   set(_pkg_python_libname "${_pkg_name}__python")
-  message(WARNING "${${_pkg_name}_ROOT}")
-  message(WARNING "${${_pkg_name}_DIR}")
 
   if(WIN32)
     target_link_libraries(${_target_name_lib} "${_pkg_install_base}/Lib/${_pkg_python_libname}.lib")

@@ -61,21 +61,21 @@ module_name = convert_camel_case_to_lower_case_underscore(type_name)
 msg_typename = '%s__%s__%s' % (pkg_name, subfolder, type_name)
 }@
 
-static void * @(pkg_name)_@(module_name)__create_ros_message(void)
+static void * @(pkg_name)__@(module_name)__create_ros_message(void)
 {
   return @(msg_typename)__create();
 }
 
-static void @(pkg_name)_@(module_name)__destroy_ros_message(void * raw_ros_message)
+static void @(pkg_name)__@(module_name)__destroy_ros_message(void * raw_ros_message)
 {
   @(msg_typename) * ros_message = (@(msg_typename) *)raw_ros_message;
   @(msg_typename)__destroy(ros_message);
 }
 
 ROSIDL_GENERATOR_C_IMPORT
-bool @(pkg_name)_@(module_name)__convert_from_py(PyObject * _pymsg, void * ros_message);
+bool @(pkg_name)__@(module_name)__convert_from_py(PyObject * _pymsg, void * ros_message);
 ROSIDL_GENERATOR_C_IMPORT
-PyObject * @(pkg_name)_@(module_name)__convert_to_py(void * raw_ros_message);
+PyObject * @(pkg_name)__@(module_name)__convert_to_py(void * raw_ros_message);
 @[end for]@
 
 static PyMethodDef @(package_name)__methods[] = {
@@ -113,7 +113,7 @@ _register_msg_type__@(type_name)(PyObject * pymodule)
   PyObject * pyobject_@(function_name) = NULL;
   pyobject_@(function_name) = PyCapsule_New(
 @[    if function_name != 'type_support']@
-    (void *)&@(pkg_name)_@(type_name)__@(function_name),
+    (void *)&@(pkg_name)__@(type_name)__@(function_name),
 @[    else]@
     (void *)ROSIDL_GET_MSG_TYPE_SUPPORT(@(pkg_name), @(subfolder), @(spec.msg_name)),
 @[    end if]@

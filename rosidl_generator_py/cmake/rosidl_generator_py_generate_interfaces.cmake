@@ -192,6 +192,38 @@ macro(set_properties _build_type)
     SUFFIX "${PythonExtra_EXTENSION_EXTENSION}")
 endmacro()
 
+macro(set_lib_properties _build_type)
+  set_target_properties(${_target_name_lib} PROPERTIES
+    COMPILE_OPTIONS "${_extension_compile_flags}"
+    LIBRARY_OUTPUT_DIRECTORY${_build_type} ${_output_path}
+    RUNTIME_OUTPUT_DIRECTORY${_build_type} ${_output_path})
+endmacro()
+
+set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__python")
+add_library(${_target_name_lib} SHARED
+  ${_generated_msg_c_files}
+  ${_generated_srv_c_files}
+)
+add_dependencies(
+  ${_target_name_lib}
+  ${rosidl_generate_interfaces_TARGET}${_target_suffix}
+  ${rosidl_generate_interfaces_TARGET}__rosidl_typesupport_c
+)
+
+target_link_libraries(
+  ${_target_name_lib}
+  ${PythonExtra_LIBRARIES}
+)
+target_include_directories(${_target_name_lib}
+  PUBLIC
+  ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
+  ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
+  ${PythonExtra_INCLUDE_DIRS}
+)
+
+rosidl_target_interfaces(${_target_name_lib}
+  ${rosidl_generate_interfaces_TARGET} rosidl_typesupport_c)
+
 foreach(_typesupport_impl ${_typesupport_impls})
   find_package(${_typesupport_impl} REQUIRED)
 
@@ -200,10 +232,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
 
   add_library(${_target_name} SHARED
     ${_generated_extension_${_typesupport_impl}_files}
-    ${_generated_msg_c_files}
-    ${_generated_srv_c_files}
   )
-
   add_dependencies(
     ${_target_name}
     ${rosidl_generate_interfaces_TARGET}${_target_suffix}
@@ -227,6 +256,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   endif()
   target_link_libraries(
     ${_target_name}
+    ${_target_name_lib}
     ${PythonExtra_LIBRARIES}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
   )
@@ -267,6 +297,33 @@ foreach(_typesupport_impl ${_typesupport_impls})
       DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}")
   endif()
 endforeach()
+
+foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
+  set(_pkg_install_base "${${_pkg_name}_DIR}/../../..")
+  set(_pkg_python_libname "${_pkg_name}__python")
+
+  if(WIN32)
+    target_link_libraries(${_target_name_lib} "${_pkg_install_base}/Lib/${_pkg_python_libname}.lib")
+  elseif(APPLE)
+    target_link_libraries(${_target_name_lib} "${_pkg_install_base}/lib/lib${_pkg_python_libname}.dylib")
+  else()
+    target_link_libraries(${_target_name_lib} "${_pkg_install_base}/lib/lib${_pkg_python_libname}.so")
+  endif()
+endforeach()
+
+set_lib_properties("")
+if(WIN32)
+  set_lib_properties("_DEBUG")
+  set_lib_properties("_MINSIZEREL")
+  set_lib_properties("_RELEASE")
+  set_lib_properties("_RELWITHDEBINFO")
+endif()
+if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
+  install(TARGETS ${_target_name_lib}
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin)
+endif()
 
 if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)
   if(

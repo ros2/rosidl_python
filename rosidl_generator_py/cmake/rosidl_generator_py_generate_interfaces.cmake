@@ -38,6 +38,8 @@ set(_generated_msg_py_files "")
 set(_generated_msg_c_files "")
 set(_generated_srv_py_files "")
 set(_generated_srv_c_files "")
+set(_generated_action_py_files "")
+set(_generated_action_c_files "")
 
 foreach(_typesupport_impl ${_typesupport_impls})
   set(_generated_extension_${_typesupport_impl}_files "")
@@ -65,6 +67,15 @@ foreach(_idl_file ${rosidl_generate_interfaces_IDL_FILES})
     list(APPEND _generated_srv_py_files
       "${_output_path}/${_parent_folder}/_${_module_name}.py"
     )
+  elseif(_parent_folder STREQUAL "action")
+    if("_${_module_name}_s.c" MATCHES "(.*)__response(.*)" OR "_${_module_name}_s.c" MATCHES "(.*)__request(.*)")
+      list(APPEND _generated_action_c_files
+        "${_output_path}/${_parent_folder}/_${_module_name}_s.c"
+      )
+    endif()
+    list(APPEND _generated_action_py_files
+      "${_output_path}/${_parent_folder}/_${_module_name}.py"
+    )
   else()
     message(FATAL_ERROR "Interface file with unknown parent folder: ${_idl_file}")
   endif()
@@ -89,7 +100,15 @@ if(NOT _generated_srv_py_files STREQUAL "")
   )
 endif()
 
-if(NOT _generated_msg_c_files STREQUAL "" OR NOT _generated_srv_c_files STREQUAL "")
+if(NOT _generated_action_py_files STREQUAL "")
+  list(GET _generated_action_py_files 0 _action_file)
+  get_filename_component(_parent_folder "${_action_file}" DIRECTORY)
+  list(APPEND _generated_action_py_files
+    "${_parent_folder}/__init__.py"
+  )
+endif()
+
+if(NOT _generated_msg_c_files STREQUAL "" OR NOT _generated_srv_c_files STREQUAL "" OR NOT _generated_action_c_files STREQUAL "")
     foreach(_typesupport_impl ${_typesupport_impls})
       list(APPEND _generated_extension_${_typesupport_impl}_files "${_output_path}/_${PROJECT_NAME}_s.ep.${_typesupport_impl}.c")
       list(APPEND _generated_extension_files "${_generated_extension_${_typesupport_impl}_files}")
@@ -145,6 +164,12 @@ if(NOT _generated_srv_py_files STREQUAL "")
   get_filename_component(_srv_package_dir2 "${_srv_package_dir1}" NAME)
 endif()
 
+if(NOT _generated_action_py_files STREQUAL "")
+  list(GET _generated_action_py_files 0 _action_file)
+  get_filename_component(_action_package_dir1 "${_action_file}" DIRECTORY)
+  get_filename_component(_action_package_dir2 "${_action_package_dir1}" NAME)
+endif()
+
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   ament_python_install_module("${_output_path}/__init__.py"
     DESTINATION_SUFFIX "${PROJECT_NAME}"
@@ -165,6 +190,11 @@ if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   if(NOT _srv_package_dir2 STREQUAL "")
     install(FILES ${_generated_srv_py_files}
       DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_srv_package_dir2}"
+    )
+  endif()
+  if(NOT _action_package_dir2 STREQUAL "")
+    install(FILES ${_generated_action_py_files}
+      DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_action_package_dir2}"
     )
   endif()
 endif()

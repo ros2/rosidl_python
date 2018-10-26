@@ -105,7 +105,7 @@ const rosidl_message_type_support_t *
 ROSIDL_GET_MSG_TYPE_SUPPORT(@(pkg_name), @(subfolder), @(spec.msg_name));
 
 int8_t
-_register_msg_type__@(type_name)__@(subfolder)(PyObject * pymodule)
+_register_msg_type__@(subfolder)__@(type_name)(PyObject * pymodule)
 {
   int8_t err;
 @[  for function_name in function_names]@
@@ -147,7 +147,7 @@ const rosidl_service_type_support_t *
 ROSIDL_TYPESUPPORT_INTERFACE__SERVICE_SYMBOL_NAME(rosidl_typesupport_c, @(spec.pkg_name), @(subfolder), @(spec.srv_name))();
 
 int8_t
-_register_srv_type__@(type_name)__@(subfolder)(PyObject * pymodule)
+_register_srv_type__@(subfolder)__@(type_name)(PyObject * pymodule)
 {
   int8_t err;
   PyObject * pyobject_@(function_name) = NULL;
@@ -185,7 +185,7 @@ PyInit_@(package_name)_s__@(typesupport_impl)(void)
 @{
 type_name = convert_camel_case_to_lower_case_underscore(spec.base_type.type)
 }@
-  err = _register_msg_type__@(type_name)__@(subfolder)(pymodule);
+  err = _register_msg_type__@(subfolder)__@(type_name)(pymodule);
   if (err) {
     Py_XDECREF(pymodule);
     return NULL;
@@ -195,7 +195,7 @@ type_name = convert_camel_case_to_lower_case_underscore(spec.base_type.type)
 @{
 type_name = convert_camel_case_to_lower_case_underscore(spec.srv_name)
 }@
-  err = _register_srv_type__@(type_name)__@(subfolder)(pymodule);
+  err = _register_srv_type__@(subfolder)__@(type_name)(pymodule);
   if (err) {
     Py_XDECREF(pymodule);
     return NULL;

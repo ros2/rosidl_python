@@ -61,16 +61,16 @@ msg_typename = '%s__%s__%s' % (spec.base_type.pkg_name, subfolder, spec.base_typ
 @[    if spec.base_type.pkg_name != field.type.pkg_name]@
 ROSIDL_GENERATOR_C_IMPORT
 @[    end if]@
-bool @(field.type.pkg_name)__@(lowercase_field_type)__convert_from_py(PyObject * _pymsg, void * _ros_message);
+bool @(field.type.pkg_name)__msg__@(lowercase_field_type)__convert_from_py(PyObject * _pymsg, void * _ros_message);
 @[    if spec.base_type.pkg_name != field.type.pkg_name]@
 ROSIDL_GENERATOR_C_IMPORT
 @[    end if]@
-PyObject * @(field.type.pkg_name)__@(lowercase_field_type)__convert_to_py(void * raw_ros_message);
+PyObject * @(field.type.pkg_name)__msg__@(lowercase_field_type)__convert_to_py(void * raw_ros_message);
 @[  end if]@
 @[end for]@
 
 ROSIDL_GENERATOR_C_EXPORT
-bool @(spec.base_type.pkg_name)__@(module_name)__convert_from_py(PyObject * _pymsg, void * _ros_message)
+bool @(spec.base_type.pkg_name)__@(subfolder)__@(module_name)__convert_from_py(PyObject * _pymsg, void * _ros_message)
 {
 @{
 full_classname = '%s.%s._%s.%s' % (spec.base_type.pkg_name, subfolder, module_name, spec.base_type.type)
@@ -146,7 +146,7 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
     @(nested_type) * dest = ros_message->@(field.name);
 @[      end if]@
     for (Py_ssize_t i = 0; i < size; ++i) {
-      if (!@(field.type.pkg_name)__@(lowercase_field_type)__convert_from_py(PySequence_Fast_GET_ITEM(seq_field, i), &dest[i])) {
+      if (!@(field.type.pkg_name)__msg__@(lowercase_field_type)__convert_from_py(PySequence_Fast_GET_ITEM(seq_field, i), &dest[i])) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
         return false;
@@ -154,7 +154,7 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
     }
     Py_DECREF(seq_field);
 @[    else]@
-    if (!@(field.type.pkg_name)__@(lowercase_field_type)__convert_from_py(field, &ros_message->@(field.name))) {
+    if (!@(field.type.pkg_name)__msg__@(lowercase_field_type)__convert_from_py(field, &ros_message->@(field.name))) {
       Py_DECREF(field);
       return false;
     }
@@ -302,7 +302,7 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
 }
 
 ROSIDL_GENERATOR_C_EXPORT
-PyObject * @(spec.base_type.pkg_name)__@(module_name)__convert_to_py(void * raw_ros_message)
+PyObject * @(spec.base_type.pkg_name)__@(subfolder)__@(module_name)__convert_to_py(void * raw_ros_message)
 {
   /* NOTE(esteve): Call constructor of @(spec.base_type.type) */
   PyObject * _pymessage = NULL;
@@ -347,7 +347,7 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
 @[      else]@
       item = &(ros_message->@(field.name)[i]);
 @[      end if]@
-      PyObject * pyitem = @(field.type.pkg_name)__@(lowercase_field_type)__convert_to_py(item);
+      PyObject * pyitem = @(field.type.pkg_name)__msg__@(lowercase_field_type)__convert_to_py(item);
       if (!pyitem) {
         Py_DECREF(field);
         return NULL;
@@ -358,7 +358,7 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
     }
     assert(PySequence_Check(field));
 @[    else]@
-    field = @(field.type.pkg_name)__@(lowercase_field_type)__convert_to_py(&ros_message->@(field.name));
+    field = @(field.type.pkg_name)__msg__@(lowercase_field_type)__convert_to_py(&ros_message->@(field.name));
     if (!field) {
       return NULL;
     }

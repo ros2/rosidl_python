@@ -209,7 +209,7 @@ file(WRITE "${_subdir}/CMakeLists.txt" "${_custom_command}")
 add_subdirectory("${_subdir}" ${rosidl_generate_interfaces_TARGET}${_target_suffix})
 set_property(
   SOURCE
-  ${_generated_extension_files} ${_generated_msg_py_files} ${_generated_msg_c_files} ${_generated_srv_py_files} ${_generated_srv_c_files}
+  ${_generated_extension_files} ${_generated_msg_py_files} ${_generated_msg_c_files} ${_generated_srv_py_files} ${_generated_srv_c_files} ${_generated_action_py_files} ${_generated_action_c_files}
   PROPERTY GENERATED 1)
 
 macro(set_properties _build_type)
@@ -233,6 +233,7 @@ set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__python")
 add_library(${_target_name_lib} SHARED
   ${_generated_msg_c_files}
   ${_generated_srv_c_files}
+  ${_generated_action_c_files}
 )
 add_dependencies(
   ${_target_name_lib}
@@ -361,7 +362,9 @@ if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)
     NOT _generated_extension_files STREQUAL "" OR
     NOT _generated_msg_c_files STREQUAL "" OR
     NOT _generated_srv_py_files STREQUAL "" OR
-    NOT _generated_srv_c_files STREQUAL ""
+    NOT _generated_srv_c_files STREQUAL "" OR
+    NOT _generated_action_c_files STREQUAL "" OR
+    NOT _generated_action_py_files STREQUAL ""
   )
     find_package(ament_cmake_cppcheck REQUIRED)
     ament_cppcheck(

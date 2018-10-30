@@ -49,6 +49,7 @@ foreach(_idl_file ${rosidl_generate_interfaces_IDL_FILES})
   get_filename_component(_parent_folder "${_idl_file}" DIRECTORY)
   get_filename_component(_parent_folder "${_parent_folder}" NAME)
   get_filename_component(_msg_name1 "${_idl_file}" NAME_WE)
+  get_filename_component(_ext "${_idl_file}" EXT)
   string_camel_case_to_lower_case_underscore("${_msg_name1}" _module_name)
 
   if(_parent_folder STREQUAL "msg")
@@ -68,7 +69,8 @@ foreach(_idl_file ${rosidl_generate_interfaces_IDL_FILES})
       "${_output_path}/${_parent_folder}/_${_module_name}.py"
     )
   elseif(_parent_folder STREQUAL "action")
-    if("_${_module_name}_s.c" MATCHES "(.*)__response(.*)" OR "_${_module_name}_s.c" MATCHES "(.*)__request(.*)")
+    # C files generated for <msg>.msg, <service>_Request.msg and <service>_Response.msg but not <service>.srv
+    if(_ext STREQUAL ".msg")
       list(APPEND _generated_action_c_files
         "${_output_path}/${_parent_folder}/_${_module_name}_s.c"
       )

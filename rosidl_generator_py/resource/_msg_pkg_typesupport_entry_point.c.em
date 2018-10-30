@@ -124,7 +124,7 @@ _register_msg_type__@(subfolder)__@(type_name)(PyObject * pymodule)
   }
   err = PyModule_AddObject(
     pymodule,
-    "@(function_name)_msg_@(type_name)",
+    "@(function_name)_msg__@(subfolder)_@(type_name)",
     pyobject_@(function_name));
   if (err) {
     // the created capsule needs to be decremented
@@ -160,7 +160,7 @@ _register_srv_type__@(subfolder)__@(type_name)(PyObject * pymodule)
   }
   err = PyModule_AddObject(
     pymodule,
-    "@(function_name)_srv_@(type_name)",
+    "@(function_name)_srv__@(subfolder)_@(type_name)",
     pyobject_@(function_name));
   if (err) {
     // the created capsule needs to be decremented

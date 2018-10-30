@@ -31,19 +31,19 @@ class Metaclass(type):
             logger.debug(
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
-            cls._TYPE_SUPPORT = module.type_support_srv_@(module_name)
+            cls._TYPE_SUPPORT = module.type_support_srv__@(subfolder)_@(module_name)
 @{
 srv_name = '_' + convert_camel_case_to_lower_case_underscore(spec.srv_name)
 for field_name in [srv_name + '__request', srv_name + '__response']:
-    print('%sfrom %s.srv import %s' % (' ' * 4 * 3, package_name, field_name))
+    print('%sfrom %s.%s import %s' % (' ' * 4 * 3, package_name, subfolder, field_name))
     print('%sif %s.Metaclass._TYPE_SUPPORT is None:' % (' ' * 4 * 3, field_name))
     print('%s%s.Metaclass.__import_type_support__()' % (' ' * 4 * 4, field_name))
 }@
 
 
 class @(spec.srv_name)(metaclass=Metaclass):
-    from @(package_name).srv._@convert_camel_case_to_lower_case_underscore(spec.srv_name)__request import @(spec.srv_name)_Request as Request
-    from @(package_name).srv._@convert_camel_case_to_lower_case_underscore(spec.srv_name)__response import @(spec.srv_name)_Response as Response
+    from @(package_name).@(subfolder)._@convert_camel_case_to_lower_case_underscore(spec.srv_name)__request import @(spec.srv_name)_Request as Request
+    from @(package_name).@(subfolder)._@convert_camel_case_to_lower_case_underscore(spec.srv_name)__response import @(spec.srv_name)_Response as Response
 
     def __init__(self):
         raise NotImplementedError('Service classes can not be instanciated')

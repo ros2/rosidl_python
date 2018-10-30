@@ -43,11 +43,11 @@ class Metaclass(type):
             logger.debug(
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
-            cls._CREATE_ROS_MESSAGE = module.create_ros_message_msg_@(module_name)
-            cls._CONVERT_FROM_PY = module.convert_from_py_msg_@(module_name)
-            cls._CONVERT_TO_PY = module.convert_to_py_msg_@(module_name)
-            cls._TYPE_SUPPORT = module.type_support_msg_@(module_name)
-            cls._DESTROY_ROS_MESSAGE = module.destroy_ros_message_msg_@(module_name)
+            cls._CREATE_ROS_MESSAGE = module.create_ros_message_msg__@(subfolder)_@(module_name)
+            cls._CONVERT_FROM_PY = module.convert_from_py_msg__@(subfolder)_@(module_name)
+            cls._CONVERT_TO_PY = module.convert_to_py_msg__@(subfolder)_@(module_name)
+            cls._TYPE_SUPPORT = module.type_support_msg__@(subfolder)_@(module_name)
+            cls._DESTROY_ROS_MESSAGE = module.destroy_ros_message_msg__@(subfolder)_@(module_name)
 @{
 importable_typesupports = {}
 for field in spec.fields:

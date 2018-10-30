@@ -38,6 +38,8 @@ set(_generated_msg_py_files "")
 set(_generated_msg_c_files "")
 set(_generated_srv_py_files "")
 set(_generated_srv_c_files "")
+set(_generated_action_py_files "")
+set(_generated_action_c_files "")
 
 foreach(_typesupport_impl ${_typesupport_impls})
   set(_generated_extension_${_typesupport_impl}_files "")
@@ -47,6 +49,7 @@ foreach(_idl_file ${rosidl_generate_interfaces_IDL_FILES})
   get_filename_component(_parent_folder "${_idl_file}" DIRECTORY)
   get_filename_component(_parent_folder "${_parent_folder}" NAME)
   get_filename_component(_msg_name1 "${_idl_file}" NAME_WE)
+  get_filename_component(_ext "${_idl_file}" EXT)
   string_camel_case_to_lower_case_underscore("${_msg_name1}" _module_name)
 
   if(_parent_folder STREQUAL "msg")
@@ -63,6 +66,16 @@ foreach(_idl_file ${rosidl_generate_interfaces_IDL_FILES})
       )
     endif()
     list(APPEND _generated_srv_py_files
+      "${_output_path}/${_parent_folder}/_${_module_name}.py"
+    )
+  elseif(_parent_folder STREQUAL "action")
+    # C files generated for <msg>.msg, <service>_Request.msg and <service>_Response.msg but not <service>.srv
+    if(_ext STREQUAL ".msg")
+      list(APPEND _generated_action_c_files
+        "${_output_path}/${_parent_folder}/_${_module_name}_s.c"
+      )
+    endif()
+    list(APPEND _generated_action_py_files
       "${_output_path}/${_parent_folder}/_${_module_name}.py"
     )
   else()
@@ -89,7 +102,15 @@ if(NOT _generated_srv_py_files STREQUAL "")
   )
 endif()
 
-if(NOT _generated_msg_c_files STREQUAL "" OR NOT _generated_srv_c_files STREQUAL "")
+if(NOT _generated_action_py_files STREQUAL "")
+  list(GET _generated_action_py_files 0 _action_file)
+  get_filename_component(_parent_folder "${_action_file}" DIRECTORY)
+  list(APPEND _generated_action_py_files
+    "${_parent_folder}/__init__.py"
+  )
+endif()
+
+if(NOT _generated_msg_c_files STREQUAL "" OR NOT _generated_srv_c_files STREQUAL "" OR NOT _generated_action_c_files STREQUAL "")
     foreach(_typesupport_impl ${_typesupport_impls})
       list(APPEND _generated_extension_${_typesupport_impl}_files "${_output_path}/_${PROJECT_NAME}_s.ep.${_typesupport_impl}.c")
       list(APPEND _generated_extension_files "${_generated_extension_${_typesupport_impl}_files}")
@@ -145,6 +166,12 @@ if(NOT _generated_srv_py_files STREQUAL "")
   get_filename_component(_srv_package_dir2 "${_srv_package_dir1}" NAME)
 endif()
 
+if(NOT _generated_action_py_files STREQUAL "")
+  list(GET _generated_action_py_files 0 _action_file)
+  get_filename_component(_action_package_dir1 "${_action_file}" DIRECTORY)
+  get_filename_component(_action_package_dir2 "${_action_package_dir1}" NAME)
+endif()
+
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   ament_python_install_module("${_output_path}/__init__.py"
     DESTINATION_SUFFIX "${PROJECT_NAME}"
@@ -167,6 +194,11 @@ if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
       DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_srv_package_dir2}"
     )
   endif()
+  if(NOT _action_package_dir2 STREQUAL "")
+    install(FILES ${_generated_action_py_files}
+      DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_action_package_dir2}"
+    )
+  endif()
 endif()
 
 set(_target_suffix "__py")
@@ -179,7 +211,7 @@ file(WRITE "${_subdir}/CMakeLists.txt" "${_custom_command}")
 add_subdirectory("${_subdir}" ${rosidl_generate_interfaces_TARGET}${_target_suffix})
 set_property(
   SOURCE
-  ${_generated_extension_files} ${_generated_msg_py_files} ${_generated_msg_c_files} ${_generated_srv_py_files} ${_generated_srv_c_files}
+  ${_generated_extension_files} ${_generated_msg_py_files} ${_generated_msg_c_files} ${_generated_srv_py_files} ${_generated_srv_c_files} ${_generated_action_py_files} ${_generated_action_c_files}
   PROPERTY GENERATED 1)
 
 macro(set_properties _build_type)
@@ -203,6 +235,7 @@ set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__python")
 add_library(${_target_name_lib} SHARED
   ${_generated_msg_c_files}
   ${_generated_srv_c_files}
+  ${_generated_action_c_files}
 )
 add_dependencies(
   ${_target_name_lib}
@@ -331,7 +364,9 @@ if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)
     NOT _generated_extension_files STREQUAL "" OR
     NOT _generated_msg_c_files STREQUAL "" OR
     NOT _generated_srv_py_files STREQUAL "" OR
-    NOT _generated_srv_c_files STREQUAL ""
+    NOT _generated_srv_c_files STREQUAL "" OR
+    NOT _generated_action_c_files STREQUAL "" OR
+    NOT _generated_action_py_files STREQUAL ""
   )
     find_package(ament_cmake_cppcheck REQUIRED)
     ament_cppcheck(

@@ -98,7 +98,8 @@ def generate_py(generator_arguments_file, typesupport_impls):
     for subfolder in modules.keys():
         import_list = {}
         for module_name, type_ in modules[subfolder]:
-            if subfolder == 'srv' and (type_.endswith('Request') or type_.endswith('Response')):
+            if (subfolder == 'srv' or subfolder == 'action') and \
+               (type_.endswith('Request') or type_.endswith('Response')):
                 continue
             import_list['%s  # noqa\n' % type_] = 'from %s.%s._%s import %s\n' % \
                 (args['package_name'], subfolder, module_name, type_)

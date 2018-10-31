@@ -17,7 +17,7 @@ add_custom_command(
   COMMAND ${PYTHON_EXECUTABLE} ${rosidl_generator_py_BIN}
   --generator-arguments-file "${generator_arguments_file}"
   --typesupport-impls "${_typesupport_impls}"
-  DEPENDS ${target_dependencies}
+  DEPENDS ${target_dependencies} ${rosidl_generate_interfaces_TARGET}
   COMMENT "Generating Python code for ROS interfaces"
   VERBATIM
 )

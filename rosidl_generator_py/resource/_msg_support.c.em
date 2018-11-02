@@ -28,8 +28,8 @@ nested_array_dict = {}
 @[for field in spec.fields]@
 @[  if field.type.is_array and have_not_included_primitive_arrays]@
 @{have_not_included_primitive_arrays = False}@
-#include <rosidl_generator_c/primitives_array.h>
-#include <rosidl_generator_c/primitives_array_functions.h>
+#include <rosidl_generator_c/primitives_sequence.h>
+#include <rosidl_generator_c/primitives_sequence_functions.h>
 
 @[  end if]@
 @[  if field.type.type == 'string' and have_not_included_string]@

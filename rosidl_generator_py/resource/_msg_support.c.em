@@ -134,8 +134,8 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
       Py_DECREF(field);
       return false;
     }
-    if (!@(nested_type)__Array__init(&(ros_message->@(field.name)), size)) {
-      PyErr_SetString(PyExc_RuntimeError, "unable to create @(nested_type)__Array ros_message");
+    if (!@(nested_type)__Sequence__init(&(ros_message->@(field.name)), size)) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to create @(nested_type)__Sequence ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
       return false;
@@ -173,15 +173,15 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
       return false;
     }
 @[      if field.type.type == 'string']@
-    if (!rosidl_generator_c__String__Array__init(&(ros_message->@(field.name)), size)) {
-      PyErr_SetString(PyExc_RuntimeError, "unable to create String__Array ros_message");
+    if (!rosidl_generator_c__String__Sequence__init(&(ros_message->@(field.name)), size)) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to create String__Sequence ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
       return false;
     }
 @[      else]@
-    if (!rosidl_generator_c__@(field.type.type)__Array__init(&(ros_message->@(field.name)), size)) {
-      PyErr_SetString(PyExc_RuntimeError, "unable to create @(field.type.type)__Array ros_message");
+    if (!rosidl_generator_c__@(field.type.type)__Sequence__init(&(ros_message->@(field.name)), size)) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to create @(field.type.type)__Sequence ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
       return false;

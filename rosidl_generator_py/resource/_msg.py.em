@@ -1,4 +1,4 @@
-# generated from rosidl_generator_py/resource/_msg.py.em
+# generated from rosidl_generator_py/resource/_msg.py.em  # noqa: W504
 # generated code does not contain a copyright notice
 
 @#######################################################################
@@ -14,6 +14,7 @@
 @#  - value_to_py (function)
 @#######################################################################
 @
+from copy import copy
 import logging
 import traceback
 
@@ -114,6 +115,28 @@ class @(spec.base_type.type)(metaclass=Metaclass):
         '_@(field.name)',
 @[end for]@
     ]
+
+    _fields_and_field_types = {
+@[for field in spec.fields]@
+@[  if field.type.is_primitive_type() ]@
+        '@(field.name)': '@(field.type)',
+@[  else ]@
+@[    if field.type.is_array ]@
+@[      if field.type.array_size ]@
+@[        if field.type.is_upper_bound ]@
+        '@(field.name)': '@(field.type.pkg_name)/@(field.type.type)[<=@(field.type.array_size)]',
+@[        else ]@
+        '@(field.name)': '@(field.type.pkg_name)/@(field.type.type)[@(field.type.array_size)]',
+@[        end if ]@
+@[      else ]@
+        '@(field.name)': '@(field.type.pkg_name)/@(field.type.type)[]',
+@[      end if ]@
+@[    else ]@
+        '@(field.name)': '@(field.type.pkg_name)/@(field.type.type)',
+@[    end if ]@
+@[  end if ]@
+@[end for]@
+    }
 @
 @[if len(spec.fields) > 0]@
 
@@ -175,6 +198,10 @@ class @(spec.base_type.type)(metaclass=Metaclass):
             return False
 @[end for]@
         return True
+
+    @@classmethod
+    def get_fields_and_field_types(cls):
+        return copy(cls._fields_and_field_types)
 @[for field in spec.fields]@
 
 @{
@@ -209,26 +236,26 @@ if field.name in dict(inspect.getmembers(builtins)).keys():
 @[  end if]@
             assert \
 @[  if field.type.is_array]@
-                ((isinstance(value, Sequence) or
-                  isinstance(value, Set) or
-                  isinstance(value, UserList)) and
-                 not isinstance(value, str) and
-                 not isinstance(value, UserString) and
+                ((isinstance(value, Sequence) or  # noqa: W504
+                  isinstance(value, Set) or  # noqa: W504
+                  isinstance(value, UserList)) and  # noqa: W504
+                 not isinstance(value, str) and  # noqa: W504
+                 not isinstance(value, UserString) and  # noqa: W504
 @{assert_msg_suffixes = ['a set or sequence']}@
 @[    if field.type.type == 'string' and field.type.string_upper_bound]@
-                 all(len(val) <= @field.type.string_upper_bound for val in value) and
+                 all(len(val) <= @field.type.string_upper_bound for val in value) and  # noqa: W504
 @{assert_msg_suffixes.append('and each string value not longer than %d' % field.type.string_upper_bound)}@
 @[    end if]@
 @[    if field.type.array_size]@
 @[      if field.type.is_upper_bound]@
-                 len(value) <= @(field.type.array_size) and
+                 len(value) <= @(field.type.array_size) and  # noqa: W504
 @{assert_msg_suffixes.insert(1, 'with length <= %d' % field.type.array_size)}@
 @[      else]@
-                 len(value) == @(field.type.array_size) and
+                 len(value) == @(field.type.array_size) and  # noqa: W504
 @{assert_msg_suffixes.insert(1, 'with length %d' % field.type.array_size)}@
 @[      end if]@
 @[    end if]@
-                 all(isinstance(v, @(get_python_type(field.type))) for v in value) and
+                 all(isinstance(v, @(get_python_type(field.type))) for v in value) and  # noqa: W504
 @{assert_msg_suffixes.append("and each value of type '%s'" % get_python_type(field.type))}@
 @[    if field.type.type.startswith('int')]@
 @{
@@ -252,7 +279,7 @@ bound = 2**nbits
 @[    end if]@
                 "The '@(field.name)' field must be @(' '.join(assert_msg_suffixes))"
 @[  elif field.type.string_upper_bound]@
-                ((isinstance(value, str) or isinstance(value, UserString)) and
+                ((isinstance(value, str) or isinstance(value, UserString)) and  # noqa W504
                  len(value) <= @(field.type.string_upper_bound)), \
                 "The '@(field.name)' field must be string value " \
                 'not longer than @(field.type.string_upper_bound)'
@@ -260,11 +287,11 @@ bound = 2**nbits
                 isinstance(value, @(field.type.type)), \
                 "The '@(field.name)' field must be a sub message of type '@(field.type.type)'"
 @[  elif field.type.type == 'byte']@
-                ((isinstance(value, bytes) or isinstance(value, ByteString)) and
+                ((isinstance(value, bytes) or isinstance(value, ByteString)) and  # noqa: W504
                  len(value) == 1), \
                 "The '@(field.name)' field must of type 'bytes' or 'ByteString' with a length 1"
 @[  elif field.type.type == 'char']@
-                ((isinstance(value, str) or isinstance(value, UserString)) and
+                ((isinstance(value, str) or isinstance(value, UserString)) and  # noqa: W504
                  len(value) == 1 and ord(value) >= -128 and ord(value) < 128), \
                 "The '@(field.name)' field must of type 'str' or 'UserString' " \
                 'with a length 1 and the character ord() in [-128, 127]'

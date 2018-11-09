@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Unlike other generators, this custom command depends on the target
+# ${rosidl_generate_interfaces_TARGET} and not the IDL files.
+# The IDL files could be generated files,as they are for .action files.
+# CMake does not allow `add_custom_command()` to depend on files generated in
+# a different CMake subdirectory, and this command is invoked after an
+# add_subdirectory() call.
 add_custom_command(
   OUTPUT ${_generated_extension_files} ${_generated_msg_py_files} ${_generated_msg_c_files} ${_generated_srv_py_files} ${_generated_srv_c_files} ${_generated_action_py_files} ${_generated_action_c_files}
   COMMAND ${PYTHON_EXECUTABLE} ${rosidl_generator_py_BIN}

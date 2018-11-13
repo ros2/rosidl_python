@@ -20,6 +20,7 @@ from rosidl_cmake import expand_template
 from rosidl_cmake import get_newest_modification_time
 from rosidl_cmake import read_generator_arguments
 from rosidl_generator_c import primitive_msg_type_to_c
+from rosidl_parser import parse_action_file
 from rosidl_parser import parse_message_file
 from rosidl_parser import parse_service_file
 
@@ -44,11 +45,17 @@ def generate_py(generator_arguments_file, typesupport_impls):
         os.path.join(template_dir, '_srv.py.em'): ['_%s.py'],
     }
 
+    mapping_actions = {
+        os.path.join(template_dir, '_action.py.em'): ['_%s.py'],
+    }
+
     for template_file in mapping_msgs.keys():
         assert os.path.exists(template_file), 'Could not find template: ' + template_file
     for template_file in mapping_msg_pkg_extension.keys():
         assert os.path.exists(template_file), 'Could not find template: ' + template_file
     for template_file in mapping_srvs.keys():
+        assert os.path.exists(template_file), 'Could not find template: ' + template_file
+    for template_file in mapping_actions.keys():
         assert os.path.exists(template_file), 'Could not find template: ' + template_file
 
     functions = {
@@ -63,6 +70,7 @@ def generate_py(generator_arguments_file, typesupport_impls):
     modules = defaultdict(list)
     message_specs = []
     service_specs = []
+    action_specs = []
     for ros_interface_file in args['ros_interface_files']:
         extension = os.path.splitext(ros_interface_file)[1]
         subfolder = os.path.basename(os.path.dirname(ros_interface_file))
@@ -76,6 +84,11 @@ def generate_py(generator_arguments_file, typesupport_impls):
             service_specs.append((spec, subfolder))
             mapping = mapping_srvs
             type_name = spec.srv_name
+        elif extension == '.action':
+            spec = parse_action_file(args['package_name'], ros_interface_file)
+            action_specs.append((spec, subfolder))
+            mapping = mapping_actions
+            type_name = spec.action_name
         else:
             continue
 
@@ -114,6 +127,7 @@ def generate_py(generator_arguments_file, typesupport_impls):
         for generated_filename in generated_filenames:
             data = {
                 'package_name': args['package_name'],
+                'action_specs': action_specs,
                 'message_specs': message_specs,
                 'service_specs': service_specs,
                 'typesupport_impl': type_support_impl_by_filename.get(generated_filename, ''),

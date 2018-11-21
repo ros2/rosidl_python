@@ -17,8 +17,21 @@
 
 #include <rosidl_generator_c/visibility_control.h>
 
-#include <@(spec.base_type.pkg_name)/@(subfolder)/@(module_name)__struct.h>
-#include <@(spec.base_type.pkg_name)/@(subfolder)/@(module_name)__functions.h>
+@{
+header_filename = module_name
+if header_filename.endswith('__request'):
+    header_filename = header_filename[:-9]
+elif header_filename.endswith('__response'):
+    header_filename = header_filename[:-10]
+if header_filename.endswith('__goal'):
+    header_filename = header_filename[:-6]
+elif header_filename.endswith('__result'):
+    header_filename = header_filename[:-8]
+elif header_filename.endswith('__feedback'):
+    header_filename = header_filename[:-10]
+}@
+#include <@(spec.base_type.pkg_name)/@(subfolder)/@(header_filename)__struct.h>
+#include <@(spec.base_type.pkg_name)/@(subfolder)/@(header_filename)__functions.h>
 
 @{
 have_not_included_primitive_arrays = True

@@ -35,10 +35,21 @@ if action_specs:
 @(value)
 @[end for]@
 @{
+def strip_suffix(name):
+  if name.endswith('__request'):
+    name = name[:-9]
+  elif name.endswith('__response'):
+    name = name[:-10]
+  if name.endswith('__goal'):
+    name = name[:-6]
+  elif name.endswith('__result'):
+    name = name[:-8]
+  return name
 includes = {}
 for spec, subfolder in message_specs:
   type_name = spec.base_type.type
   module_name = convert_camel_case_to_lower_case_underscore(type_name)
+  module_name = strip_suffix(module_name)
   key = '%s/%s/%s' % (spec.base_type.pkg_name, subfolder, module_name)
   includes[key + '_support'] = '#include <%s__type_support.h>' % key
   includes[key + '_struct'] = '#include <%s__struct.h>' % key
@@ -47,6 +58,7 @@ for spec, subfolder in message_specs:
 for spec, subfolder in service_specs:
   type_name = convert_camel_case_to_lower_case_underscore(spec.srv_name)
   module_name = convert_camel_case_to_lower_case_underscore(type_name)
+  module_name = strip_suffix(module_name)
   key = '%s/%s/%s' % (spec.pkg_name, subfolder, module_name)
   includes[key] = '#include <%s.h>' % key
 }@

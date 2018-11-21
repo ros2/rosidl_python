@@ -223,14 +223,14 @@ if field.name in dict(inspect.getmembers(builtins)).keys():
             from @(field.type.pkg_name).msg import @(field.type.type)
 @[  end if]@
 @[  if field.type.is_array]@
-            from collections import Sequence
-            from collections import Set
+            from collections.abc import Sequence
+            from collections.abc import Set
             from collections import UserList
             from collections import UserString
 @[  elif field.type.string_upper_bound]@
             from collections import UserString
 @[  elif field.type.type == 'byte']@
-            from collections import ByteString
+            from collections.abc import ByteString
 @[  elif field.type.type in ['char']]@
             from collections import UserString
 @[  end if]@

@@ -30,7 +30,7 @@ def _primitive_msg_type_to_c(type_):
     msg_type_to_c = {
         'bool': 'bool',
         'byte': 'uint8_t',
-        'char': 'signed char',
+        'char': 'uint8_t',
         'float32': 'float',
         'float64': 'double',
         'uint8': 'uint8_t',

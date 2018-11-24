@@ -193,8 +193,13 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
       return false;
     }
 @[      else]@
-    if (!rosidl_generator_c__@(field.type.type)__Sequence__init(&(ros_message->@(field.name)), size)) {
-      PyErr_SetString(PyExc_RuntimeError, "unable to create @(field.type.type)__Sequence ros_message");
+@{
+type_ = field.type.type
+if type_ == 'char':
+    type_ = 'uint8'
+}@
+    if (!rosidl_generator_c__@(type_)__Sequence__init(&(ros_message->@(field.name)), size)) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to create @(type_)__Sequence ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
       return false;

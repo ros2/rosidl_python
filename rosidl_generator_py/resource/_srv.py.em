@@ -1,23 +1,22 @@
-# generated from rosidl_generator_py/resource/_srv.py.em
-# generated code does not contain a copyright notice
+@# Included from rosidl_generator_py/resource/_idl.py.em
+@{
+from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 
-@#######################################################################
-@# EmPy template for generating _<srv>.py files
-@#
-@# Context:
-@#  - module_name
-@#  - package_name
-@#  - spec (rosidl_parser.ServiceSpecification)
-@#    Parsed specification of the .srv file
-@#  - convert_camel_case_to_lower_case_underscore (function)
-@#######################################################################
-@
-import logging
-import traceback
+module_name = '_' + convert_camel_case_to_lower_case_underscore(service.structure_type.name)
+
+TEMPLATE(
+    '_msg.py.em',
+    package_name=package_name, interface_path=interface_path,
+    message=service.request_message)
+TEMPLATE(
+    '_msg.py.em',
+    package_name=package_name, interface_path=interface_path,
+    message=service.response_message)
+}@
 
 
-class Metaclass(type):
-    """Metaclass of message '@(spec.srv_name)'."""
+class Metaclass_@(service.structure_type.name)(type):
+    """Metaclass of message '@(service.structure_type.name)'."""
 
     _TYPE_SUPPORT = None
 
@@ -27,23 +26,24 @@ class Metaclass(type):
             from rosidl_generator_py import import_type_support
             module = import_type_support('@(package_name)')
         except ImportError:
-            logger = logging.getLogger('rosidl_generator_py.@(spec.srv_name)')
+            import logging
+            import traceback
+            logger = logging.getLogger('@('.'join(service.structure_type.namespaces + [service.structure_type.name]))')
             logger.debug(
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
             cls._TYPE_SUPPORT = module.type_support_srv__@(subfolder)_@(module_name)
-@{
-srv_name = '_' + convert_camel_case_to_lower_case_underscore(spec.srv_name)
-for field_name in [srv_name + '__request', srv_name + '__response']:
-    print('%sfrom %s.%s import %s' % (' ' * 4 * 3, package_name, subfolder, field_name))
-    print('%sif %s.Metaclass._TYPE_SUPPORT is None:' % (' ' * 4 * 3, field_name))
-    print('%s%s.Metaclass.__import_type_support__()' % (' ' * 4 * 4, field_name))
-}@
+
+            from @('.'.join(service.structure_type.namespaces[:-1])) import @(module_name)
+            if @(module_name).Metaclass_@(service.request_message.structure.type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(service.request_message.structure.type.name).__import_type_support__()
+            if @(module_name).Metaclass_@(service.response_message.structure.type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(service.response_message.structure.type.name).__import_type_support__()
 
 
-class @(spec.srv_name)(metaclass=Metaclass):
-    from @(package_name).@(subfolder)._@convert_camel_case_to_lower_case_underscore(spec.srv_name)__request import @(spec.srv_name)_Request as Request
-    from @(package_name).@(subfolder)._@convert_camel_case_to_lower_case_underscore(spec.srv_name)__response import @(spec.srv_name)_Response as Response
+class @(service.structure_type.name)(metaclass=Metaclass_@(service.structure_type.name)):
+    from @('.'.join(service.structure_type.namespaces)).@(module_name) import @(service.request_message.structure.type.name) as Request
+    from @('.'.join(service.structure_type.namespaces)).@(module_name) import @(service.response_message.structure.type.name) as Response
 
     def __init__(self):
         raise NotImplementedError('Service classes can not be instantiated')

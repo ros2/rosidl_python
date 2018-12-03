@@ -15,7 +15,7 @@
 macro(rosidl_generator_py_extras BIN GENERATOR_FILES TEMPLATE_DIR)
   find_package(ament_cmake_core QUIET REQUIRED)
   ament_register_extension(
-    "rosidl_generate_interfaces"
+    "rosidl_generate_idl_interfaces"
     "rosidl_generator_py"
     "rosidl_generator_py_generate_interfaces.cmake")
 

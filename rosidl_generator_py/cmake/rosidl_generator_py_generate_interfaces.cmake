@@ -1,4 +1,4 @@
-# Copyright 2014-2016 Open Source Robotics Foundation, Inc.
+# Copyright 2014-2018 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,83 +34,38 @@ endif()
 set(_output_path
   "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py/${PROJECT_NAME}")
 set(_generated_extension_files "")
-set(_generated_msg_py_files "")
-set(_generated_msg_c_files "")
-set(_generated_srv_py_files "")
-set(_generated_srv_c_files "")
-set(_generated_action_py_files "")
-set(_generated_action_c_files "")
+set(_generated_py_files "")
+set(_generated_c_files "")
 
 foreach(_typesupport_impl ${_typesupport_impls})
   set(_generated_extension_${_typesupport_impl}_files "")
 endforeach()
 
-foreach(_idl_file ${rosidl_generate_interfaces_IDL_FILES})
-  get_filename_component(_parent_folder "${_idl_file}" DIRECTORY)
+foreach(_idl_tuple ${rosidl_generate_interfaces_IDL_TUPLES})
+  string(REGEX REPLACE ":([^:]*)$" "/\\1" _abs_idl_file "${_idl_tuple}")
+  get_filename_component(_parent_folder "${_abs_idl_file}" DIRECTORY)
   get_filename_component(_parent_folder "${_parent_folder}" NAME)
-  get_filename_component(_msg_name1 "${_idl_file}" NAME_WE)
-  get_filename_component(_ext "${_idl_file}" EXT)
-  string_camel_case_to_lower_case_underscore("${_msg_name1}" _module_name)
-
-  if(_parent_folder STREQUAL "msg")
-    list(APPEND _generated_msg_py_files
-      "${_output_path}/${_parent_folder}/_${_module_name}.py"
-    )
-    list(APPEND _generated_msg_c_files
-      "${_output_path}/${_parent_folder}/_${_module_name}_s.c"
-    )
-  elseif(_parent_folder STREQUAL "srv")
-    if("_${_module_name}_s.c" MATCHES "(.*)__response(.*)" OR "_${_module_name}_s.c" MATCHES "(.*)__request(.*)")
-      list(APPEND _generated_srv_c_files
-        "${_output_path}/${_parent_folder}/_${_module_name}_s.c"
-      )
-    endif()
-    list(APPEND _generated_srv_py_files
-      "${_output_path}/${_parent_folder}/_${_module_name}.py"
-    )
-  elseif(_parent_folder STREQUAL "action")
-    # C files generated for <msg>.msg, <service>_Request.msg and <service>_Response.msg but not <service>.srv
-    if(_ext STREQUAL ".msg")
-      list(APPEND _generated_action_c_files
-        "${_output_path}/${_parent_folder}/_${_module_name}_s.c"
-      )
-    endif()
-    list(APPEND _generated_action_py_files
-      "${_output_path}/${_parent_folder}/_${_module_name}.py"
-    )
-  else()
-    message(FATAL_ERROR "Interface file with unknown parent folder: ${_idl_file}")
-  endif()
+  get_filename_component(_idl_name "${_abs_idl_file}" NAME_WE)
+  string_camel_case_to_lower_case_underscore("${_idl_name}" _module_name)
+  list(APPEND _generated_py_files
+    "${_output_path}/${_parent_folder}/_${_module_name}.py")
+  list(APPEND _generated_c_files
+    "${_output_path}/${_parent_folder}/_${_module_name}_s.c")
 endforeach()
 
 file(MAKE_DIRECTORY "${_output_path}")
 file(WRITE "${_output_path}/__init__.py" "")
 
-if(NOT _generated_msg_py_files STREQUAL "")
-  list(GET _generated_msg_py_files 0 _msg_file)
-  get_filename_component(_parent_folder "${_msg_file}" DIRECTORY)
-  list(APPEND _generated_msg_py_files
-    "${_parent_folder}/__init__.py"
-  )
-endif()
+foreach(_generated_py_file ${_generated_py_files})
+  get_filename_component(_parent_folder "${_generated_py_file}" DIRECTORY)
+  set(_init_module "${_parent_folder}/__init__.py")
+  list(FIND _generated_py_files "${_init_module}" _index)
+  if(_index EQUAL -1)
+    list(APPEND _generated_py_files "${_init_module}")
+  endif()
+endforeach()
 
-if(NOT _generated_srv_py_files STREQUAL "")
-  list(GET _generated_srv_py_files 0 _srv_file)
-  get_filename_component(_parent_folder "${_srv_file}" DIRECTORY)
-  list(APPEND _generated_srv_py_files
-    "${_parent_folder}/__init__.py"
-  )
-endif()
-
-if(NOT _generated_action_py_files STREQUAL "")
-  list(GET _generated_action_py_files 0 _action_file)
-  get_filename_component(_parent_folder "${_action_file}" DIRECTORY)
-  list(APPEND _generated_action_py_files
-    "${_parent_folder}/__init__.py"
-  )
-endif()
-
-if(NOT _generated_msg_c_files STREQUAL "" OR NOT _generated_srv_c_files STREQUAL "" OR NOT _generated_action_c_files STREQUAL "")
+if(NOT _generated_c_files STREQUAL "")
     foreach(_typesupport_impl ${_typesupport_impls})
       list(APPEND _generated_extension_${_typesupport_impl}_files "${_output_path}/_${PROJECT_NAME}_s.ep.${_typesupport_impl}.c")
       list(APPEND _generated_extension_files "${_generated_extension_${_typesupport_impl}_files}")
@@ -119,7 +74,7 @@ endif()
 set(_dependency_files "")
 set(_dependencies "")
 foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-  foreach(_idl_file ${${_pkg_name}_INTERFACE_FILES})
+  foreach(_idl_file ${${_pkg_name}_IDL_FILES})
     set(_abs_idl_file "${${_pkg_name}_DIR}/../${_idl_file}")
     normalize_path(_abs_idl_file "${_abs_idl_file}")
     list(APPEND _dependency_files "${_abs_idl_file}")
@@ -130,8 +85,10 @@ endforeach()
 set(target_dependencies
   "${rosidl_generator_py_BIN}"
   ${rosidl_generator_py_GENERATOR_FILES}
+  "${rosidl_generator_py_TEMPLATE_DIR}/_idl_support.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg_support.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg_pkg_typesupport_entry_point.c.em"
+  "${rosidl_generator_py_TEMPLATE_DIR}/_idl.py.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg.py.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_srv.py.em"
   ${_dependency_files})
@@ -145,7 +102,7 @@ set(generator_arguments_file "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py__a
 rosidl_write_generator_arguments(
   "${generator_arguments_file}"
   PACKAGE_NAME "${PROJECT_NAME}"
-  ROS_INTERFACE_FILES "${rosidl_generate_interfaces_IDL_FILES}"
+  IDL_TUPLES "${rosidl_generate_interfaces_IDL_TUPLES}"
   ROS_INTERFACE_DEPENDENCIES "${_dependencies}"
   OUTPUT_DIR "${_output_path}"
   TEMPLATE_DIR "${rosidl_generator_py_TEMPLATE_DIR}"
@@ -210,7 +167,7 @@ file(WRITE "${_subdir}/CMakeLists.txt" "${_custom_command}")
 add_subdirectory("${_subdir}" ${rosidl_generate_interfaces_TARGET}${_target_suffix})
 set_property(
   SOURCE
-  ${_generated_extension_files} ${_generated_msg_py_files} ${_generated_msg_c_files} ${_generated_srv_py_files} ${_generated_srv_c_files} ${_generated_action_py_files} ${_generated_action_c_files}
+  ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files}
   PROPERTY GENERATED 1)
 
 macro(set_properties _build_type)
@@ -231,11 +188,7 @@ macro(set_lib_properties _build_type)
 endmacro()
 
 set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__python")
-add_library(${_target_name_lib} SHARED
-  ${_generated_msg_c_files}
-  ${_generated_srv_c_files}
-  ${_generated_action_c_files}
-)
+add_library(${_target_name_lib} SHARED ${_generated_c_files})
 add_dependencies(
   ${_target_name_lib}
   ${rosidl_generate_interfaces_TARGET}${_target_suffix}
@@ -359,13 +312,9 @@ endif()
 
 if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)
   if(
-    NOT _generated_msg_py_files STREQUAL "" OR
+    NOT _generated_py_files STREQUAL "" OR
     NOT _generated_extension_files STREQUAL "" OR
-    NOT _generated_msg_c_files STREQUAL "" OR
-    NOT _generated_srv_py_files STREQUAL "" OR
-    NOT _generated_srv_c_files STREQUAL "" OR
-    NOT _generated_action_c_files STREQUAL "" OR
-    NOT _generated_action_py_files STREQUAL ""
+    NOT _generated_c_files STREQUAL ""
   )
     find_package(ament_cmake_cppcheck REQUIRED)
     ament_cppcheck(

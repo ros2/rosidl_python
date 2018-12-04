@@ -35,13 +35,8 @@ from rosidl_parser.definition import Service
 @[for service in content.get_elements_of_type(Service)]@
 @{
 TEMPLATE(
-    '_msg.py.em',
-    package_name=package_name, interface_path=interface_path,
-    message=service.request_message)
-TEMPLATE(
-    '_msg.py.em',
-    package_name=package_name, interface_path=interface_path,
-    message=service.response_message)
+    '_srv.py.em',
+    package_name=package_name, interface_path=interface_path, service=service)
 }@
 @[end for]@
 @
@@ -66,21 +61,13 @@ TEMPLATE(
     package_name=package_name, interface_path=interface_path,
     message=action.feedback)
 TEMPLATE(
-    '_msg.py.em',
+    '_srv.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.goal_service.request_message)
+    service=action.goal_service)
 TEMPLATE(
-    '_msg.py.em',
+    '_srv.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.goal_service.response_message)
-TEMPLATE(
-    '_msg.py.em',
-    package_name=package_name, interface_path=interface_path,
-    message=action.result_service.request_message)
-TEMPLATE(
-    '_msg.py.em',
-    package_name=package_name, interface_path=interface_path,
-    message=action.result_service.response_message)
+    service=action.result_service)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,

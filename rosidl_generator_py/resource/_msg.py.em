@@ -45,7 +45,7 @@ class Metaclass_@(message.structure.type.name)(type):
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
 @{
-suffix = '.'.join(message.structure.type.namespaces[1:]) + '_' + convert_camel_case_to_lower_case_underscore(message.structure.type.name)
+suffix = '__'.join(message.structure.type.namespaces[1:]) + '_' + convert_camel_case_to_lower_case_underscore(message.structure.type.name)
 }@
             cls._CREATE_ROS_MESSAGE = module.create_ros_message_msg__@(suffix)
             cls._CONVERT_FROM_PY = module.convert_from_py_msg__@(suffix)

@@ -56,12 +56,18 @@ endforeach()
 file(MAKE_DIRECTORY "${_output_path}")
 file(WRITE "${_output_path}/__init__.py" "")
 
+set(_generated_py_dirs "")
 foreach(_generated_py_file ${_generated_py_files})
   get_filename_component(_parent_folder "${_generated_py_file}" DIRECTORY)
   set(_init_module "${_parent_folder}/__init__.py")
   list(FIND _generated_py_files "${_init_module}" _index)
   if(_index EQUAL -1)
     list(APPEND _generated_py_files "${_init_module}")
+
+    string(LENGTH "${_output_path}" _length)
+    math(EXPR _index "${_length} + 1")
+    string(SUBSTRING "${_parent_folder}" ${_index} -1 _relative_directory)
+    list(APPEND _generated_py_dirs "${_relative_directory}")
   endif()
 endforeach()
 
@@ -110,53 +116,21 @@ rosidl_write_generator_arguments(
   TEMPLATE_DIR "${rosidl_generator_py_TEMPLATE_DIR}"
   TARGET_DEPENDENCIES ${target_dependencies}
 )
-set(extra_generator_dependencies "")
-
-if(NOT _generated_msg_py_files STREQUAL "")
-  list(GET _generated_msg_py_files 0 _msg_file)
-  get_filename_component(_msg_package_dir1 "${_msg_file}" DIRECTORY)
-  get_filename_component(_msg_package_dir2 "${_msg_package_dir1}" NAME)
-endif()
-
-if(NOT _generated_srv_py_files STREQUAL "")
-  list(GET _generated_srv_py_files 0 _srv_file)
-  get_filename_component(_srv_package_dir1 "${_srv_file}" DIRECTORY)
-  get_filename_component(_srv_package_dir2 "${_srv_package_dir1}" NAME)
-endif()
-
-if(NOT _generated_action_py_files STREQUAL "")
-  list(GET _generated_action_py_files 0 _action_file)
-  get_filename_component(_action_package_dir1 "${_action_file}" DIRECTORY)
-  get_filename_component(_action_package_dir2 "${_action_package_dir1}" NAME)
-endif()
 
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   ament_python_install_module("${_output_path}/__init__.py"
     DESTINATION_SUFFIX "${PROJECT_NAME}"
   )
 
-  ament_python_install_module("${_output_path}/__init__.py"
-    DESTINATION_SUFFIX "${PROJECT_NAME}/${_msg_package_dir2}"
-  )
-
   # TODO(esteve): replace this with ament_python_install_module and allow a list
-  # of modules to be passed instead of iterating over _generated_msg_py_files
+  # of modules to be passed instead of iterating over _generated_py_files
   # See https://github.com/ros2/rosidl/issues/89
-  if(NOT _msg_package_dir2 STREQUAL "")
-    install(FILES ${_generated_msg_py_files}
-      DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_msg_package_dir2}"
+  foreach(_generated_py_dir ${_generated_py_dirs})
+    install(DIRECTORY "${_output_path}/${_generated_py_dir}"
+      DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_generated_py_dir}"
+      PATTERN "*.py"
     )
-  endif()
-  if(NOT _srv_package_dir2 STREQUAL "")
-    install(FILES ${_generated_srv_py_files}
-      DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_srv_package_dir2}"
-    )
-  endif()
-  if(NOT _action_package_dir2 STREQUAL "")
-    install(FILES ${_generated_action_py_files}
-      DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_action_package_dir2}"
-    )
-  endif()
+  endforeach()
 endif()
 
 set(_target_suffix "__py")

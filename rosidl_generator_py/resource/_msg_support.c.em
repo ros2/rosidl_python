@@ -112,11 +112,11 @@ if isinstance(type_, NestedType):
 @[    if type_.namespaces[0] != package_name]@
 ROSIDL_GENERATOR_C_IMPORT
 @[    end if]@
-bool @('__'.join(type_.namespaces + [type_.name]))__convert_from_py(PyObject * _pymsg, void * _ros_message);
+bool @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_from_py(PyObject * _pymsg, void * _ros_message);
 @[    if type_.namespaces[0] != package_name]@
 ROSIDL_GENERATOR_C_IMPORT
 @[    end if]@
-PyObject * @('__'.join(type_.namespaces + [type_.name]))__convert_to_py(void * raw_ros_message);
+PyObject * @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_to_py(void * raw_ros_message);
 @[  end if]@
 @[end for]@
 
@@ -124,7 +124,7 @@ PyObject * @('__'.join(type_.namespaces + [type_.name]))__convert_to_py(void * r
 module_name = '_' + convert_camel_case_to_lower_case_underscore(message.structure.type.name)
 }@
 ROSIDL_GENERATOR_C_EXPORT
-bool @('__'.join(message.structure.type.namespaces + [message.structure.type.name]))__convert_from_py(PyObject * _pymsg, void * _ros_message)
+bool @('__'.join(message.structure.type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.type.name)]))__convert_from_py(PyObject * _pymsg, void * _ros_message)
 {
 @{
 full_classname = '%s._%s.%s' % ('.'.join(message.structure.type.namespaces), module_name, message.structure.type.name)
@@ -201,7 +201,7 @@ nested_type = '__'.join(type_.namespaces + [type_.name])
     @(nested_type) * dest = ros_message->@(member.name);
 @[      end if]@
     for (Py_ssize_t i = 0; i < size; ++i) {
-      if (!@('__'.join(type_.namespaces + [type_.name]))__convert_from_py(PySequence_Fast_GET_ITEM(seq_field, i), &dest[i])) {
+      if (!@('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_from_py(PySequence_Fast_GET_ITEM(seq_field, i), &dest[i])) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
         return false;
@@ -209,7 +209,7 @@ nested_type = '__'.join(type_.namespaces + [type_.name])
     }
     Py_DECREF(seq_field);
 @[    else]@
-    if (!@('__'.join(type_.namespaces + [type_.name]))__convert_from_py(field, &ros_message->@(member.name))) {
+    if (!@('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_from_py(field, &ros_message->@(member.name))) {
       Py_DECREF(field);
       return false;
     }
@@ -383,7 +383,7 @@ nested_type = '__'.join(type_.namespaces + [type_.name])
 }
 
 ROSIDL_GENERATOR_C_EXPORT
-PyObject * @('__'.join(message.structure.type.namespaces + [message.structure.type.name]))__convert_to_py(void * raw_ros_message)
+PyObject * @('__'.join(message.structure.type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.type.name)]))__convert_to_py(void * raw_ros_message)
 {
   /* NOTE(esteve): Call constructor of @(message.structure.type.name) */
   PyObject * _pymessage = NULL;
@@ -429,7 +429,7 @@ nested_type = '__'.join(type_.namespaces + [type_.name])
 @[      else]@
       item = &(ros_message->@(member.name)[i]);
 @[      end if]@
-      PyObject * pyitem = @('__'.join(type_.namespaces + [type_.name]))__convert_to_py(item);
+      PyObject * pyitem = @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_to_py(item);
       if (!pyitem) {
         Py_DECREF(field);
         return NULL;
@@ -440,7 +440,7 @@ nested_type = '__'.join(type_.namespaces + [type_.name])
     }
     assert(PySequence_Check(field));
 @[    else]@
-    field = @('__'.join(type_.namespaces + [type_.name]))__convert_to_py(&ros_message->@(member.name));
+    field = @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_to_py(&ros_message->@(member.name));
     if (!field) {
       return NULL;
     }

@@ -126,7 +126,7 @@ if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   # of modules to be passed instead of iterating over _generated_py_files
   # See https://github.com/ros2/rosidl/issues/89
   foreach(_generated_py_dir ${_generated_py_dirs})
-    install(DIRECTORY "${_output_path}/${_generated_py_dir}"
+    install(DIRECTORY "${_output_path}/${_generated_py_dir}/"
       DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_generated_py_dir}"
       PATTERN "*.py"
     )

@@ -5,11 +5,12 @@
   <version>0.6.0</version>
   <description>Provide CMake module with extra functionality for Python.</description>
 
-  <maintainer email="mikael@osrfoundation.org">Mikael Arguedas</maintainer>
+  <maintainer email="scott@openrobotics.org">Scott K Logan</maintainer>
 
   <license>Apache License 2.0</license>
 
   <author>Esteve Fernandez</author>
+  <author>Mikael Arguedas</author> 
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

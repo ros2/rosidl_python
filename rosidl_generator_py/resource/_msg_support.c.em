@@ -201,13 +201,27 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
       }
 @[    if field.type.type == 'char']@
       assert(PyUnicode_Check(item));
-      @primitive_msg_type_to_c(field.type.type) tmp = PyUnicode_1BYTE_DATA(item)[0];
+      PyObject * encoded_item = PyUnicode_AsASCIIString(item);
+      if (!encoded_item) {
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+      @primitive_msg_type_to_c(field.type.type) tmp = PyBytes_AS_STRING(encoded_item)[0];
+      Py_DECREF(encoded_item);
 @[    elif field.type.type == 'byte']@
       assert(PyBytes_Check(item));
       @primitive_msg_type_to_c(field.type.type) tmp = PyBytes_AS_STRING(item)[0];
 @[    elif field.type.type == 'string']@
       assert(PyUnicode_Check(item));
-      rosidl_generator_c__String__assign(&dest[i], (char *)PyUnicode_1BYTE_DATA(item));
+      PyObject * encoded_item = PyUnicode_AsASCIIString(item);
+      if (!encoded_item) {
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+      rosidl_generator_c__String__assign(&dest[i], PyBytes_AS_STRING(encoded_item));
+      Py_DECREF(encoded_item);
 @[    elif field.type.type == 'bool']@
       assert(PyBool_Check(item));
       @primitive_msg_type_to_c(field.type.type) tmp = (item == Py_True);
@@ -250,13 +264,25 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
     Py_DECREF(seq_field);
 @[  elif field.type.type == 'char']@
     assert(PyUnicode_Check(field));
-    ros_message->@(field.name) = PyUnicode_1BYTE_DATA(field)[0];
+    PyObject * encoded_field = PyUnicode_AsASCIIString(field);
+    if (!encoded_field) {
+      Py_DECREF(field);
+      return false;
+    }
+    ros_message->@(field.name) = PyBytes_AS_STRING(encoded_field)[0];
+    Py_DECREF(encoded_field);
 @[  elif field.type.type == 'byte']@
     assert(PyBytes_Check(field));
     ros_message->@(field.name) = PyBytes_AS_STRING(field)[0];
 @[  elif field.type.type == 'string']@
     assert(PyUnicode_Check(field));
-    rosidl_generator_c__String__assign(&ros_message->@(field.name), (char *)PyUnicode_1BYTE_DATA(field));
+    PyObject * encoded_field = PyUnicode_AsASCIIString(field);
+    if (!encoded_field) {
+      Py_DECREF(field);
+      return false;
+    }
+    rosidl_generator_c__String__assign(&ros_message->@(field.name), PyBytes_AS_STRING(encoded_field));
+    Py_DECREF(encoded_field);
 @[  elif field.type.type == 'bool']@
     assert(PyBool_Check(field));
     ros_message->@(field.name) = (Py_True == field);
@@ -385,7 +411,11 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
       (void)rc;
       assert(rc == 0);
 @[    elif field.type.type == 'string']@
-      int rc = PyList_SetItem(field, i, PyUnicode_FromString(src[i].data));
+      PyObject * decoded_item = PyUnicode_DecodeASCII(src[i].data, strlen(src[i].data), "strict");
+      if (!decoded_item) {
+        return NULL;
+      }
+      int rc = PyList_SetItem(field, i, decoded_item);
       (void)rc;
       assert(rc == 0);
 @[    elif field.type.type == 'bool']@
@@ -435,7 +465,13 @@ lowercase_field_type = convert_camel_case_to_lower_case_underscore(field.type.ty
       return NULL;
     }
 @[  elif field.type.type == 'string']@
-    field = PyUnicode_FromString(ros_message->@(field.name).data);
+    field = PyUnicode_DecodeASCII(
+      ros_message->@(field.name).data,
+      strlen(ros_message->@(field.name).data),
+      "strict");
+    if (!field) {
+      return NULL;
+    }
 @[  elif field.type.type == 'bool']@
 @# using PyBool_FromLong allows treating the variable uniformly by calling Py_DECREF on it later
     field = PyBool_FromLong(ros_message->@(field.name) ? 1 : 0);

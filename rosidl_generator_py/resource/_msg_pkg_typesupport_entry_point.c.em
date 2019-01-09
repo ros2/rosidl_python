@@ -22,16 +22,17 @@
 
 @{
 static_includes = set([
-    '#include <rosidl_generator_c/message_type_support_struct.h>',
     '#include <rosidl_generator_c/visibility_control.h>',
 ])
-for spec, subfolder in message_specs:
-  if subfolder == 'msg':
-    static_includes.add('#include <rosidl_generator_c/message_type_support_struct.h>')
-  elif subfolder == 'srv' or subfolder == 'action':
-    static_includes.add('#include <rosidl_generator_c/service_type_support_struct.h>')
-    if subfolder == 'action':
-      static_includes.add('#include <rosidl_generator_c/action_type_support_struct.h>')
+
+if message_specs:
+  static_includes.add('#include <rosidl_generator_c/message_type_support_struct.h>')
+
+if service_specs:
+  static_includes.add('#include <rosidl_generator_c/service_type_support_struct.h>')
+
+if action_specs:
+  static_includes.add('#include <rosidl_generator_c/action_type_support_struct.h>')
 }@
 @[for value in sorted(static_includes)]@
 @(value)

@@ -25,13 +25,14 @@ class Metaclass(type):
     def __import_type_support__(cls):
         try:
             from rosidl_generator_py import import_type_support
-            module = import_type_support('@(package_name)')
+            module = import_type_support('@(package_name)', '@(package_name)_action')
         except ImportError:
             logger = logging.getLogger('rosidl_generator_py.@(spec.action_name)')
             logger.debug(
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
             cls._TYPE_SUPPORT = module.type_support_action__@(subfolder)_@(module_name)
+
 @{
 preffix = '_' + convert_camel_case_to_lower_case_underscore(spec.action_name) + '__'
 suffixes = ['feedback', 'goal', 'result']

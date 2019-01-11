@@ -24,20 +24,16 @@
 static_includes = set([
     '#include <rosidl_generator_c/visibility_control.h>',
 ])
-
 if message_specs:
   static_includes.add('#include <rosidl_generator_c/message_type_support_struct.h>')
-
 if service_specs:
   static_includes.add('#include <rosidl_generator_c/service_type_support_struct.h>')
-
 if action_specs:
   static_includes.add('#include <rosidl_generator_c/action_type_support_struct.h>')
 }@
 @[for value in sorted(static_includes)]@
 @(value)
 @[end for]@
-
 @{
 includes = {}
 for spec, subfolder in message_specs:
@@ -57,7 +53,7 @@ for spec, subfolder in service_specs:
 @[for v in sorted(includes.values())]@
 @(v)
 @[end for]@
-
+@
 @[for spec, subfolder in message_specs]@
 @{
 pkg_name = spec.base_type.pkg_name
@@ -141,6 +137,7 @@ _register_msg_type__@(subfolder)__@(type_name)(PyObject * pymodule)
   return 0;
 }
 @[end for]@
+@
 @[for spec, subfolder in service_specs]@
 @{
 type_name = convert_camel_case_to_lower_case_underscore(spec.srv_name)
@@ -176,7 +173,7 @@ _register_srv_type__@(subfolder)__@(type_name)(PyObject * pymodule)
   return 0;
 }
 @[end for]@
-
+@
 @[for spec, subfolder in action_specs]@
 @{
 type_name = convert_camel_case_to_lower_case_underscore(spec.action_name)

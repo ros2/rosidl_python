@@ -212,7 +212,7 @@ if(NOT rosidl_generate_action_interfaces_SKIP_INSTALL)
     if(NOT _action_package_dir STREQUAL "")
       install(FILES ${_generated_action_py_files}
         DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}/${_action_package_dir}"
-        )
+      )
     endif()
   endif()
 endif()

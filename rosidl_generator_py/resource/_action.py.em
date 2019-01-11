@@ -32,7 +32,6 @@ class Metaclass(type):
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
             cls._TYPE_SUPPORT = module.type_support_action__@(subfolder)_@(module_name)
-
 @{
 preffix = '_' + convert_camel_case_to_lower_case_underscore(spec.action_name) + '__'
 suffixes = ['feedback', 'goal', 'result']
@@ -47,6 +46,7 @@ print('%sfrom %s.%s import %s' % (' ' * 4 * 3, 'action_msgs', 'srv', '_cancel_go
 print('%sif %s.Metaclass._TYPE_SUPPORT is None:' % (' ' * 4 * 3, '_cancel_goal'))
 print('%s%s.Metaclass.__import_type_support__()' % (' ' * 4 * 4, '_cancel_goal'))
 }@
+
 
 class @(spec.action_name)(metaclass=Metaclass):
     from action_msgs.srv._cancel_goal import CancelGoal as CancelGoalService

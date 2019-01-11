@@ -120,7 +120,7 @@ def generate_py(generator_arguments_file, typesupport_impls):
 
         path_to_module = os.path.join(args['output_dir'], subfolder, '__init__.py')
 
-        content = ""
+        content = ''
         if os.path.isfile(path_to_module):
             with open(path_to_module, 'r') as f:
                 content = f.read()
@@ -129,17 +129,16 @@ def generate_py(generator_arguments_file, typesupport_impls):
             if action_specs:
                 block_name += '_action'
             content = re.sub(
-                r"# BEGIN %s$.*^# END %s" % (block_name, block_name),
+                r'# BEGIN %s$.*^# END %s' % (block_name, block_name),
                 '', content, 0, re.M | re.S
             )
-            content = re.sub(r"^\s*$", '', content, 0, re.M)
-            content += ''.join(
+            content = re.sub(r'^\s*$', '', content, 0, re.M)
+            content = ''.join(
                 ['# BEGIN %s\n' % block_name] +
-                sorted(import_list.values()) +  # import_line 
+                sorted(import_list.values()) +  # import_line
                 sorted(import_list.keys()) +  # noqa_line
                 ['# END %s\n' % block_name]
-            )
-            print(content)
+            ) + content
             f.write(content)
 
     for template_file, generated_filenames in mapping_msg_pkg_extension.items():

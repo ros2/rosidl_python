@@ -46,4 +46,4 @@ class @(spec.srv_name)(metaclass=Metaclass):
     from @(package_name).@(subfolder)._@convert_camel_case_to_lower_case_underscore(spec.srv_name)__response import @(spec.srv_name)_Response as Response
 
     def __init__(self):
-        raise NotImplementedError('Service classes can not be instanciated')
+        raise NotImplementedError('Service classes can not be instantiated')

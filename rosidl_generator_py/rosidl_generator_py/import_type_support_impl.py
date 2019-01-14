@@ -24,7 +24,7 @@ class UnsupportedTypeSupport(Exception):
         self.pkg_name = pkg_name
 
 
-def import_type_support(pkg_name):
+def import_type_support(pkg_name, mod_prefix=None):
     """
     Import the rosidl_typesupport_c module of a package.
 
@@ -33,11 +33,12 @@ def import_type_support(pkg_name):
     be converted to and from message structures used by the rmw implementation.
 
     :param pkg_name str: name of the package
+    :param mod_prefix str: optional typesupport module prefix
     :returns: the typesupport Python module for the specified package
     """
-    module_name = '.{pkg_name}_s__rosidl_typesupport_c'.format(
-        pkg_name=pkg_name,
-    )
+    if not mod_prefix:
+        mod_prefix = pkg_name
+    module_name = '.{}_s__rosidl_typesupport_c'.format(mod_prefix)
     try:
         return importlib.import_module(module_name, package=pkg_name)
     except ImportError:

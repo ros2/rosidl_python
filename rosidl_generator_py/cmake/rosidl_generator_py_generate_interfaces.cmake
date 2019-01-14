@@ -151,7 +151,7 @@ rosidl_write_generator_arguments(
   TEMPLATE_DIR "${rosidl_generator_py_TEMPLATE_DIR}"
   TARGET_DEPENDENCIES ${target_dependencies}
 )
-
+set(extra_generator_dependencies "")
 
 if(NOT _generated_msg_py_files STREQUAL "")
   list(GET _generated_msg_py_files 0 _msg_file)

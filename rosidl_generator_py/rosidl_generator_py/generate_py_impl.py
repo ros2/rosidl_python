@@ -82,8 +82,6 @@ def generate_py(generator_arguments_file, typesupport_impls):
     for template_file, generated_filenames in mapping_msg_pkg_extension.items():
         for generated_filename in generated_filenames:
             package_name = args['package_name']
-            if action_specs:
-                package_name += '_action'
             data = {
                 'package_name': args['package_name'],
                 'content': idl_content,

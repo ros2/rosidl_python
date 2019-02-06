@@ -16,7 +16,7 @@ TEMPLATE(
 
 
 class Metaclass_@(service.structure_type.name)(type):
-    """Metaclass of message '@(service.structure_type.name)'."""
+    """Metaclass of service '@(service.structure_type.name)'."""
 
     _TYPE_SUPPORT = None
 

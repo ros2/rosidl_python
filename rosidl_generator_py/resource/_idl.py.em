@@ -49,28 +49,7 @@ from rosidl_parser.definition import Action
 @[for action in content.get_elements_of_type(Action)]@
 @{
 TEMPLATE(
-    '_msg.py.em',
-    package_name=package_name, interface_path=interface_path,
-    message=action.goal_request)
-TEMPLATE(
-    '_msg.py.em',
-    package_name=package_name, interface_path=interface_path,
-    message=action.result_response)
-TEMPLATE(
-    '_msg.py.em',
-    package_name=package_name, interface_path=interface_path,
-    message=action.feedback)
-TEMPLATE(
-    '_srv.py.em',
-    package_name=package_name, interface_path=interface_path,
-    service=action.goal_service)
-TEMPLATE(
-    '_srv.py.em',
-    package_name=package_name, interface_path=interface_path,
-    service=action.result_service)
-TEMPLATE(
-    '_msg.py.em',
-    package_name=package_name, interface_path=interface_path,
-    message=action.feedback_message)
+    '_action.py.em',
+    package_name=package_name, interface_path=interface_path, action=action)
 }@
 @[end for]@

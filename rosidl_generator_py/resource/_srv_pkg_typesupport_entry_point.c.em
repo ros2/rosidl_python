@@ -2,15 +2,17 @@
 @{
 TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, message=service.request_message,
-    typesupport_impl=typesupport_impl, include_directives=include_directives)
+    package_name=package_name, idl_type=idl_type,
+    message=service.request_message, typesupport_impl=typesupport_impl,
+    include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, message=service.response_message,
-    typesupport_impl=typesupport_impl, include_directives=include_directives)
+    package_name=package_name, idl_type=idl_type,
+    message=service.response_message, typesupport_impl=typesupport_impl,
+    include_directives=include_directives)
 }@
 @
 @{

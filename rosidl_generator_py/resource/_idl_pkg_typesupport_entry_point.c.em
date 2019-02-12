@@ -42,7 +42,7 @@ static struct PyModuleDef @(package_name)__module = {
 @{
 TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, message=message,
+    package_name=package_name, idl_type=message.structure.type, message=message,
     typesupport_impl=typesupport_impl, include_directives=include_directives)
 }@
 @[end for]@
@@ -58,8 +58,9 @@ from rosidl_parser.definition import Service
 @{
 TEMPLATE(
     '_srv_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, service=service,
-    typesupport_impl=typesupport_impl, include_directives=include_directives)
+    package_name=package_name, idl_type=service.structure_type,
+    service=service, typesupport_impl=typesupport_impl,
+    include_directives=include_directives)
 }@
 @[end for]@
 @
@@ -74,43 +75,49 @@ from rosidl_parser.definition import Action
 @{
 TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, message=action.goal_request,
-    typesupport_impl=typesupport_impl, include_directives=include_directives)
+    package_name=package_name, idl_type=action.structure_type,
+    message=action.goal, typesupport_impl=typesupport_impl,
+    include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, message=action.result_response,
-    typesupport_impl=typesupport_impl, include_directives=include_directives)
+    package_name=package_name, idl_type=action.structure_type,
+    message=action.result, typesupport_impl=typesupport_impl,
+    include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, message=action.feedback,
-    typesupport_impl=typesupport_impl, include_directives=include_directives)
+    package_name=package_name, idl_type=action.structure_type,
+    message=action.feedback, typesupport_impl=typesupport_impl,
+    include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_srv_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, service=action.goal_service,
-    typesupport_impl=typesupport_impl, include_directives=include_directives)
+    package_name=package_name, idl_type=action.structure_type,
+    service=action.send_goal_service, typesupport_impl=typesupport_impl,
+    include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_srv_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, service=action.result_service,
-    typesupport_impl=typesupport_impl, include_directives=include_directives)
+    package_name=package_name, idl_type=action.structure_type,
+    service=action.get_result_service, typesupport_impl=typesupport_impl,
+    include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, message=action.feedback_message,
-    typesupport_impl=typesupport_impl, include_directives=include_directives)
+    package_name=package_name, idl_type=action.structure_type,
+    message=action.feedback_message, typesupport_impl=typesupport_impl,
+    include_directives=include_directives)
 }@
 @[end for]@
 
@@ -153,13 +160,13 @@ PyInit_@(package_name)_s__@(typesupport_impl)(void)
 @[end for]@
 @[for action in content.get_elements_of_type(Action)]@
 
-  err = _register_msg_type__@('__'.join(action.goal_request.structure.type.namespaces[1:]))__@(convert_camel_case_to_lower_case_underscore(action.goal_request.structure.type.name))(pymodule);
+  err = _register_msg_type__@('__'.join(action.goal.structure.type.namespaces[1:]))__@(convert_camel_case_to_lower_case_underscore(action.goal.structure.type.name))(pymodule);
   if (err) {
     Py_XDECREF(pymodule);
     return NULL;
   }
 
-  err = _register_msg_type__@('__'.join(action.result_response.structure.type.namespaces[1:]))__@(convert_camel_case_to_lower_case_underscore(action.result_response.structure.type.name))(pymodule);
+  err = _register_msg_type__@('__'.join(action.result.structure.type.namespaces[1:]))__@(convert_camel_case_to_lower_case_underscore(action.result.structure.type.name))(pymodule);
   if (err) {
     Py_XDECREF(pymodule);
     return NULL;
@@ -171,13 +178,13 @@ PyInit_@(package_name)_s__@(typesupport_impl)(void)
     return NULL;
   }
 
-  err = _register_srv_type__@('__'.join(action.goal_service.structure_type.namespaces[1:]))__@(convert_camel_case_to_lower_case_underscore(action.goal_service.structure_type.name))(pymodule);
+  err = _register_srv_type__@('__'.join(action.send_goal_service.structure_type.namespaces[1:]))__@(convert_camel_case_to_lower_case_underscore(action.send_goal_service.structure_type.name))(pymodule);
   if (err) {
     Py_XDECREF(pymodule);
     return NULL;
   }
 
-  err = _register_srv_type__@('__'.join(action.result_service.structure_type.namespaces[1:]))__@(convert_camel_case_to_lower_case_underscore(action.result_service.structure_type.name))(pymodule);
+  err = _register_srv_type__@('__'.join(action.get_result_service.structure_type.namespaces[1:]))__@(convert_camel_case_to_lower_case_underscore(action.get_result_service.structure_type.name))(pymodule);
   if (err) {
     Py_XDECREF(pymodule);
     return NULL;

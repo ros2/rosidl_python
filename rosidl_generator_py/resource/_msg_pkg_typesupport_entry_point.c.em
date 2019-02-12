@@ -1,23 +1,9 @@
 @# Included from rosidl_generator_py/resource/_idl_pkg_typesupport_entry_point.c.em
 @{
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
-module_name = convert_camel_case_to_lower_case_underscore(message.structure.type.name)
 
-header_filename = module_name
-if header_filename.endswith('__request'):
-    header_filename = header_filename[:-9]
-elif header_filename.endswith('__response'):
-    header_filename = header_filename[:-10]
-if header_filename.endswith('__goal'):
-    header_filename = header_filename[:-6]
-elif header_filename.endswith('__result'):
-    header_filename = header_filename[:-8]
-elif header_filename.endswith('__feedback'):
-    header_filename = header_filename[:-10]
-if header_filename.endswith('__action'):
-    header_filename = header_filename[:-8]
-
-include_parts = message.structure.type.namespaces + [header_filename]
+include_parts = idl_type.namespaces + [
+    convert_camel_case_to_lower_case_underscore(idl_type.name)]
 include_base = '/'.join(include_parts)
 
 header_files = [
@@ -47,6 +33,7 @@ header_files = [
 @[end for]@
 @
 @{
+module_name = convert_camel_case_to_lower_case_underscore(message.structure.type.name)
 msg_typename = '__'.join(message.structure.type.namespaces + [message.structure.type.name])
 }@
 

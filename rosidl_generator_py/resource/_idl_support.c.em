@@ -64,14 +64,14 @@ from rosidl_parser.definition import Action
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.goal_request, include_directives=include_directives)
+    message=action.goal, include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.result_response, include_directives=include_directives)
+    message=action.result, include_directives=include_directives)
 }@
 
 @{
@@ -85,7 +85,7 @@ TEMPLATE(
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.goal_service.request_message,
+    message=action.send_goal_service.request_message,
     include_directives=include_directives)
 }@
 
@@ -93,7 +93,7 @@ TEMPLATE(
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.goal_service.response_message,
+    message=action.send_goal_service.response_message,
     include_directives=include_directives)
 }@
 
@@ -101,7 +101,7 @@ TEMPLATE(
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.result_service.request_message,
+    message=action.get_result_service.request_message,
     include_directives=include_directives)
 }@
 
@@ -109,7 +109,7 @@ TEMPLATE(
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.result_service.response_message,
+    message=action.get_result_service.response_message,
     include_directives=include_directives)
 }@
 

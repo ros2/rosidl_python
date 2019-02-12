@@ -7,11 +7,11 @@ module_name = '_' + convert_camel_case_to_lower_case_underscore(action.structure
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.goal_request)
+    message=action.goal)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.result_response)
+    message=action.result)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
@@ -19,11 +19,11 @@ TEMPLATE(
 TEMPLATE(
     '_srv.py.em',
     package_name=package_name, interface_path=interface_path,
-    service=action.goal_service)
+    service=action.send_goal_service)
 TEMPLATE(
     '_srv.py.em',
     package_name=package_name, interface_path=interface_path,
-    service=action.result_service)
+    service=action.get_result_service)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
@@ -57,10 +57,10 @@ class Metaclass_@(action.structure_type.name)(type):
             if _cancel_goal.Metaclass._TYPE_SUPPORT is None:
                 _cancel_goal.Metaclass.__import_type_support__()
 
-            if @(module_name).Metaclass_@(action.goal_service.structure_type.name)._TYPE_SUPPORT is None:
-                @(module_name).Metaclass_@(action.goal_service.structure_type.name).__import_type_support__()
-            if @(module_name).Metaclass_@(action.result_service.structure_type.name)._TYPE_SUPPORT is None:
-                @(module_name).Metaclass_@(action.result_service.structure_type.name).__import_type_support__()
+            if @(module_name).Metaclass_@(action.send_goal_service.structure_type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(action.send_goal_service.structure_type.name).__import_type_support__()
+            if @(module_name).Metaclass_@(action.get_result_service.structure_type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(action.get_result_service.structure_type.name).__import_type_support__()
             if @(module_name).Metaclass_@(action.feedback.structure.type.name)._TYPE_SUPPORT is None:
                 @(module_name).Metaclass_@(action.feedback.structure.type.name).__import_type_support__()
 
@@ -68,8 +68,8 @@ class Metaclass_@(action.structure_type.name)(type):
 class @(action.structure_type.name)(metaclass=Metaclass_@(action.structure_type.name)):
     from action_msgs.srv._cancel_goal import CancelGoal as CancelGoalService
     from action_msgs.msg._goal_status_array import GoalStatusArray as GoalStatusMessage
-    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.goal_service.structure_type.name) as GoalService
-    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.result_service.structure_type.name) as ResultService
+    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.send_goal_service.structure_type.name) as GoalService
+    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.get_result_service.structure_type.name) as ResultService
     from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.feedback.structure.type.name) as Feedback
 
     Goal = GoalService.Request

@@ -2,7 +2,8 @@
 @{
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 
-module_name = '_' + convert_camel_case_to_lower_case_underscore(action.structure_type.name)
+action_name = '_' + convert_camel_case_to_lower_case_underscore(action.structure_type.name)
+module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
 
 TEMPLATE(
     '_msg.py.em',
@@ -48,7 +49,7 @@ class Metaclass_@(action.structure_type.name)(type):
             logger.debug(
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
-            cls._TYPE_SUPPORT = module.type_support_srv__@('__'.join(action.structure_type.namespaces[1:]))_@(module_name)
+            cls._TYPE_SUPPORT = module.type_support_srv__@('__'.join(action.structure_type.namespaces[1:]))_@(action_name)
 
             from action_msgs.msg import _goal_status_array
             if _goal_status_array.Metaclass._TYPE_SUPPORT is None:
@@ -57,6 +58,7 @@ class Metaclass_@(action.structure_type.name)(type):
             if _cancel_goal.Metaclass._TYPE_SUPPORT is None:
                 _cancel_goal.Metaclass.__import_type_support__()
 
+            from @('.'.join(action.structure_type.namespaces)) import @(module_name)
             if @(module_name).Metaclass_@(action.send_goal_service.structure_type.name)._TYPE_SUPPORT is None:
                 @(module_name).Metaclass_@(action.send_goal_service.structure_type.name).__import_type_support__()
             if @(module_name).Metaclass_@(action.get_result_service.structure_type.name)._TYPE_SUPPORT is None:

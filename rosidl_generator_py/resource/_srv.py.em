@@ -2,7 +2,8 @@
 @{
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 
-module_name = '_' + convert_camel_case_to_lower_case_underscore(service.structure_type.name)
+service_name = '_' + convert_camel_case_to_lower_case_underscore(service.structure_type.name)
+module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
 
 TEMPLATE(
     '_msg.py.em',
@@ -32,7 +33,7 @@ class Metaclass_@(service.structure_type.name)(type):
             logger.debug(
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
-            cls._TYPE_SUPPORT = module.type_support_srv__@('__'.join(service.structure_type.namespaces[1:]))_@(module_name)
+            cls._TYPE_SUPPORT = module.type_support_srv__@('__'.join(service.structure_type.namespaces[1:]))_@(service_name)
 
             from @('.'.join(service.structure_type.namespaces)) import @(module_name)
             if @(module_name).Metaclass_@(service.request_message.structure.type.name)._TYPE_SUPPORT is None:

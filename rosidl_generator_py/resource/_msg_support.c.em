@@ -127,7 +127,7 @@ ROSIDL_GENERATOR_C_EXPORT
 bool @('__'.join(message.structure.type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.type.name)]))__convert_from_py(PyObject * _pymsg, void * _ros_message)
 {
 @{
-full_classname = '%s._%s.%s' % ('.'.join(message.structure.type.namespaces), module_name, message.structure.type.name)
+full_classname = '%s.%s.%s' % ('.'.join(message.structure.type.namespaces), module_name, message.structure.type.name)
 }@
   // check that the passed message is of the expected Python class
   {
@@ -388,7 +388,7 @@ PyObject * @('__'.join(message.structure.type.namespaces + [convert_camel_case_t
   /* NOTE(esteve): Call constructor of @(message.structure.type.name) */
   PyObject * _pymessage = NULL;
   {
-    PyObject * pymessage_module = PyImport_ImportModule("@('.'.join(message.structure.type.namespaces))._@(module_name)");
+    PyObject * pymessage_module = PyImport_ImportModule("@('.'.join(message.structure.type.namespaces)).@(module_name)");
     assert(pymessage_module);
     PyObject * pymessage_class = PyObject_GetAttrString(pymessage_module, "@(message.structure.type.name)");
     assert(pymessage_class);

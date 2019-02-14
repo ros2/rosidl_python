@@ -39,7 +39,7 @@ _register_srv_type__@('__'.join(service.structure_type.namespaces[1:] + [type_na
   }
   err = PyModule_AddObject(
     pymodule,
-    "@(function_name)_srv__@('_'.join(service.structure_type.namespaces[1:] + [type_name]))",
+    "@(function_name)_srv__@('__'.join(service.structure_type.namespaces[1:] + [type_name]))",
     pyobject_@(function_name));
   if (err) {
     // the created capsule needs to be decremented

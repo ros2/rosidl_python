@@ -48,7 +48,7 @@ class Metaclass_@(action.structure_type.name)(type):
             logger.debug(
                 'Failed to import needed modules for type support:\n' + traceback.format_exc())
         else:
-            cls._TYPE_SUPPORT = module.type_support_srv__@('__'.join(action.structure_type.namespaces[1:]))_@(module_name)
+            cls._TYPE_SUPPORT = module.type_support_@('__'.join(action.structure_type.namespaces[1:]))_@(module_name)
 
             from action_msgs.msg import _goal_status_array
             if _goal_status_array.Metaclass._TYPE_SUPPORT is None:

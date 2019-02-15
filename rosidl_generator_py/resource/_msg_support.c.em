@@ -121,7 +121,7 @@ PyObject * @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_unde
 @[end for]@
 
 @{
-module_name = '_' + convert_camel_case_to_lower_case_underscore(message.structure.type.name)
+module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
 }@
 ROSIDL_GENERATOR_C_EXPORT
 bool @('__'.join(message.structure.type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.type.name)]))__convert_from_py(PyObject * _pymsg, void * _ros_message)

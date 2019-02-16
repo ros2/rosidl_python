@@ -55,18 +55,29 @@ suffix = '__'.join(message.structure.type.namespaces[1:]) + '__' + convert_camel
             cls._TYPE_SUPPORT = module.type_support_msg__@(suffix)
             cls._DESTROY_ROS_MESSAGE = module.destroy_ros_message_msg__@(suffix)
 @{
+from rosidl_parser.definition import ACTION_FEEDBACK_SUFFIX
+from rosidl_parser.definition import ACTION_GOAL_SUFFIX
+from rosidl_parser.definition import ACTION_RESULT_SUFFIX
 importable_typesupports = set()
 for member in message.structure.members:
     type_ = member.type
     if isinstance(type_, NestedType):
         type_ = type_.basetype
     if isinstance(type_, NamespacedType):
-        typename = (*type_.namespaces, type_.name)
+        if (
+            type_.name.endswith(ACTION_GOAL_SUFFIX) or
+            type_.name.endswith(ACTION_RESULT_SUFFIX) or
+            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
+        ):
+            action_name, suffix = type_.name.rsplit('_', 1)
+            typename = (*type_.namespaces, action_name, action_name + '.' + suffix)
+        else:
+            typename = (*type_.namespaces, type_.name, type_.name)
         importable_typesupports.add(typename)
 }@
 @[for typename in sorted(importable_typesupports)]@
 
-            from @('.'.join(typename[:-1])) import @(typename[-1])
+            from @('.'.join(typename[:-2])) import @(typename[-2])
             if @(typename[-1]).__class__._TYPE_SUPPORT is None:
                 @(typename[-1]).__class__.__import_type_support__()
 @[end for]@
@@ -306,8 +317,8 @@ bound = 2**nbits
                  all(val >= 0 and val < @(bound) for val in value)), \
 @{assert_msg_suffixes.append('and each unsigned integer in [0, %d]' % (bound - 1))}@
 @[    elif isinstance(type_, BasicType) and type_.type == 'char']@
-                 all(ord(val) >= -128 and ord(val) < 128 for val in value)), \
-@{assert_msg_suffixes.append('and each characters ord() in [-128, 127]')}@
+                 all(val >= 0 and val) < 256 for val in value)), \
+@{assert_msg_suffixes.append('and each char in [0, 255]')}@
 @[    else]@
                  True), \
 @[    end if]@

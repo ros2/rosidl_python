@@ -4,7 +4,8 @@ TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
     package_name=package_name, idl_type=idl_type,
     message=service.request_message, typesupport_impl=typesupport_impl,
-    include_directives=include_directives)
+    include_directives=include_directives,
+    register_functions=register_functions)
 }@
 
 @{
@@ -12,7 +13,8 @@ TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
     package_name=package_name, idl_type=idl_type,
     message=service.response_message, typesupport_impl=typesupport_impl,
-    include_directives=include_directives)
+    include_directives=include_directives,
+    register_functions=register_functions)
 }@
 @
 @{
@@ -25,8 +27,12 @@ ROSIDL_GENERATOR_C_IMPORT
 const rosidl_service_type_support_t *
 ROSIDL_TYPESUPPORT_INTERFACE__SERVICE_SYMBOL_NAME(rosidl_typesupport_c, @(', '.join(service.structure_type.namespaces + [service.structure_type.name])))();
 
+@{
+register_function = '_register_srv_type__' + '__'.join(service.structure_type.namespaces[1:] + [type_name])
+register_functions.append(register_function)
+}@
 int8_t
-_register_srv_type__@('__'.join(service.structure_type.namespaces[1:] + [type_name]))(PyObject * pymodule)
+@(register_function)(PyObject * pymodule)
 {
   int8_t err;
   PyObject * pyobject_@(function_name) = NULL;

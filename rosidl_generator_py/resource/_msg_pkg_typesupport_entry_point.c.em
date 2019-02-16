@@ -58,8 +58,12 @@ ROSIDL_GENERATOR_C_IMPORT
 const rosidl_message_type_support_t *
 ROSIDL_GET_MSG_TYPE_SUPPORT(@(', '.join(message.structure.type.namespaces + [message.structure.type.name])));
 
+@{
+register_function = '_register_msg_type__' + '__'.join(message.structure.type.namespaces[1:] + [module_name])
+register_functions.append(register_function)
+}@
 int8_t
-_register_msg_type__@('__'.join(message.structure.type.namespaces[1:] + [module_name]))(PyObject * pymodule)
+@(register_function)(PyObject * pymodule)
 {
   int8_t err;
 @{

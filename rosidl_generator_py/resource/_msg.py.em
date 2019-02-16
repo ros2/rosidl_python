@@ -40,9 +40,11 @@ class Metaclass_@(message.structure.type.name)(type):
         except ImportError:
             import logging
             import traceback
-            logger = logging.getLogger('@('.'.join(message.structure.type.namespaces + [message.structure.type.name]))')
+            logger = logging.getLogger(
+                '@('.'.join(message.structure.type.namespaces + [message.structure.type.name]))')
             logger.debug(
-                'Failed to import needed modules for type support:\n' + traceback.format_exc())
+                'Failed to import needed modules for type support:\n' +
+                traceback.format_exc())
         else:
 @{
 suffix = '__'.join(message.structure.type.namespaces[1:]) + '__' + convert_camel_case_to_lower_case_underscore(message.structure.type.name)

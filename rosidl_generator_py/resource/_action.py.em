@@ -45,9 +45,11 @@ class Metaclass_@(action.structure_type.name)(type):
         except ImportError:
             import logging
             import traceback
-            logger = logging.getLogger('@('.'.join(action.structure_type.namespaces + [action.structure_type.name]))')
+            logger = logging.getLogger(
+                '@('.'.join(action.structure_type.namespaces + [action.structure_type.name]))')
             logger.debug(
-                'Failed to import needed modules for type support:\n' + traceback.format_exc())
+                'Failed to import needed modules for type support:\n' +
+                traceback.format_exc())
         else:
             cls._TYPE_SUPPORT = module.type_support_srv__@('__'.join(action.structure_type.namespaces[1:]))_@(action_name)
 
@@ -63,19 +65,32 @@ class Metaclass_@(action.structure_type.name)(type):
                 @(module_name).Metaclass_@(action.send_goal_service.structure_type.name).__import_type_support__()
             if @(module_name).Metaclass_@(action.get_result_service.structure_type.name)._TYPE_SUPPORT is None:
                 @(module_name).Metaclass_@(action.get_result_service.structure_type.name).__import_type_support__()
-            if @(module_name).Metaclass_@(action.feedback.structure.type.name)._TYPE_SUPPORT is None:
-                @(module_name).Metaclass_@(action.feedback.structure.type.name).__import_type_support__()
+            if @(module_name).Metaclass_@(action.feedback_message.structure.type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(action.feedback_message.structure.type.name).__import_type_support__()
 
 
 class @(action.structure_type.name)(metaclass=Metaclass_@(action.structure_type.name)):
-    from action_msgs.srv._cancel_goal import CancelGoal as CancelGoalService
-    from action_msgs.msg._goal_status_array import GoalStatusArray as GoalStatusMessage
-    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.send_goal_service.structure_type.name) as GoalService
-    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.get_result_service.structure_type.name) as ResultService
+
+    # The goal message defined in the action definition.
+    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.goal.structure.type.name) as Goal
+    # The result message defined in the action definition.
+    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.result.structure.type.name) as Result
+    # The feedback message defined in the action definition.
     from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.feedback.structure.type.name) as Feedback
 
-    Goal = GoalService.Request
-    Result = ResultService.Response
+    class Impl:
+
+        # The send_goal service using a wrapped version of the goal message as a request.
+        from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.send_goal_service.structure_type.name) as SendGoalService
+        # The get_result service using a wrapped version of the result message as a response.
+        from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.get_result_service.structure_type.name) as GetResultService
+        # The feedback message with generic fields which wraps the feedback message.
+        from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.feedback_message.structure.type.name) as FeedbackMessage
+
+        # The generic service to cancel a goal.
+        from action_msgs.srv._cancel_goal import CancelGoal as CancelGoalService
+        # The generic message for get the status of a goal.
+        from action_msgs.msg._goal_status_array import GoalStatusArray as GoalStatusMessage
 
     def __init__(self):
         raise NotImplementedError('Action classes can not be instantiated')

@@ -128,6 +128,15 @@ TEMPLATE(
     include_directives=include_directives,
     register_functions=register_functions)
 }@
+
+@{
+TEMPLATE(
+    '_action_pkg_typesupport_entry_point.c.em',
+    package_name=package_name, idl_type=action.structure_type,
+    action=action, typesupport_impl=typesupport_impl,
+    include_directives=include_directives,
+    register_functions=register_functions)
+}@
 @[end for]@
 
 PyMODINIT_FUNC

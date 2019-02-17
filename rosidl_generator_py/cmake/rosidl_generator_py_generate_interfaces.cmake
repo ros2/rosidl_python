@@ -91,6 +91,7 @@ endforeach()
 set(target_dependencies
   "${rosidl_generator_py_BIN}"
   ${rosidl_generator_py_GENERATOR_FILES}
+  "${rosidl_generator_py_TEMPLATE_DIR}/_action_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_action.py.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl_support.c.em"

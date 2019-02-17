@@ -51,14 +51,14 @@ class Metaclass_@(action.structure_type.name)(type):
                 'Failed to import needed modules for type support:\n' +
                 traceback.format_exc())
         else:
-            cls._TYPE_SUPPORT = module.type_support_srv__@('__'.join(action.structure_type.namespaces[1:]))_@(action_name)
+            cls._TYPE_SUPPORT = module.type_support_action__@('__'.join(action.structure_type.namespaces[1:]))_@(action_name)
 
             from action_msgs.msg import _goal_status_array
-            if _goal_status_array.Metaclass._TYPE_SUPPORT is None:
-                _goal_status_array.Metaclass.__import_type_support__()
+            if _goal_status_array.Metaclass_GoalStatusArray._TYPE_SUPPORT is None:
+                _goal_status_array.Metaclass_GoalStatusArray.__import_type_support__()
             from action_msgs.srv import _cancel_goal
-            if _cancel_goal.Metaclass._TYPE_SUPPORT is None:
-                _cancel_goal.Metaclass.__import_type_support__()
+            if _cancel_goal.Metaclass_CancelGoal._TYPE_SUPPORT is None:
+                _cancel_goal.Metaclass_CancelGoal.__import_type_support__()
 
             from @('.'.join(action.structure_type.namespaces)) import @(module_name)
             if @(module_name).Metaclass_@(action.send_goal_service.structure_type.name)._TYPE_SUPPORT is None:

@@ -261,17 +261,27 @@ def test_out_of_range():
 
 def test_slot_attributes():
     a = Nested()
-    assert hasattr(a, 'get_fields_and_field_types')
+    assert hasattr(a, 'SLOT_TYPES')
+    assert hasattr(a, 'get_slot_types')
     assert hasattr(a, '__slots__')
-    nested_slot_types_dict = getattr(a, 'get_fields_and_field_types')()
+    nested_slot_types_dict = getattr(a, 'get_slot_types')()
+    nested_slot_types = Nested.SLOT_TYPES
     nested_slots = getattr(a, '__slots__')
+    assert len(nested_slot_types) == len(nested_slots)
     assert len(nested_slot_types_dict) == len(nested_slots)
-    expected_nested_slot_types_dict = {
-        'primitives': 'rosidl_generator_py/Primitives',
-        'two_primitives': 'rosidl_generator_py/Primitives[2]',
-        'up_to_three_primitives': 'rosidl_generator_py/Primitives[<=3]',
-        'unbounded_primitives': 'rosidl_generator_py/Primitives[]',
-    }
+    assert nested_slot_types == ((
+        'rosidl_generator_py/Primitives',
+        'rosidl_generator_py/Primitives[2]',
+        'rosidl_generator_py/Primitives[<=3]',
+        'rosidl_generator_py/Primitives[]',
+    ))
+    from collections import OrderedDict
+    expected_nested_slot_types_dict = OrderedDict([
+        ('_primitives', 'rosidl_generator_py/Primitives'),
+        ('_two_primitives', 'rosidl_generator_py/Primitives[2]'),
+        ('_up_to_three_primitives', 'rosidl_generator_py/Primitives[<=3]'),
+        ('_unbounded_primitives', 'rosidl_generator_py/Primitives[]'),
+    ])
     assert len(nested_slot_types_dict) == len(expected_nested_slot_types_dict)
 
     for expected_field, expected_slot_type in expected_nested_slot_types_dict.items():
@@ -279,38 +289,47 @@ def test_slot_attributes():
         assert expected_slot_type == nested_slot_types_dict[expected_field]
 
 
-def test_primative_slot_attributes():
+def test_string_slot_attributes():
     b = StringArrays()
-    assert hasattr(b, 'get_fields_and_field_types')
+    assert hasattr(b, 'SLOT_TYPES')
+    assert hasattr(b, 'get_slot_types')
     assert hasattr(b, '__slots__')
-    string_slot_types_dict = getattr(b, 'get_fields_and_field_types')()
+    string_slot_types_dict = getattr(b, 'get_slot_types')()
+    string_slot_types = StringArrays.SLOT_TYPES
     string_slots = getattr(b, '__slots__')
+    assert len(string_slot_types) == len(string_slots)
     assert len(string_slot_types_dict) == len(string_slots)
-    expected_string_slot_types_dict = {
-        'ub_string_static_array_value': 'string<=5[3]',
-        'ub_string_ub_array_value': 'string<=5[<=10]',
-        'ub_string_dynamic_array_value': 'string<=5[]',
-        'string_dynamic_array_value': 'string[]',
-        'string_static_array_value': 'string[3]',
-        'string_bounded_array_value': 'string[<=10]',
-        'def_string_dynamic_array_value': 'string[]',
-        'def_string_static_array_value': 'string[3]',
-        'def_string_bounded_array_value': 'string[<=10]',
-        'def_various_quotes': 'string[]',
-        'def_various_commas': 'string[]',
-    }
+
+    assert string_slot_types == ((
+        'string<=5[3]',
+        'string<=5[<=10]',
+        'string<=5[]',
+        'string[]',
+        'string[3]',
+        'string[<=10]',
+        'string[]',
+        'string[3]',
+        'string[<=10]',
+        'string[]',
+        'string[]',
+    ))
+    from collections import OrderedDict
+    expected_string_slot_types_dict = OrderedDict([
+        ('_ub_string_static_array_value', 'string<=5[3]'),
+        ('_ub_string_ub_array_value', 'string<=5[<=10]'),
+        ('_ub_string_dynamic_array_value', 'string<=5[]'),
+        ('_string_dynamic_array_value', 'string[]'),
+        ('_string_static_array_value', 'string[3]'),
+        ('_string_bounded_array_value', 'string[<=10]'),
+        ('_def_string_dynamic_array_value', 'string[]'),
+        ('_def_string_static_array_value', 'string[3]'),
+        ('_def_string_bounded_array_value', 'string[<=10]'),
+        ('_def_various_quotes', 'string[]'),
+        ('_def_various_commas', 'string[]'),
+    ])
 
     assert len(string_slot_types_dict) == len(expected_string_slot_types_dict)
 
     for expected_field, expected_slot_type in expected_string_slot_types_dict.items():
         assert expected_field in string_slot_types_dict.keys()
         assert expected_slot_type == string_slot_types_dict[expected_field]
-
-
-def test_modifying_slot_fields_and_types():
-    b = StringArrays()
-    assert hasattr(b, 'get_fields_and_field_types')
-    string_slot_types_dict = getattr(b, 'get_fields_and_field_types')()
-    string_slot_types_dict_len = len(string_slot_types_dict)
-    string_slot_types_dict[1] = 2
-    assert len(getattr(b, 'get_fields_and_field_types')()) == string_slot_types_dict_len

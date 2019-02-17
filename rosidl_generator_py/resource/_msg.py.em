@@ -116,27 +116,27 @@ class @(spec.base_type.type)(metaclass=Metaclass):
 @[end for]@
     ]
 
-    _fields_and_field_types = {
+    SLOT_TYPES = ((
 @[for field in spec.fields]@
 @[  if field.type.is_primitive_type() ]@
-        '@(field.name)': '@(field.type)',
+        '@(field.type)',
 @[  else ]@
 @[    if field.type.is_array ]@
 @[      if field.type.array_size ]@
 @[        if field.type.is_upper_bound ]@
-        '@(field.name)': '@(field.type.pkg_name)/@(field.type.type)[<=@(field.type.array_size)]',
+        '@(field.type.pkg_name)/@(field.type.type)[<=@(field.type.array_size)]',
 @[        else ]@
-        '@(field.name)': '@(field.type.pkg_name)/@(field.type.type)[@(field.type.array_size)]',
+        '@(field.type.pkg_name)/@(field.type.type)[@(field.type.array_size)]',
 @[        end if ]@
 @[      else ]@
-        '@(field.name)': '@(field.type.pkg_name)/@(field.type.type)[]',
+        '@(field.type.pkg_name)/@(field.type.type)[]',
 @[      end if ]@
 @[    else ]@
-        '@(field.name)': '@(field.type.pkg_name)/@(field.type.type)',
+        '@(field.type.pkg_name)/@(field.type.type)',
 @[    end if ]@
 @[  end if ]@
 @[end for]@
-    }
+    ))
 @
 @[if len(spec.fields) > 0]@
 
@@ -200,8 +200,9 @@ class @(spec.base_type.type)(metaclass=Metaclass):
         return True
 
     @@classmethod
-    def get_fields_and_field_types(cls):
-        return copy(cls._fields_and_field_types)
+    def get_slot_types(cls):
+        from collections import OrderedDict
+        return OrderedDict(zip(cls.__slots__, cls.SLOT_TYPES))
 @[for field in spec.fields]@
 
 @{

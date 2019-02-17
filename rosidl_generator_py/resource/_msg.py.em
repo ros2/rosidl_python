@@ -14,7 +14,6 @@
 @#  - value_to_py (function)
 @#######################################################################
 @
-from copy import copy
 import logging
 import traceback
 

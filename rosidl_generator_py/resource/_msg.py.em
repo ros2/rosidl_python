@@ -5,6 +5,9 @@ from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 from rosidl_generator_py.generate_py_impl import constant_value_to_py
 from rosidl_generator_py.generate_py_impl import get_python_type
 from rosidl_generator_py.generate_py_impl import value_to_py
+from rosidl_parser.definition import ACTION_FEEDBACK_SUFFIX
+from rosidl_parser.definition import ACTION_GOAL_SUFFIX
+from rosidl_parser.definition import ACTION_RESULT_SUFFIX
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import BaseString
@@ -55,9 +58,6 @@ suffix = '__'.join(message.structure.type.namespaces[1:]) + '__' + convert_camel
             cls._TYPE_SUPPORT = module.type_support_msg__@(suffix)
             cls._DESTROY_ROS_MESSAGE = module.destroy_ros_message_msg__@(suffix)
 @{
-from rosidl_parser.definition import ACTION_FEEDBACK_SUFFIX
-from rosidl_parser.definition import ACTION_GOAL_SUFFIX
-from rosidl_parser.definition import ACTION_RESULT_SUFFIX
 importable_typesupports = set()
 for member in message.structure.members:
     type_ = member.type
@@ -190,8 +190,15 @@ if isinstance(type_, NestedType):
             '@(member.name)', @(message.structure.type.name).@(member.name.upper())__DEFAULT)
 @[  else]@
 @[    if isinstance(type_, NamespacedType) and not isinstance(member.type, Sequence)]@
-@#        import @('.'.join(type_.namespaces + [type_.name]))
+@[      if (
+            type_.name.endswith(ACTION_GOAL_SUFFIX) or
+            type_.name.endswith(ACTION_RESULT_SUFFIX) or
+            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
+        )]@
+        from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
+@[      else]@
         from @('.'.join(type_.namespaces)) import @(type_.name)
+@[      end if]@
 @[    end if]@
 @[    if isinstance(member.type, Array)]@
 @[      if isinstance(type_, BasicType) and type_.type == 'octet']@
@@ -264,8 +271,15 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
     def @(member.name)(self, value):
         if __debug__:
 @[  if isinstance(type_, NamespacedType)]@
-@#            import @('.'.join(type_.namespaces + [type_.name]))
+@[      if (
+            type_.name.endswith(ACTION_GOAL_SUFFIX) or
+            type_.name.endswith(ACTION_RESULT_SUFFIX) or
+            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
+        )]@
+            from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
+@[      else]@
             from @('.'.join(type_.namespaces)) import @(type_.name)
+@[      end if]@
 @[  end if]@
 @[  if isinstance(member.type, NestedType)]@
             from collections.abc import Sequence

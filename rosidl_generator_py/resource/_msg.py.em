@@ -160,7 +160,7 @@ string@
 <@(type_.maximum_size)>@
 @[    end if]@
 @[  elif isinstance(type_, NamespacedType)]@
-@('::'.join(type_.namespaces + [type_.name]))@
+@('/'.join([type_.namespaces[0], type_.name]))@
 @[  end if]@
 @# the suffix for nested types
 @[  if isinstance(member.type, Sequence)]@

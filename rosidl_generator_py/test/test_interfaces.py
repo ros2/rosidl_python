@@ -267,10 +267,10 @@ def test_slot_attributes():
     nested_slots = getattr(a, '__slots__')
     assert len(nested_slot_types_dict) == len(nested_slots)
     expected_nested_slot_types_dict = {
-        'primitives': 'rosidl_generator_py::msg::Primitives',
-        'two_primitives': 'rosidl_generator_py::msg::Primitives[2]',
-        'up_to_three_primitives': 'sequence<rosidl_generator_py::msg::Primitives, 3>',
-        'unbounded_primitives': 'sequence<rosidl_generator_py::msg::Primitives>',
+        'primitives': 'rosidl_generator_py/Primitives',
+        'two_primitives': 'rosidl_generator_py/Primitives[2]',
+        'up_to_three_primitives': 'sequence<rosidl_generator_py/Primitives, 3>',
+        'unbounded_primitives': 'sequence<rosidl_generator_py/Primitives>',
     }
     assert len(nested_slot_types_dict) == len(expected_nested_slot_types_dict)
 

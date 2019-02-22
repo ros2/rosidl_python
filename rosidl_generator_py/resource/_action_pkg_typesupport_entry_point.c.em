@@ -1,6 +1,60 @@
 @# Included from rosidl_generator_py/resource/_idl_pkg_typesupport_entry_point.c.em
 @
 @{
+TEMPLATE(
+    '_msg_pkg_typesupport_entry_point.c.em',
+    package_name=package_name, idl_type=action.structure_type,
+    message=action.goal, typesupport_impl=typesupport_impl,
+    include_directives=include_directives,
+    register_functions=register_functions)
+}@
+
+@{
+TEMPLATE(
+    '_msg_pkg_typesupport_entry_point.c.em',
+    package_name=package_name, idl_type=action.structure_type,
+    message=action.result, typesupport_impl=typesupport_impl,
+    include_directives=include_directives,
+    register_functions=register_functions)
+}@
+
+@{
+TEMPLATE(
+    '_msg_pkg_typesupport_entry_point.c.em',
+    package_name=package_name, idl_type=action.structure_type,
+    message=action.feedback, typesupport_impl=typesupport_impl,
+    include_directives=include_directives,
+    register_functions=register_functions)
+}@
+
+@{
+TEMPLATE(
+    '_srv_pkg_typesupport_entry_point.c.em',
+    package_name=package_name, idl_type=action.structure_type,
+    service=action.send_goal_service, typesupport_impl=typesupport_impl,
+    include_directives=include_directives,
+    register_functions=register_functions)
+}@
+
+@{
+TEMPLATE(
+    '_srv_pkg_typesupport_entry_point.c.em',
+    package_name=package_name, idl_type=action.structure_type,
+    service=action.get_result_service, typesupport_impl=typesupport_impl,
+    include_directives=include_directives,
+    register_functions=register_functions)
+}@
+
+@{
+TEMPLATE(
+    '_msg_pkg_typesupport_entry_point.c.em',
+    package_name=package_name, idl_type=action.structure_type,
+    message=action.feedback_message, typesupport_impl=typesupport_impl,
+    include_directives=include_directives,
+    register_functions=register_functions)
+}@
+
+@{
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 type_name = convert_camel_case_to_lower_case_underscore(action.structure_type.name)
 function_name = 'type_support'

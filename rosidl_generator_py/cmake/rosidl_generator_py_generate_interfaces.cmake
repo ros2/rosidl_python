@@ -56,6 +56,8 @@ endforeach()
 file(MAKE_DIRECTORY "${_output_path}")
 file(WRITE "${_output_path}/__init__.py" "")
 
+# collect relative paths of directories containing to-be-installed Python modules
+# add __init__.py files where necessary
 set(_generated_py_dirs "")
 foreach(_generated_py_file ${_generated_py_files})
   get_filename_component(_parent_folder "${_generated_py_file}" DIRECTORY)

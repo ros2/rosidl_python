@@ -115,7 +115,7 @@ def generate_py(generator_arguments_file, typesupport_impls):
             if (subfolder == 'srv' or subfolder == 'action') and \
                (type_.endswith('Request') or type_.endswith('Response')):
                 continue
-            import_list['%s  # noqa\n' % type_] = 'from %s.%s._%s import %s\n' % \
+            import_list['%s  # noqa\n' % type_] = 'from %s.%s._%s import %s  # noqa: I100\n' % \
                 (args['package_name'], subfolder, module_name, type_)
 
         path_to_module = os.path.join(args['output_dir'], subfolder, '__init__.py')

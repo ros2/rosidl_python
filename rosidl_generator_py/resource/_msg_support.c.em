@@ -93,7 +93,7 @@ if isinstance(member.type, NestedType) and isinstance(member.type.basetype, Name
 @[end for]@
 @[if nested_types]@
 // Nested array functions includes
-@[  for type_ in nested_types]@
+@[  for type_ in sorted(nested_types)]@
 #include "@('/'.join(type_[:-1]))/@(convert_camel_case_to_lower_case_underscore(type_[-1]))__functions.h"
 @[  end for]@
 // end nested array functions include

@@ -41,8 +41,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   set(_generated_extension_${_typesupport_impl}_files "")
 endforeach()
 
-foreach(_idl_tuple ${rosidl_generate_interfaces_IDL_TUPLES})
-  string(REGEX REPLACE ":([^:]*)$" "/\\1" _abs_idl_file "${_idl_tuple}")
+foreach(_abs_idl_file ${rosidl_generate_interfaces_ABS_IDL_FILES})
   get_filename_component(_parent_folder "${_abs_idl_file}" DIRECTORY)
   get_filename_component(_parent_folder "${_parent_folder}" NAME)
   get_filename_component(_idl_name "${_abs_idl_file}" NAME_WE)
@@ -103,6 +102,7 @@ set(target_dependencies
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg.py.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_srv_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_srv.py.em"
+  ${rosidl_generate_interfaces_ABS_IDL_FILES}
   ${_dependency_files})
 foreach(dep ${target_dependencies})
   if(NOT EXISTS "${dep}")

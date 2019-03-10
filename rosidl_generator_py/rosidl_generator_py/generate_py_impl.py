@@ -14,12 +14,14 @@
 
 from collections import defaultdict
 import os
+import re
 
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 from rosidl_cmake import expand_template
 from rosidl_cmake import get_newest_modification_time
 from rosidl_cmake import read_generator_arguments
 from rosidl_generator_c import primitive_msg_type_to_c
+from rosidl_parser import parse_action_file
 from rosidl_parser import parse_message_file
 from rosidl_parser import parse_service_file
 
@@ -44,11 +46,17 @@ def generate_py(generator_arguments_file, typesupport_impls):
         os.path.join(template_dir, '_srv.py.em'): ['_%s.py'],
     }
 
+    mapping_actions = {
+        os.path.join(template_dir, '_action.py.em'): ['_%s.py'],
+    }
+
     for template_file in mapping_msgs.keys():
         assert os.path.exists(template_file), 'Could not find template: ' + template_file
     for template_file in mapping_msg_pkg_extension.keys():
         assert os.path.exists(template_file), 'Could not find template: ' + template_file
     for template_file in mapping_srvs.keys():
+        assert os.path.exists(template_file), 'Could not find template: ' + template_file
+    for template_file in mapping_actions.keys():
         assert os.path.exists(template_file), 'Could not find template: ' + template_file
 
     functions = {
@@ -63,6 +71,7 @@ def generate_py(generator_arguments_file, typesupport_impls):
     modules = defaultdict(list)
     message_specs = []
     service_specs = []
+    action_specs = []
     for ros_interface_file in args['ros_interface_files']:
         extension = os.path.splitext(ros_interface_file)[1]
         subfolder = os.path.basename(os.path.dirname(ros_interface_file))
@@ -76,6 +85,11 @@ def generate_py(generator_arguments_file, typesupport_impls):
             service_specs.append((spec, subfolder))
             mapping = mapping_srvs
             type_name = spec.srv_name
+        elif extension == '.action':
+            spec = parse_action_file(args['package_name'], ros_interface_file)
+            action_specs.append((spec, subfolder))
+            mapping = mapping_actions
+            type_name = spec.action_name
         else:
             continue
 
@@ -101,26 +115,48 @@ def generate_py(generator_arguments_file, typesupport_impls):
             if (subfolder == 'srv' or subfolder == 'action') and \
                (type_.endswith('Request') or type_.endswith('Response')):
                 continue
-            import_list['%s  # noqa\n' % type_] = 'from %s.%s._%s import %s\n' % \
+            import_list['%s  # noqa\n' % type_] = 'from %s.%s._%s import %s  # noqa: I100\n' % \
                 (args['package_name'], subfolder, module_name, type_)
 
-        with open(os.path.join(args['output_dir'], subfolder, '__init__.py'), 'w') as f:
-            for import_line in sorted(import_list.values()):
-                f.write(import_line)
-            for noqa_line in sorted(import_list.keys()):
-                        f.write(noqa_line)
+        path_to_module = os.path.join(args['output_dir'], subfolder, '__init__.py')
+
+        content = ''
+        if os.path.isfile(path_to_module):
+            with open(path_to_module, 'r') as f:
+                content = f.read()
+        with open(path_to_module, 'w') as f:
+            block_name = args['package_name']
+            if action_specs:
+                block_name += '_action'
+            content = re.sub(
+                r'# BEGIN %s$.*^# END %s' % (block_name, block_name),
+                '', content, 0, re.M | re.S
+            )
+            content = re.sub(r'^\s*$', '', content, 0, re.M)
+            content = ''.join(
+                ['# BEGIN %s\n' % block_name] +
+                sorted(import_list.values()) +  # import_line
+                sorted(import_list.keys()) +  # noqa_line
+                ['# END %s\n' % block_name]
+            ) + content
+            f.write(content)
 
     for template_file, generated_filenames in mapping_msg_pkg_extension.items():
         for generated_filename in generated_filenames:
+            package_name = args['package_name']
+            if action_specs:
+                package_name += '_action'
             data = {
-                'package_name': args['package_name'],
+                'package_name': package_name,
+                'action_specs': action_specs,
                 'message_specs': message_specs,
                 'service_specs': service_specs,
                 'typesupport_impl': type_support_impl_by_filename.get(generated_filename, ''),
             }
             data.update(functions)
             generated_file = os.path.join(
-                args['output_dir'], generated_filename % args['package_name'])
+                args['output_dir'], generated_filename % package_name
+            )
             expand_template(
                 template_file, data, generated_file,
                 minimum_timestamp=latest_target_timestamp)

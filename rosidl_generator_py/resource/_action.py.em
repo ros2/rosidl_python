@@ -1,23 +1,39 @@
-# generated from rosidl_generator_py/resource/_action.py.em
-# generated code does not contain a copyright notice
+@# Included from rosidl_generator_py/resource/_idl.py.em
+@{
+from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 
-@#######################################################################
-@# EmPy template for generating _<action>.py files
-@#
-@# Context:
-@#  - module_name
-@#  - package_name
-@#  - spec (rosidl_parser.ActionSpecification)
-@#    Parsed specification of the .action file
-@#  - convert_camel_case_to_lower_case_underscore (function)
-@#######################################################################
-@
-import logging
-import traceback
+action_name = '_' + convert_camel_case_to_lower_case_underscore(action.structure_type.name)
+module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
+
+TEMPLATE(
+    '_msg.py.em',
+    package_name=package_name, interface_path=interface_path,
+    message=action.goal)
+TEMPLATE(
+    '_msg.py.em',
+    package_name=package_name, interface_path=interface_path,
+    message=action.result)
+TEMPLATE(
+    '_msg.py.em',
+    package_name=package_name, interface_path=interface_path,
+    message=action.feedback)
+TEMPLATE(
+    '_srv.py.em',
+    package_name=package_name, interface_path=interface_path,
+    service=action.send_goal_service)
+TEMPLATE(
+    '_srv.py.em',
+    package_name=package_name, interface_path=interface_path,
+    service=action.get_result_service)
+TEMPLATE(
+    '_msg.py.em',
+    package_name=package_name, interface_path=interface_path,
+    message=action.feedback_message)
+}@
 
 
-class Metaclass(type):
-    """Metaclass of action '@(spec.action_name)'."""
+class Metaclass_@(action.structure_type.name)(type):
+    """Metaclass of action '@(action.structure_type.name)'."""
 
     _TYPE_SUPPORT = None
 
@@ -25,38 +41,56 @@ class Metaclass(type):
     def __import_type_support__(cls):
         try:
             from rosidl_generator_py import import_type_support
-            module = import_type_support('@(package_name)', '@(package_name)_action')
+            module = import_type_support('@(package_name)')
         except ImportError:
-            logger = logging.getLogger('rosidl_generator_py.@(spec.action_name)')
+            import logging
+            import traceback
+            logger = logging.getLogger(
+                '@('.'.join(action.structure_type.namespaces + [action.structure_type.name]))')
             logger.debug(
-                'Failed to import needed modules for type support:\n' + traceback.format_exc())
+                'Failed to import needed modules for type support:\n' +
+                traceback.format_exc())
         else:
-            cls._TYPE_SUPPORT = module.type_support_action__@(subfolder)_@(module_name)
-@{
-prefix = '_' + convert_camel_case_to_lower_case_underscore(spec.action_name) + '__'
-suffixes = ['feedback', 'goal', 'result']
-for field_name in [prefix + suffix for suffix in suffixes]:
-    print('%sfrom %s.%s import %s' % (' ' * 4 * 3, package_name, subfolder, field_name))
-    print('%sif %s.Metaclass._TYPE_SUPPORT is None:' % (' ' * 4 * 3, field_name))
-    print('%s%s.Metaclass.__import_type_support__()' % (' ' * 4 * 4, field_name))
-print('%sfrom %s.%s import %s' % (' ' * 4 * 3, 'action_msgs', 'msg', '_goal_status_array'))
-print('%sif %s.Metaclass._TYPE_SUPPORT is None:' % (' ' * 4 * 3, '_goal_status_array'))
-print('%s%s.Metaclass.__import_type_support__()' % (' ' * 4 * 4, '_goal_status_array'))
-print('%sfrom %s.%s import %s' % (' ' * 4 * 3, 'action_msgs', 'srv', '_cancel_goal'))
-print('%sif %s.Metaclass._TYPE_SUPPORT is None:' % (' ' * 4 * 3, '_cancel_goal'))
-print('%s%s.Metaclass.__import_type_support__()' % (' ' * 4 * 4, '_cancel_goal'))
-}@
+            cls._TYPE_SUPPORT = module.type_support_action__@('__'.join(action.structure_type.namespaces[1:]))_@(action_name)
+
+            from action_msgs.msg import _goal_status_array
+            if _goal_status_array.Metaclass_GoalStatusArray._TYPE_SUPPORT is None:
+                _goal_status_array.Metaclass_GoalStatusArray.__import_type_support__()
+            from action_msgs.srv import _cancel_goal
+            if _cancel_goal.Metaclass_CancelGoal._TYPE_SUPPORT is None:
+                _cancel_goal.Metaclass_CancelGoal.__import_type_support__()
+
+            from @('.'.join(action.structure_type.namespaces)) import @(module_name)
+            if @(module_name).Metaclass_@(action.send_goal_service.structure_type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(action.send_goal_service.structure_type.name).__import_type_support__()
+            if @(module_name).Metaclass_@(action.get_result_service.structure_type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(action.get_result_service.structure_type.name).__import_type_support__()
+            if @(module_name).Metaclass_@(action.feedback_message.structure.type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(action.feedback_message.structure.type.name).__import_type_support__()
 
 
-class @(spec.action_name)(metaclass=Metaclass):
-    from action_msgs.srv._cancel_goal import CancelGoal as CancelGoalService
-    from action_msgs.msg._goal_status_array import GoalStatusArray as GoalStatusMessage
-    from @(package_name).@(subfolder)._@convert_camel_case_to_lower_case_underscore(spec.action_name)__goal import @(spec.action_name)_Goal as GoalRequestService
-    from @(package_name).@(subfolder)._@convert_camel_case_to_lower_case_underscore(spec.action_name)__result import @(spec.action_name)_Result as GoalResultService
-    from @(package_name).@(subfolder)._@convert_camel_case_to_lower_case_underscore(spec.action_name)__feedback import @(spec.action_name)_Feedback as Feedback
+class @(action.structure_type.name)(metaclass=Metaclass_@(action.structure_type.name)):
 
-    Goal = GoalRequestService.Request
-    Result = GoalResultService.Response
+    # The goal message defined in the action definition.
+    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.goal.structure.type.name) as Goal
+    # The result message defined in the action definition.
+    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.result.structure.type.name) as Result
+    # The feedback message defined in the action definition.
+    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.feedback.structure.type.name) as Feedback
+
+    class Impl:
+
+        # The send_goal service using a wrapped version of the goal message as a request.
+        from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.send_goal_service.structure_type.name) as SendGoalService
+        # The get_result service using a wrapped version of the result message as a response.
+        from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.get_result_service.structure_type.name) as GetResultService
+        # The feedback message with generic fields which wraps the feedback message.
+        from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.feedback_message.structure.type.name) as FeedbackMessage
+
+        # The generic service to cancel a goal.
+        from action_msgs.srv._cancel_goal import CancelGoal as CancelGoalService
+        # The generic message for get the status of a goal.
+        from action_msgs.msg._goal_status_array import GoalStatusArray as GoalStatusMessage
 
     def __init__(self):
         raise NotImplementedError('Action classes can not be instantiated')

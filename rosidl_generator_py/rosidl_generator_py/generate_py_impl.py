@@ -1,4 +1,4 @@
-# Copyright 2014-2016 Open Source Robotics Foundation, Inc.
+# Copyright 2014-2018 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,148 +12,81 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
+from ast import literal_eval
 import os
-import re
+import pathlib
 
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 from rosidl_cmake import expand_template
+from rosidl_cmake import generate_files
 from rosidl_cmake import get_newest_modification_time
 from rosidl_cmake import read_generator_arguments
-from rosidl_generator_c import primitive_msg_type_to_c
-from rosidl_parser import parse_action_file
-from rosidl_parser import parse_message_file
-from rosidl_parser import parse_service_file
+from rosidl_parser.definition import BasicType
+from rosidl_parser.definition import IdlContent
+from rosidl_parser.definition import IdlLocator
+from rosidl_parser.definition import NamespacedType
+from rosidl_parser.definition import NestedType
+from rosidl_parser.definition import String
+from rosidl_parser.parser import parse_idl_file
 
 
 def generate_py(generator_arguments_file, typesupport_impls):
-    args = read_generator_arguments(generator_arguments_file)
+    mapping = {
+        '_idl.py.em': '_%s.py',
+        '_idl_support.c.em': '_%s_s.c',
+    }
+    generate_files(generator_arguments_file, mapping)
 
+    args = read_generator_arguments(generator_arguments_file)
+    package_name = args['package_name']
+
+    # expand init modules for each directory
+    modules = {}
+    idl_content = IdlContent()
+    for idl_tuple in args.get('idl_tuples', []):
+        idl_parts = idl_tuple.rsplit(':', 1)
+        assert len(idl_parts) == 2
+
+        idl_rel_path = pathlib.Path(idl_parts[1])
+        idl_stems = modules.setdefault(str(idl_rel_path.parent), set())
+        idl_stems.add(idl_rel_path.stem)
+
+        locator = IdlLocator(*idl_parts)
+        idl_file = parse_idl_file(locator)
+        idl_content.elements += idl_file.content.elements
+
+    for subfolder in modules.keys():
+        with open(os.path.join(args['output_dir'], subfolder, '__init__.py'), 'w') as f:
+            for idl_stem in sorted(modules[subfolder]):
+                module_name = '_' + \
+                    convert_camel_case_to_lower_case_underscore(idl_stem)
+                f.write(
+                    'from {package_name}.{subfolder}.{module_name} import '
+                    '{idl_stem}  # noqa: F401\n'.format_map(locals()))
+
+    # expand templates per available typesupport implementation
     template_dir = args['template_dir']
     type_support_impl_by_filename = {
         '_%s_s.ep.{0}.c'.format(impl): impl for impl in typesupport_impls
     }
-    mapping_msgs = {
-        os.path.join(template_dir, '_msg.py.em'): ['_%s.py'],
-        os.path.join(template_dir, '_msg_support.c.em'): ['_%s_s.c'],
-    }
     mapping_msg_pkg_extension = {
-        os.path.join(template_dir, '_msg_pkg_typesupport_entry_point.c.em'):
+        os.path.join(template_dir, '_idl_pkg_typesupport_entry_point.c.em'):
         type_support_impl_by_filename.keys(),
     }
 
-    mapping_srvs = {
-        os.path.join(template_dir, '_srv.py.em'): ['_%s.py'],
-    }
-
-    mapping_actions = {
-        os.path.join(template_dir, '_action.py.em'): ['_%s.py'],
-    }
-
-    for template_file in mapping_msgs.keys():
-        assert os.path.exists(template_file), 'Could not find template: ' + template_file
     for template_file in mapping_msg_pkg_extension.keys():
         assert os.path.exists(template_file), 'Could not find template: ' + template_file
-    for template_file in mapping_srvs.keys():
-        assert os.path.exists(template_file), 'Could not find template: ' + template_file
-    for template_file in mapping_actions.keys():
-        assert os.path.exists(template_file), 'Could not find template: ' + template_file
 
-    functions = {
-        'constant_value_to_py': constant_value_to_py,
-        'get_python_type': get_python_type,
-        'primitive_msg_type_to_c': primitive_msg_type_to_c,
-        'value_to_py': value_to_py,
-        'convert_camel_case_to_lower_case_underscore': convert_camel_case_to_lower_case_underscore,
-    }
     latest_target_timestamp = get_newest_modification_time(args['target_dependencies'])
-
-    modules = defaultdict(list)
-    message_specs = []
-    service_specs = []
-    action_specs = []
-    for ros_interface_file in args['ros_interface_files']:
-        extension = os.path.splitext(ros_interface_file)[1]
-        subfolder = os.path.basename(os.path.dirname(ros_interface_file))
-        if extension == '.msg':
-            spec = parse_message_file(args['package_name'], ros_interface_file)
-            message_specs.append((spec, subfolder))
-            mapping = mapping_msgs
-            type_name = spec.base_type.type
-        elif extension == '.srv':
-            spec = parse_service_file(args['package_name'], ros_interface_file)
-            service_specs.append((spec, subfolder))
-            mapping = mapping_srvs
-            type_name = spec.srv_name
-        elif extension == '.action':
-            spec = parse_action_file(args['package_name'], ros_interface_file)
-            action_specs.append((spec, subfolder))
-            mapping = mapping_actions
-            type_name = spec.action_name
-        else:
-            continue
-
-        module_name = convert_camel_case_to_lower_case_underscore(type_name)
-        modules[subfolder].append((module_name, type_name))
-        for template_file, generated_filenames in mapping.items():
-            for generated_filename in generated_filenames:
-                data = {
-                    'module_name': module_name,
-                    'package_name': args['package_name'],
-                    'spec': spec, 'subfolder': subfolder,
-                }
-                data.update(functions)
-                generated_file = os.path.join(
-                    args['output_dir'], subfolder, generated_filename % module_name)
-                expand_template(
-                    template_file, data, generated_file,
-                    minimum_timestamp=latest_target_timestamp)
-
-    for subfolder in modules.keys():
-        import_list = {}
-        for module_name, type_ in modules[subfolder]:
-            if (subfolder == 'srv' or subfolder == 'action') and \
-               (type_.endswith('Request') or type_.endswith('Response')):
-                continue
-            import_list['%s  # noqa\n' % type_] = 'from %s.%s._%s import %s  # noqa: I100\n' % \
-                (args['package_name'], subfolder, module_name, type_)
-
-        path_to_module = os.path.join(args['output_dir'], subfolder, '__init__.py')
-
-        content = ''
-        if os.path.isfile(path_to_module):
-            with open(path_to_module, 'r') as f:
-                content = f.read()
-        with open(path_to_module, 'w') as f:
-            block_name = args['package_name']
-            if action_specs:
-                block_name += '_action'
-            content = re.sub(
-                r'# BEGIN %s$.*^# END %s' % (block_name, block_name),
-                '', content, 0, re.M | re.S
-            )
-            content = re.sub(r'^\s*$', '', content, 0, re.M)
-            content = ''.join(
-                ['# BEGIN %s\n' % block_name] +
-                sorted(import_list.values()) +  # import_line
-                sorted(import_list.keys()) +  # noqa_line
-                ['# END %s\n' % block_name]
-            ) + content
-            f.write(content)
 
     for template_file, generated_filenames in mapping_msg_pkg_extension.items():
         for generated_filename in generated_filenames:
             package_name = args['package_name']
-            if action_specs:
-                package_name += '_action'
             data = {
-                'package_name': package_name,
-                'action_specs': action_specs,
-                'message_specs': message_specs,
-                'service_specs': service_specs,
+                'package_name': args['package_name'],
+                'content': idl_content,
                 'typesupport_impl': type_support_impl_by_filename.get(generated_filename, ''),
             }
-            data.update(functions)
             generated_file = os.path.join(
                 args['output_dir'], generated_filename % package_name
             )
@@ -165,15 +98,14 @@ def generate_py(generator_arguments_file, typesupport_impls):
 
 
 def value_to_py(type_, value, array_as_tuple=False):
-    assert type_.is_primitive_type()
     assert value is not None
 
-    if not type_.is_array:
+    if not isinstance(type_, NestedType):
         return primitive_value_to_py(type_, value)
 
     py_values = []
-    for single_value in value:
-        py_value = primitive_value_to_py(type_, single_value)
+    for single_value in literal_eval(value):
+        py_value = primitive_value_to_py(type_.basetype, single_value)
         py_values.append(py_value)
     if array_as_tuple:
         return '(%s)' % ', '.join(py_values)
@@ -182,31 +114,32 @@ def value_to_py(type_, value, array_as_tuple=False):
 
 
 def primitive_value_to_py(type_, value):
-    assert type_.is_primitive_type()
     assert value is not None
 
-    if type_.type == 'bool':
+    if isinstance(type_, String):
+        return "'%s'" % escape_string(value)
+
+    assert isinstance(type_, BasicType)
+
+    if type_.type == 'boolean':
         return 'True' if value else 'False'
 
-    if type_.type in [
+    if type_.type in (
         'int8', 'uint8',
         'int16', 'uint16',
         'int32', 'uint32',
         'int64', 'uint64',
-    ]:
+    ):
         return str(value)
 
     if type_.type == 'char':
         return repr('%c' % value)
 
-    if type_.type == 'byte':
+    if type_.type == 'octet':
         return repr(bytes([value]))
 
-    if type_.type in ['float32', 'float64']:
+    if type_.type in ('float', 'double'):
         return '%s' % value
-
-    if type_.type == 'string':
-        return "'%s'" % escape_string(value)
 
     assert False, "unknown primitive type '%s'" % type_.type
 
@@ -214,27 +147,28 @@ def primitive_value_to_py(type_, value):
 def constant_value_to_py(type_, value):
     assert value is not None
 
-    if type_ == 'bool':
-        return 'True' if value else 'False'
+    if isinstance(type_, BasicType):
+        if type_.type == 'bool':
+            return 'True' if value else 'False'
 
-    if type_ in [
-        'int8', 'uint8',
-        'int16', 'uint16',
-        'int32', 'uint32',
-        'int64', 'uint64',
-    ]:
-        return str(value)
+        if type_.type in (
+            'int8', 'uint8',
+            'int16', 'uint16',
+            'int32', 'uint32',
+            'int64', 'uint64',
+        ):
+            return str(value)
 
-    if type_ == 'char':
-        return repr('%c' % value)
+        if type_.type == 'char':
+            return repr('%c' % value)
 
-    if type_ == 'byte':
-        return repr(bytes([value]))
+        if type_.type == 'octet':
+            return repr(bytes([value]))
 
-    if type_ in ['float32', 'float64']:
-        return '%s' % value
+        if type_.type in ('float', 'double'):
+            return '%s' % value
 
-    if type_ == 'string':
+    if isinstance(type_, String):
         return "'%s'" % escape_string(value)
 
     assert False, "unknown constant type '%s'" % type_
@@ -247,37 +181,41 @@ def escape_string(s):
 
 
 def get_python_type(type_):
-    if not type_.is_primitive_type():
-        return type_.type
+    if isinstance(type_, NamespacedType):
+        return type_.name
 
-    if type_.string_upper_bound:
+    if isinstance(type_, String):
         return 'str'
 
-    if type_.is_array:
-        if type_.type == 'byte':
+    if isinstance(type_, NestedType):
+        if isinstance(type_.basetype, BasicType) and type_.basetype.type == 'octet':
             return 'bytes'
 
-        if type_.type == 'char':
+        if isinstance(type_.basetype, BasicType) and type_.basetype.type in ('char', 'wchar'):
             return 'str'
 
-    if type_.type == 'bool':
+    if isinstance(type_, BasicType) and type_.type == 'boolean':
         return 'bool'
 
-    if type_.type == 'byte':
+    if isinstance(type_, BasicType) and type_.type == 'octet':
         return 'bytes'
 
-    if type_.type in [
+    if isinstance(type_, BasicType) and type_.type in (
         'int8', 'uint8',
         'int16', 'uint16',
         'int32', 'uint32',
         'int64', 'uint64',
-    ]:
+    ):
         return 'int'
 
-    if type_.type in ['float32', 'float64']:
+    if isinstance(type_, BasicType) and type_.type in (
+        'float', 'double',
+    ):
         return 'float'
 
-    if type_.type in ['char', 'string']:
+    if isinstance(type_, BasicType) and type_.type in (
+        'char', 'wchar',
+    ):
         return 'str'
 
     assert False, "unknown type '%s'" % type_

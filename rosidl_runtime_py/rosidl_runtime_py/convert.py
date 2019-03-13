@@ -154,3 +154,13 @@ def _convert_value(value, truncate_length=None):
         # Assuming value is a message since it is neither a collection nor a primitive type
         value = message_to_ordereddict(value, truncate_length=truncate_length)
     return value
+
+
+def get_message_slot_types(msg: Any) -> OrderedDict:
+    """
+    Return an OrderedDict of the slot types of a message.
+
+    :param msg: The ROS message to get members types from.
+    :returns: An OrderedDict with message member names as keys and slot types as values.
+    """
+    return OrderedDict(zip([s[1:] for s in msg.__slots__], msg.SLOT_TYPES))

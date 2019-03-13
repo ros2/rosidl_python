@@ -91,3 +91,43 @@ def test_set_message_fields_invalid():
     invalid_type['int32_value'] = 'this is not an integer'
     with pytest.raises(ValueError):
         set_message_fields(msg, invalid_type)
+
+
+def test_set_nested_namespaced_fields():
+    msg = message_fixtures.get_msg_dynamic_array_nested()[0]
+    test_values = {
+        'primitive_values': [
+            {'string_value': 'foo', 'int8_value': 42},
+            {'string_value': 'bar', 'int8_value': 11}
+        ]
+    }
+    set_message_fields(msg, test_values)
+    assert msg.primitive_values[0].string_value == 'foo'
+    assert msg.primitive_values[0].int8_value == 42
+    assert msg.primitive_values[0].uint8_value == 0
+    assert msg.primitive_values[1].string_value == 'bar'
+    assert msg.primitive_values[1].int8_value == 11
+    assert msg.primitive_values[1].uint8_value == 0
+
+    static_array_msg = message_fixtures.get_msg_static_array_nested()[0]
+    test_values = {
+        'primitive_values': [
+            {'string_value': 'foo', 'int8_value': 42},
+            {'string_value': 'bar', 'int8_value': 11},
+            {'string_value': 'baz', 'int8_value': 22},
+            {'string_value': 'foobar', 'int8_value': 33}
+        ]
+    }
+    set_message_fields(static_array_msg, test_values)
+    assert static_array_msg.primitive_values[0].string_value == 'foo'
+    assert static_array_msg.primitive_values[0].int8_value == 42
+    assert static_array_msg.primitive_values[0].uint8_value == 0
+    assert static_array_msg.primitive_values[1].string_value == 'bar'
+    assert static_array_msg.primitive_values[1].int8_value == 11
+    assert static_array_msg.primitive_values[1].uint8_value == 0
+    assert static_array_msg.primitive_values[2].string_value == 'baz'
+    assert static_array_msg.primitive_values[2].int8_value == 22
+    assert static_array_msg.primitive_values[2].uint8_value == 0
+    assert static_array_msg.primitive_values[3].string_value == 'foobar'
+    assert static_array_msg.primitive_values[3].int8_value == 33
+    assert static_array_msg.primitive_values[3].uint8_value == 0

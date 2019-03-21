@@ -18,6 +18,52 @@ from rosidl_parser.definition import Sequence
 from rosidl_parser.definition import String
 from rosidl_parser.definition import WString
 }@
+@#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+@# Collect necessary import statements for all members
+@{
+from collections import OrderedDict
+import numpy
+imports = OrderedDict()
+for member in message.structure.members:
+    if (
+        isinstance(member.type, NestedType) and
+        isinstance(member.type.basetype, BasicType) and
+        member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES
+    ):
+        if isinstance(member.type, Array):
+            member_names = imports.setdefault(
+                'import numpy', [])
+        elif isinstance(member.type, Sequence):
+            member_names = imports.setdefault(
+                'import array', [])
+        else:
+            assert False
+        member_names.append(member.name)
+}@
+@#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+@
+@#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+@[if imports]@
+
+
+# Import statements for member types
+@[    for import_statement, member_names in sorted(imports.items())]@
+
+@[        for member_name in member_names]@
+# Member '@(member_name)'
+@[        end for]@
+@[        if import_statement in import_statements]@
+# already imported above
+# @
+@[        end if]@
+@(import_statement)@
+@[        if import_statement not in import_statements]@
+@{import_statements.add(import_statement)}@
+  # noqa: E402@
+@[        end if]
+@[    end for]@
+@[end if]@
+@#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
 class Metaclass_@(message.structure.type.name)(type):

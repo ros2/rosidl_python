@@ -10,6 +10,9 @@
 @#  - interface_path (Path relative to the directory named after the package)
 @#  - content (IdlContent, list of elements, e.g. Messages or Services)
 @#######################################################################
+@{
+import_statements = set()
+}@
 @
 @#######################################################################
 @# Handle messages
@@ -21,8 +24,8 @@ from rosidl_parser.definition import Message
 @{
 TEMPLATE(
     '_msg.py.em',
-    package_name=package_name, interface_path=interface_path,
-    message=message)
+    package_name=package_name, interface_path=interface_path, message=message,
+    import_statements=import_statements)
 }@
 @[end for]@
 @
@@ -36,7 +39,8 @@ from rosidl_parser.definition import Service
 @{
 TEMPLATE(
     '_srv.py.em',
-    package_name=package_name, interface_path=interface_path, service=service)
+    package_name=package_name, interface_path=interface_path, service=service,
+    import_statements=import_statements)
 }@
 @[end for]@
 @
@@ -50,6 +54,7 @@ from rosidl_parser.definition import Action
 @{
 TEMPLATE(
     '_action.py.em',
-    package_name=package_name, interface_path=interface_path, action=action)
+    package_name=package_name, interface_path=interface_path, action=action,
+    import_statements=import_statements)
 }@
 @[end for]@

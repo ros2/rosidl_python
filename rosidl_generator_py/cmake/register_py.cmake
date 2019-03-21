@@ -22,8 +22,11 @@ macro(rosidl_generator_py_extras BIN GENERATOR_FILES TEMPLATE_DIR)
   normalize_path(BIN "${BIN}")
   set(rosidl_generator_py_BIN "${BIN}")
 
-  normalize_path(GENERATOR_FILES "${GENERATOR_FILES}")
-  set(rosidl_generator_py_GENERATOR_FILES "${GENERATOR_FILES}")
+  set(rosidl_generator_py_GENERATOR_FILES "")
+  foreach(_generator_file ${GENERATOR_FILES})
+    normalize_path(_generator_file "${_generator_file}")
+    list(APPEND rosidl_generator_py_GENERATOR_FILES "${_generator_file}")
+  endforeach()
 
   normalize_path(TEMPLATE_DIR "${TEMPLATE_DIR}")
   set(rosidl_generator_py_TEMPLATE_DIR "${TEMPLATE_DIR}")

@@ -394,15 +394,15 @@ bound = 2**nbits
 @[  elif isinstance(type_, BasicType) and type_.type == 'octet']@
                 ((isinstance(value, bytes) or isinstance(value, ByteString)) and
                  len(value) == 1), \
-                "The '@(member.name)' field must of type 'bytes' or 'ByteString' with a length 1"
+                "The '@(member.name)' field must be of type 'bytes' or 'ByteString' with length 1"
 @[  elif isinstance(type_, BasicType) and type_.type == 'char']@
                 ((isinstance(value, str) or isinstance(value, UserString)) and
                  len(value) == 1 and ord(value) >= -128 and ord(value) < 128), \
-                "The '@(member.name)' field must of type 'str' or 'UserString' " \
-                'with a length 1 and the character ord() in [-128, 127]'
+                "The '@(member.name)' field must be of type 'str' or 'UserString' " \
+                'with length 1 and the character ord() in [-128, 127]'
 @[  elif isinstance(type_, BaseString)]@
                 isinstance(value, str), \
-                "The '@(member.name)' field must of type '@(get_python_type(type_))'"
+                "The '@(member.name)' field must be of type '@(get_python_type(type_))'"
 @[  elif isinstance(type_, BasicType) and type_.type in [
         'boolean',
         'float', 'double',
@@ -412,7 +412,7 @@ bound = 2**nbits
         'int64', 'uint64',
     ]]@
                 isinstance(value, @(get_python_type(type_))), \
-                "The '@(member.name)' field must of type '@(get_python_type(type_))'"
+                "The '@(member.name)' field must be of type '@(get_python_type(type_))'"
 @[    if type_.type.startswith('int')]@
 @{
 nbits = int(type_.type[3:])

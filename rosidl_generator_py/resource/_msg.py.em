@@ -299,7 +299,11 @@ if isinstance(type_, NestedType):
         if not isinstance(other, self.__class__):
             return False
 @[for member in message.structure.members]@
+@[  if isinstance(member.type, Array) and isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+        if all(self.@(member.name) != other.@(member.name)):
+@[  else]@
         if self.@(member.name) != other.@(member.name):
+@[  end if]@
             return False
 @[end for]@
         return True

@@ -1,6 +1,8 @@
 @# Included from rosidl_generator_py/resource/_idl.py.em
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 @{
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
+from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import NamespacedType
@@ -27,22 +29,37 @@ include_base = '/'.join(include_parts)
 header_files = [
     'Python.h',
     'stdbool.h',
+    'numpy/ndarrayobject.h',
     'rosidl_generator_c/visibility_control.h',
     include_base + '__struct.h',
     include_base + '__functions.h',
 ]
 }@
 @[for header_file in header_files]@
-@[    if header_file in include_directives]@
+@{
+repeated_header_file = header_file in include_directives
+}@
+@[    if repeated_header_file]@
 // already included above
 // @
 @[    else]@
+@[      if header_file == 'numpy/ndarrayobject.h']@
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+@[      end if]@
 @{include_directives.add(header_file)}@
 @[    end if]@
 @[    if '/' not in header_file]@
 #include <@(header_file)>
 @[    else]@
 #include "@(header_file)"
+@[    end if]@
+@[    if header_file == 'numpy/ndarrayobject.h' and not repeated_header_file]@
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
 @[    end if]@
 @[end for]@
 
@@ -215,11 +232,24 @@ nested_type = '__'.join(type_.namespaces + [type_.name])
     }
 @[    end if]@
 @[  elif isinstance(member.type, NestedType)]@
+@[    if isinstance(member.type, Array) and isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+    // TODO(dirk-thomas) use a better way to check the type before casting
+    assert(field->ob_type != NULL);
+    assert(field->ob_type->tp_name != NULL);
+    assert(strcmp(field->ob_type->tp_name, "numpy.ndarray") == 0);
+    PyArrayObject * seq_field = (PyArrayObject *)field;
+    Py_INCREF(seq_field);
+    int ndim = PyArray_NDIM(seq_field);
+    assert(ndim == 1);
+    int array_type = PyArray_TYPE(seq_field);
+    assert(array_type == @(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'].replace('numpy.', 'NPY_').upper()));
+@[    else]@
     PyObject * seq_field = PySequence_Fast(field, "expected a sequence in '@(member.name)'");
     if (!seq_field) {
       Py_DECREF(field);
       return false;
     }
+@[    end if]@
 @[    if isinstance(member.type, Sequence)]@
     Py_ssize_t size = PySequence_Size(field);
     if (-1 == size) {
@@ -248,13 +278,17 @@ nested_type = '__'.join(type_.namespaces + [type_.name])
     @primitive_msg_type_to_c(member.type.basetype) * dest = ros_message->@(member.name);
 @[    end if]@
     for (Py_ssize_t i = 0; i < size; ++i) {
+@[    if not isinstance(member.type, Array) or not isinstance(member.type.basetype, BasicType) or member.type.basetype.type not in SPECIAL_NESTED_BASIC_TYPES]@
       PyObject * item = PySequence_Fast_GET_ITEM(seq_field, i);
       if (!item) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
         return false;
       }
-@[    if isinstance(member.type.basetype, BasicType) and member.type.basetype.type == 'char']@
+@[    end if]@
+@[    if isinstance(member.type, Array) and isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+      @primitive_msg_type_to_c(member.type.basetype) tmp = *(@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'].replace('numpy.', 'npy_')) *)PyArray_GETPTR1(seq_field, i);
+@[    elif isinstance(member.type.basetype, BasicType) and member.type.basetype.type == 'char']@
       assert(PyUnicode_Check(item));
       PyObject * encoded_item = PyUnicode_AsASCIIString(item);
       if (!encoded_item) {

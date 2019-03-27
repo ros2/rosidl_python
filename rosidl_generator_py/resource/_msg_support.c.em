@@ -442,7 +442,8 @@ if isinstance(type_, NestedType):
 }@
   {  // @(member.name)
     PyObject * field = NULL;
-@[ if isinstance(member.type, Array) and isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+@[ if isinstance(member.type, NestedType) and isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+@[    if isinstance(member.type, Array)]@
     field = PyObject_GetAttrString(_pymessage, "@(member.name)");
     if (!field) {
       return NULL;
@@ -460,6 +461,42 @@ if isinstance(type_, NestedType):
     @primitive_msg_type_to_c(member.type.basetype) * src = &(ros_message->@(member.name)[0]);
     memcpy(dst, src, @(member.type.size) * sizeof(@primitive_msg_type_to_c(member.type.basetype)));
     Py_DECREF(field);
+@[    elif isinstance(member.type, Sequence)]@
+    if (ros_message->@(member.name).size > 0) {
+      field = PyObject_GetAttrString(_pymessage, "@(member.name)");
+      if (!field) {
+        return NULL;
+      }
+      assert(field->ob_type != NULL);
+      assert(field->ob_type->tp_name != NULL);
+      assert(strcmp(field->ob_type->tp_name, "array.array") == 0);
+      // ensure that itemsize matches the sizeof of the ROS message field
+      PyObject * itemsize_attr = PyObject_GetAttrString(field, "itemsize");
+      assert(itemsize_attr != NULL);
+      size_t itemsize = PyLong_AsSize_t(itemsize_attr);
+      Py_DECREF(itemsize_attr);
+      if (itemsize != sizeof(@primitive_msg_type_to_c(member.type.basetype))) {
+        PyErr_SetString(PyExc_RuntimeError, "itemsize doesn't match expectation");
+        Py_DECREF(field);
+        return NULL;
+      }
+      // populating the array.array using the frombytes method
+      PyObject * frombytes = PyObject_GetAttrString(field, "frombytes");
+      assert(frombytes != NULL);
+      @primitive_msg_type_to_c(member.type.basetype) * src = &(ros_message->@(member.name).data[0]);
+      PyObject * data = PyBytes_FromStringAndSize((const char *)src, ros_message->@(member.name).size * sizeof(@primitive_msg_type_to_c(member.type.basetype)));
+      assert(data != NULL);
+      PyObject * ret = PyObject_CallFunctionObjArgs(frombytes, data, NULL);
+      Py_DECREF(data);
+      Py_DECREF(frombytes);
+      if (!ret) {
+        Py_DECREF(field);
+        return NULL;
+      }
+      Py_DECREF(ret);
+      Py_DECREF(field);
+    }
+@[    end if]@
 @[ else]@
 @[  if isinstance(type_, NamespacedType)]@
 @{

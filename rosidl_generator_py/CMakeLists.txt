@@ -53,7 +53,7 @@ if(BUILD_TESTING)
   # Need to call extras before get_typesupports, to register the extension
   rosidl_generator_py_extras(
     "${CMAKE_CURRENT_SOURCE_DIR}/bin/rosidl_generator_py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/rosidl_generator_py/__init__.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/rosidl_generator_py/__init__.py;${CMAKE_CURRENT_SOURCE_DIR}/rosidl_generator_py/generate_py_impl.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/resource"
   )
 

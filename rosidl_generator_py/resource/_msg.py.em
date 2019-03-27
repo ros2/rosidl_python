@@ -4,6 +4,7 @@
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 from rosidl_generator_py.generate_py_impl import constant_value_to_py
 from rosidl_generator_py.generate_py_impl import get_python_type
+from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 from rosidl_generator_py.generate_py_impl import value_to_py
 from rosidl_parser.definition import ACTION_FEEDBACK_SUFFIX
 from rosidl_parser.definition import ACTION_GOAL_SUFFIX
@@ -18,6 +19,52 @@ from rosidl_parser.definition import Sequence
 from rosidl_parser.definition import String
 from rosidl_parser.definition import WString
 }@
+@#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+@# Collect necessary import statements for all members
+@{
+from collections import OrderedDict
+import numpy
+imports = OrderedDict()
+for member in message.structure.members:
+    if (
+        isinstance(member.type, NestedType) and
+        isinstance(member.type.basetype, BasicType) and
+        member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES
+    ):
+        if isinstance(member.type, Array):
+            member_names = imports.setdefault(
+                'import numpy', [])
+        elif isinstance(member.type, Sequence):
+            member_names = imports.setdefault(
+                'import array', [])
+        else:
+            assert False
+        member_names.append(member.name)
+}@
+@#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+@
+@#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+@[if imports]@
+
+
+# Import statements for member types
+@[    for import_statement, member_names in sorted(imports.items())]@
+
+@[        for member_name in member_names]@
+# Member '@(member_name)'
+@[        end for]@
+@[        if import_statement in import_statements]@
+# already imported above
+# @
+@[        end if]@
+@(import_statement)@
+@[        if import_statement not in import_statements]@
+@{import_statements.add(import_statement)}@
+  # noqa: E402@
+@[        end if]
+@[    end for]@
+@[end if]@
+@#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
 class Metaclass_@(message.structure.type.name)(type):
@@ -212,13 +259,25 @@ if isinstance(type_, NestedType):
             [chr(0) for x in range(@(member.type.size))]
         )
 @[      else]@
+@[        if isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+        if '@(member.name)' not in kwargs:
+            self.@(member.name) = numpy.zeros(@(member.type.size), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype']))
+        else:
+            self.@(member.name) = numpy.array(kwargs.get('@(member.name)'), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype']))
+            assert self.@(member.name).shape == (@(member.type.size), )
+@[        else]@
         self.@(member.name) = kwargs.get(
             '@(member.name)',
             [@(get_python_type(type_))() for x in range(@(member.type.size))]
         )
+@[        end if]@
 @[      end if]@
 @[    elif isinstance(member.type, Sequence)]@
+@[      if isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+        self.@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['type_code'])', kwargs.get('@(member.name)', []))
+@[      else]@
         self.@(member.name) = kwargs.get('@(member.name)', [])
+@[      end if]@
 @[    elif isinstance(type_, BasicType) and type_.type == 'octet']@
         self.@(member.name) = kwargs.get('@(member.name)', bytes([0]))
 @[    elif isinstance(type_, BasicType) and type_.type in ('char', 'wchar')]@
@@ -240,7 +299,11 @@ if isinstance(type_, NestedType):
         if not isinstance(other, self.__class__):
             return False
 @[for member in message.structure.members]@
+@[  if isinstance(member.type, Array) and isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+        if all(self.@(member.name) != other.@(member.name)):
+@[  else]@
         if self.@(member.name) != other.@(member.name):
+@[  end if]@
             return False
 @[end for]@
         return True
@@ -269,6 +332,27 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value):
+@[  if isinstance(member.type, NestedType) and isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+@[    if isinstance(member.type, Array)]@
+        if isinstance(value, numpy.ndarray):
+            assert value.dtype == @(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype']), \
+                "The '@(member.name)' numpy.ndarray() must have the dtype of '@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'])'"
+            assert value.size == @(member.type.size), \
+                "The '@(member.name)' numpy.ndarray() must have a size of @(member.type.size)"
+            self._@(member.name) = value
+            return
+@[    elif isinstance(member.type, Sequence)]@
+        if isinstance(value, array.array):
+            assert value.typecode == '@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['type_code'])', \
+                "The '@(member.name)' array.array() must have the type code of '@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['type_code'])'"
+@[      if isinstance(member.type, BoundedSequence)]@
+            assert len(value) <= @(member.type.upper_bound), \
+                "The '@(member.name)' array.array() must have a size <= @(member.type.upper_bound)"
+@[      end if]@
+            self._@(member.name) = value
+            return
+@[    end if]@
+@[  end if]@
         if __debug__:
 @[  if isinstance(type_, NamespacedType)]@
 @[      if (
@@ -348,15 +432,15 @@ bound = 2**nbits
 @[  elif isinstance(type_, BasicType) and type_.type == 'octet']@
                 ((isinstance(value, bytes) or isinstance(value, ByteString)) and
                  len(value) == 1), \
-                "The '@(member.name)' field must of type 'bytes' or 'ByteString' with a length 1"
+                "The '@(member.name)' field must be of type 'bytes' or 'ByteString' with length 1"
 @[  elif isinstance(type_, BasicType) and type_.type == 'char']@
                 ((isinstance(value, str) or isinstance(value, UserString)) and
                  len(value) == 1 and ord(value) >= -128 and ord(value) < 128), \
-                "The '@(member.name)' field must of type 'str' or 'UserString' " \
-                'with a length 1 and the character ord() in [-128, 127]'
+                "The '@(member.name)' field must be of type 'str' or 'UserString' " \
+                'with length 1 and the character ord() in [-128, 127]'
 @[  elif isinstance(type_, BaseString)]@
                 isinstance(value, str), \
-                "The '@(member.name)' field must of type '@(get_python_type(type_))'"
+                "The '@(member.name)' field must be of type '@(get_python_type(type_))'"
 @[  elif isinstance(type_, BasicType) and type_.type in [
         'boolean',
         'float', 'double',
@@ -366,7 +450,7 @@ bound = 2**nbits
         'int64', 'uint64',
     ]]@
                 isinstance(value, @(get_python_type(type_))), \
-                "The '@(member.name)' field must of type '@(get_python_type(type_))'"
+                "The '@(member.name)' field must be of type '@(get_python_type(type_))'"
 @[    if type_.type.startswith('int')]@
 @{
 nbits = int(type_.type[3:])
@@ -385,5 +469,13 @@ bound = 2**nbits
 @[  else]@
                 False
 @[  end if]@
+@[  if isinstance(member.type, NestedType) and isinstance(member.type.basetype, BasicType) and member.type.basetype.type in SPECIAL_NESTED_BASIC_TYPES]@
+@[    if isinstance(member.type, Array)]@
+        self._@(member.name) = numpy.array(value, dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype']))
+@[    elif isinstance(member.type, Sequence)]@
+        self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['type_code'])', value)
+@[    end if]@
+@[  else]@
         self._@(member.name) = value
+@[  end if]@
 @[end for]@

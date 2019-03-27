@@ -185,6 +185,25 @@ target_include_directories(${_target_name_lib}
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
   ${PythonExtra_INCLUDE_DIRS}
 )
+if(APPLE OR WIN32)
+  # add include directory for numpy headers
+  set(_python_code
+    "import numpy"
+    "print(numpy.get_include())"
+  )
+  execute_process(
+    COMMAND "${PYTHON_EXECUTABLE}" "-c" "${_python_code}"
+    OUTPUT_VARIABLE _output
+    RESULT_VARIABLE _result
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if(NOT _result EQUAL 0)
+    message(FATAL_ERROR
+      "execute_process(${PYTHON_EXECUTABLE} -c '${_python_code}') returned "
+      "error code ${_result}")
+  endif()
+  target_include_directories(${_target_name_lib} PUBLIC "${_output}")
+endif()
 
 rosidl_target_interfaces(${_target_name_lib}
   ${rosidl_generate_interfaces_TARGET} rosidl_typesupport_c)

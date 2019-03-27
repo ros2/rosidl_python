@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+import array
 
+import numpy
+import pytest
 from rosidl_generator_py.msg import Constants
 from rosidl_generator_py.msg import Nested
 from rosidl_generator_py.msg import Primitives
@@ -128,9 +130,17 @@ def test_default_values():
     assert ['Hel,lo', ',World', 'abcd', '!,'] == b.DEF_VARIOUS_COMMAS__DEFAULT
 
     c = Various()
-    assert [5, 23] == c.TWO_UINT16_VALUE__DEFAULT
+    assert isinstance(c.TWO_UINT16_VALUE__DEFAULT, numpy.ndarray)
+    assert (2, ) == c.TWO_UINT16_VALUE__DEFAULT.shape
+    assert numpy.uint16 == c.TWO_UINT16_VALUE__DEFAULT.dtype
+    assert [5, 23] == c.TWO_UINT16_VALUE__DEFAULT.tolist()
 
-    assert [5, 23] == c.UP_TO_THREE_INT32_VALUES_WITH_DEFAULT_VALUES__DEFAULT
+    assert isinstance(
+        c.UP_TO_THREE_INT32_VALUES_WITH_DEFAULT_VALUES__DEFAULT, array.array)
+    assert 'i' == \
+        c.UP_TO_THREE_INT32_VALUES_WITH_DEFAULT_VALUES__DEFAULT.typecode
+    assert [5, 23] == \
+        c.UP_TO_THREE_INT32_VALUES_WITH_DEFAULT_VALUES__DEFAULT.tolist()
 
     assert 1 == c.CHAR_VALUE__DEFAULT
     assert '1' != c.CHAR_VALUE__DEFAULT
@@ -209,11 +219,11 @@ def test_check_constraints():
         setattr(c, 'char_value', b'abc')
 
     c.up_to_three_int32_values = []
-    assert [] == c.up_to_three_int32_values
+    assert [] == c.up_to_three_int32_values.tolist()
     c.up_to_three_int32_values = [12345, -12345]
-    assert [12345, -12345] == c.up_to_three_int32_values
+    assert [12345, -12345] == c.up_to_three_int32_values.tolist()
     c.up_to_three_int32_values = [12345, -12345, 6789]
-    assert [12345, -12345, 6789] == c.up_to_three_int32_values
+    assert [12345, -12345, 6789] == c.up_to_three_int32_values.tolist()
     c.up_to_three_int32_values = [12345, -12345, 6789]
     with pytest.raises(AssertionError):
         setattr(c, 'up_to_three_int32_values', [12345, -12345, 6789, -6789])

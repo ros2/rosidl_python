@@ -21,13 +21,28 @@ from rosidl_cmake import expand_template
 from rosidl_cmake import generate_files
 from rosidl_cmake import get_newest_modification_time
 from rosidl_cmake import read_generator_arguments
+from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import IdlContent
 from rosidl_parser.definition import IdlLocator
 from rosidl_parser.definition import NamespacedType
 from rosidl_parser.definition import NestedType
+from rosidl_parser.definition import Sequence
 from rosidl_parser.definition import String
 from rosidl_parser.parser import parse_idl_file
+
+SPECIAL_NESTED_BASIC_TYPES = {
+    'float': {'dtype': 'numpy.float32', 'type_code': 'f'},
+    'double': {'dtype': 'numpy.float64', 'type_code': 'd'},
+    'int8': {'dtype': 'numpy.int8', 'type_code': 'b'},
+    'uint8': {'dtype': 'numpy.uint8', 'type_code': 'B'},
+    'int16': {'dtype': 'numpy.int16', 'type_code': 'h'},
+    'uint16': {'dtype': 'numpy.uint16', 'type_code': 'H'},
+    'int32': {'dtype': 'numpy.int32', 'type_code': 'i'},
+    'uint32': {'dtype': 'numpy.uint32', 'type_code': 'I'},
+    'int64': {'dtype': 'numpy.int64', 'type_code': 'q'},
+    'uint64': {'dtype': 'numpy.uint64', 'type_code': 'Q'},
+}
 
 
 def generate_py(generator_arguments_file, typesupport_impls):
@@ -107,6 +122,20 @@ def value_to_py(type_, value, array_as_tuple=False):
     for single_value in literal_eval(value):
         py_value = primitive_value_to_py(type_.basetype, single_value)
         py_values.append(py_value)
+
+    if (
+        isinstance(type_.basetype, BasicType) and
+        type_.basetype.type in SPECIAL_NESTED_BASIC_TYPES
+    ):
+        if isinstance(type_, Array):
+            return 'numpy.array((%s, ), dtype=%s)' % (
+                ', '.join(py_values),
+                SPECIAL_NESTED_BASIC_TYPES[type_.basetype.type]['dtype'])
+        if isinstance(type_, Sequence):
+            return "array.array('%s', (%s, ))" % (
+                SPECIAL_NESTED_BASIC_TYPES[type_.basetype.type]['type_code'],
+                ', '.join(py_values))
+        assert False
     if array_as_tuple:
         return '(%s)' % ', '.join(py_values)
     else:

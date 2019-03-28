@@ -239,10 +239,8 @@ nested_type = '__'.join(type_.namespaces + [type_.name])
     assert(strcmp(field->ob_type->tp_name, "numpy.ndarray") == 0);
     PyArrayObject * seq_field = (PyArrayObject *)field;
     Py_INCREF(seq_field);
-    int ndim = PyArray_NDIM(seq_field);
-    assert(ndim == 1);
-    int array_type = PyArray_TYPE(seq_field);
-    assert(array_type == @(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'].replace('numpy.', 'NPY_').upper()));
+    assert(PyArray_NDIM(seq_field) == 1);
+    assert(PyArray_TYPE(seq_field) == @(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'].replace('numpy.', 'NPY_').upper()));
 @[    else]@
     PyObject * seq_field = PySequence_Fast(field, "expected a sequence in '@(member.name)'");
     if (!seq_field) {
@@ -452,10 +450,8 @@ if isinstance(type_, NestedType):
     assert(field->ob_type->tp_name != NULL);
     assert(strcmp(field->ob_type->tp_name, "numpy.ndarray") == 0);
     PyArrayObject * seq_field = (PyArrayObject *)field;
-    int ndim = PyArray_NDIM(seq_field);
-    assert(ndim == 1);
-    int array_type = PyArray_TYPE(seq_field);
-    assert(array_type == @(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'].replace('numpy.', 'NPY_').upper()));
+    assert(PyArray_NDIM(seq_field) == 1);
+    assert(PyArray_TYPE(seq_field) == @(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'].replace('numpy.', 'NPY_').upper()));
     assert(sizeof(@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'].replace('numpy.', 'npy_'))) == sizeof(@primitive_msg_type_to_c(member.type.basetype)));
     @(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'].replace('numpy.', 'npy_')) * dst = (@(SPECIAL_NESTED_BASIC_TYPES[member.type.basetype.type]['dtype'].replace('numpy.', 'npy_')) *)PyArray_GETPTR1(seq_field, 0);
     @primitive_msg_type_to_c(member.type.basetype) * src = &(ros_message->@(member.name)[0]);

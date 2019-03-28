@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .convert import msg_to_csv
-from .convert import msg_to_ordereddict
-from .convert import msg_to_yaml
-from .set_message import set_msg_fields
-from .set_message import SetFieldError
+from .convert import message_to_csv
+from .convert import message_to_ordereddict
+from .convert import message_to_yaml
+from .set_message import set_message_fields
 
 
 __all__ = [
-    'msg_to_csv',
-    'msg_to_ordereddict',
-    'msg_to_yaml',
-    'SetFieldError',
-    'set_msg_fields',
+    'message_to_csv',
+    'message_to_ordereddict',
+    'message_to_yaml',
+    'set_message_fields',
 ]

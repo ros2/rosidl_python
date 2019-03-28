@@ -1,4 +1,4 @@
-# Copyright 2018 Open Source Robotics Foundation, Inc.
+# Copyright 2017-2019 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,35 @@
 
 from collections import OrderedDict
 
+from rosidl_runtime_py import message_to_csv
+from rosidl_runtime_py import message_to_ordereddict
+from rosidl_runtime_py import message_to_yaml
 from rosidl_runtime_py.convert import _convert_value
+
+from test_msgs import message_fixtures
+
+
+def test_primitives():
+    # Smoke-test the formatters on a bunch of messages
+    msgs = []
+    msgs.extend(message_fixtures.get_msg_bounded_array_nested())
+    msgs.extend(message_fixtures.get_msg_bounded_array_primitives())
+    msgs.extend(message_fixtures.get_msg_builtins())
+    msgs.extend(message_fixtures.get_msg_dynamic_array_nested())
+    msgs.extend(message_fixtures.get_msg_dynamic_array_primitives())
+    msgs.extend(message_fixtures.get_msg_dynamic_array_primitives_nested())
+    msgs.extend(message_fixtures.get_msg_empty())
+    msgs.extend(message_fixtures.get_msg_nested())
+    msgs.extend(message_fixtures.get_msg_primitives())
+    msgs.extend(message_fixtures.get_msg_static_array_nested())
+    msgs.extend(message_fixtures.get_msg_static_array_primitives())
+    for m in msgs:
+        message_to_csv(m, 100)
+        message_to_csv(m, None)
+        message_to_ordereddict(m, 100)
+        message_to_ordereddict(m, None)
+        message_to_yaml(m, 100)
+        message_to_yaml(m, None)
 
 
 def test_convert_primitives():

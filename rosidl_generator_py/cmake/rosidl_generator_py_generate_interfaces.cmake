@@ -139,6 +139,11 @@ endif()
 
 set(_target_suffix "__py")
 
+set(_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
+if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_DEBUG})
+endif()
+
 # move custom command into a subdirectory to avoid multiple invocations on Windows
 set(_subdir "${CMAKE_CURRENT_BINARY_DIR}/${rosidl_generate_interfaces_TARGET}${_target_suffix}")
 file(MAKE_DIRECTORY "${_subdir}")
@@ -224,12 +229,8 @@ foreach(_typesupport_impl ${_typesupport_impls})
   )
 
   set(_extension_compile_flags "")
-  set(_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
   if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(_extension_compile_flags -Wall -Wextra)
-  endif()
-  if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_DEBUG})
   endif()
   set_properties("")
   if(WIN32)
@@ -274,13 +275,14 @@ foreach(_typesupport_impl ${_typesupport_impls})
     "rosidl_generator_py"
     "${rosidl_generate_interfaces_TARGET}__rosidl_generator_c"
   )
-  set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
 
   if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
     install(TARGETS ${_target_name}
       DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}")
   endif()
 endforeach()
+
+set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
 
 foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
   set(_pkg_install_base "${${_pkg_name}_DIR}/../../..")

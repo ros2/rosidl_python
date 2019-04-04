@@ -150,9 +150,9 @@ def _convert_value(value, truncate_length=None):
             # Don't truncate keys because that could result in key collisions and data loss
             new_value[_convert_value(k)] = _convert_value(v, truncate_length=truncate_length)
         value = new_value
-    elif (
-        not any(isinstance(value, t) for t in (bool, float, int, numpy.number))
-    ):
+    elif isinstance(value, numpy.number):
+        value = value.item()
+    elif not any(isinstance(value, t) for t in (bool, float, int)):
         # Assuming value is a message since it is neither a collection nor a primitive type
         value = message_to_ordereddict(value, truncate_length=truncate_length)
     return value

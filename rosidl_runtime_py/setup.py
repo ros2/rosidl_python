@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='rosidl_runtime_py',
-    version='0.7.0',
+    version='0.7.1',
     packages=find_packages(exclude=['test']),
     zip_safe=False,
     author='Dirk Thomas',

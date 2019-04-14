@@ -20,6 +20,8 @@
   <buildtool_export_depend>rosidl_typesupport_c</buildtool_export_depend>
   <buildtool_export_depend>rosidl_typesupport_interface</buildtool_export_depend>
 
+  <depend>python3-numpy</depend>
+
   <exec_depend>rmw_implementation</exec_depend>
   <exec_depend>rmw_implementation_cmake</exec_depend>
   <exec_depend>rosidl_generator_c</exec_depend>

@@ -75,8 +75,6 @@ def message_to_csv(msg: Any, truncate_length: int = None,
         nonlocal truncate_length
         r = ''
         if any(isinstance(val, t) for t in [list, tuple, array.array, numpy.ndarray]):
-            if no_arr is True:
-                return r
             for i, v in enumerate(val):
                 if r:
                     r += ','
@@ -86,8 +84,6 @@ def message_to_csv(msg: Any, truncate_length: int = None,
                 r += to_string(v)
         elif any(isinstance(val, t) for t in [bool, bytes, float, int, str, numpy.number]):
             if any(isinstance(val, t) for t in [bytes, str]):
-                if no_str is True and isinstance(val, str):
-                    return r
                 if truncate_length is not None and len(val) > truncate_length:
                     val = val[:truncate_length]
                     if isinstance(val, bytes):
@@ -102,9 +98,19 @@ def message_to_csv(msg: Any, truncate_length: int = None,
     # We rely on __slots__ retaining the order of the fields in the .msg file.
     for field_name in msg.__slots__:
         value = getattr(msg, field_name)
+        field_type = msg._fields_and_field_types[field_name[1:]]
+
         if result:
             result += ','
-        result += to_string(value)
+
+        if no_arr is True and any(
+                isinstance(value, t) for t in [list, tuple, array.array, numpy.ndarray]):
+            result += '<array type: <{0}>, length: <{1}>>'.format(
+                field_type, len(value))
+        elif no_str is True and isinstance(value, str):
+            result += '<string length: <{0}>>'.format(len(value))
+        else:
+            result += to_string(value)
     return result
 
 
@@ -130,10 +136,19 @@ def message_to_ordereddict(
     # We rely on __slots__ retaining the order of the fields in the .msg file.
     for field_name in msg.__slots__:
         value = getattr(msg, field_name, None)
-        value = _convert_value(
-            value, truncate_length=truncate_length, no_arr=no_arr, no_str=no_str)
-        # Remove leading underscore from field name
-        d[field_name[1:]] = value
+        field_type = msg._fields_and_field_types[field_name[1:]]
+
+        if no_arr is True and any(
+                isinstance(value, t) for t in [list, tuple, array.array, numpy.ndarray]):
+            d[field_name[1:]] = '<array type: <{0}>, length: <{1}>>'.format(
+                field_type, len(value))
+        elif no_str is True and isinstance(value, str):
+            d[field_name[1:]] = '<string length: <{0}>>'.format(len(value))
+        else:
+            value = _convert_value(
+                value, truncate_length=truncate_length, no_arr=no_arr, no_str=no_str)
+            # Remove leading underscore from field name
+            d[field_name[1:]] = value
     return d
 
 
@@ -144,26 +159,22 @@ def _convert_value(value, truncate_length=None, no_arr=False, no_str=False):
         else:
             value = ''.join([chr(c) for c in value])
     elif isinstance(value, str):
-        if no_str is True:
-            value = ''
-        elif truncate_length is not None and len(value) > truncate_length:
+        if truncate_length is not None and len(value) > truncate_length:
             value = value[:truncate_length] + '...'
     elif isinstance(value, (list, tuple, array.array, numpy.ndarray)):
         # Since arrays and ndarrays can't contain mixed types convert to list
         typename = tuple if isinstance(value, tuple) else list
-        if no_arr is True:
-            value = ['']
-        elif truncate_length is not None and len(value) > truncate_length:
+        if truncate_length is not None and len(value) > truncate_length:
             # Truncate the sequence
             value = value[:truncate_length]
             # Truncate every item in the sequence
             value = typename(
-                [_convert_value(v, truncate_length, no_arr, no_str) for v in value] + ['...'])
+                [_convert_value(v, truncate_length) for v in value] + ['...'])
         else:
             # Truncate every item in the list
             value = typename(
                 [_convert_value(v, truncate_length, no_arr, no_str) for v in value])
-    elif isinstance(value, (dict, OrderedDict)) or isinstance(value, OrderedDict):
+    elif isinstance(value, dict) or isinstance(value, OrderedDict):
         # Convert each key and value in the mapping
         new_value = {} if isinstance(value, dict) else OrderedDict()
         for k, v in value.items():

@@ -146,7 +146,7 @@ def primitive_value_to_py(type_, value):
     assert value is not None
 
     if isinstance(type_, String):
-        return quoted_escaped_string(value)
+        return quoted_string(value)
 
     assert isinstance(type_, BasicType)
 
@@ -198,12 +198,12 @@ def constant_value_to_py(type_, value):
             return '%s' % value
 
     if isinstance(type_, String):
-        return quoted_escaped_string(value)
+        return quoted_string(value)
 
     assert False, "unknown constant type '%s'" % type_
 
 
-def quoted_escaped_string(s):
+def quoted_string(s):
     s = s.replace('\\', '\\\\')
     # strings containing single quote but no double quotes can be wrapped in
     # double quotes without escaping

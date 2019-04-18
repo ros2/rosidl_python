@@ -2,7 +2,7 @@
 @{
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 
-action_name = '_' + convert_camel_case_to_lower_case_underscore(action.structure_type.name)
+action_name = '_' + convert_camel_case_to_lower_case_underscore(action.namespaced_type.name)
 module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
 
 TEMPLATE(
@@ -32,8 +32,8 @@ TEMPLATE(
 }@
 
 
-class Metaclass_@(action.structure_type.name)(type):
-    """Metaclass of action '@(action.structure_type.name)'."""
+class Metaclass_@(action.namespaced_type.name)(type):
+    """Metaclass of action '@(action.namespaced_type.name)'."""
 
     _TYPE_SUPPORT = None
 
@@ -46,12 +46,12 @@ class Metaclass_@(action.structure_type.name)(type):
             import logging
             import traceback
             logger = logging.getLogger(
-                '@('.'.join(action.structure_type.namespaces + [action.structure_type.name]))')
+                '@('.'.join(action.namespaced_type.namespaces + [action.namespaced_type.name]))')
             logger.debug(
                 'Failed to import needed modules for type support:\n' +
                 traceback.format_exc())
         else:
-            cls._TYPE_SUPPORT = module.type_support_action__@('__'.join(action.structure_type.namespaces[1:]))_@(action_name)
+            cls._TYPE_SUPPORT = module.type_support_action__@('__'.join(action.namespaced_type.namespaces[1:]))_@(action_name)
 
             from action_msgs.msg import _goal_status_array
             if _goal_status_array.Metaclass_GoalStatusArray._TYPE_SUPPORT is None:
@@ -60,32 +60,32 @@ class Metaclass_@(action.structure_type.name)(type):
             if _cancel_goal.Metaclass_CancelGoal._TYPE_SUPPORT is None:
                 _cancel_goal.Metaclass_CancelGoal.__import_type_support__()
 
-            from @('.'.join(action.structure_type.namespaces)) import @(module_name)
-            if @(module_name).Metaclass_@(action.send_goal_service.structure_type.name)._TYPE_SUPPORT is None:
-                @(module_name).Metaclass_@(action.send_goal_service.structure_type.name).__import_type_support__()
-            if @(module_name).Metaclass_@(action.get_result_service.structure_type.name)._TYPE_SUPPORT is None:
-                @(module_name).Metaclass_@(action.get_result_service.structure_type.name).__import_type_support__()
-            if @(module_name).Metaclass_@(action.feedback_message.structure.type.name)._TYPE_SUPPORT is None:
-                @(module_name).Metaclass_@(action.feedback_message.structure.type.name).__import_type_support__()
+            from @('.'.join(action.namespaced_type.namespaces)) import @(module_name)
+            if @(module_name).Metaclass_@(action.send_goal_service.namespaced_type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(action.send_goal_service.namespaced_type.name).__import_type_support__()
+            if @(module_name).Metaclass_@(action.get_result_service.namespaced_type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(action.get_result_service.namespaced_type.name).__import_type_support__()
+            if @(module_name).Metaclass_@(action.feedback_message.structure.namespaced_type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(action.feedback_message.structure.namespaced_type.name).__import_type_support__()
 
 
-class @(action.structure_type.name)(metaclass=Metaclass_@(action.structure_type.name)):
+class @(action.namespaced_type.name)(metaclass=Metaclass_@(action.namespaced_type.name)):
 
     # The goal message defined in the action definition.
-    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.goal.structure.type.name) as Goal
+    from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.goal.structure.namespaced_type.name) as Goal
     # The result message defined in the action definition.
-    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.result.structure.type.name) as Result
+    from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.result.structure.namespaced_type.name) as Result
     # The feedback message defined in the action definition.
-    from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.feedback.structure.type.name) as Feedback
+    from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.feedback.structure.namespaced_type.name) as Feedback
 
     class Impl:
 
         # The send_goal service using a wrapped version of the goal message as a request.
-        from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.send_goal_service.structure_type.name) as SendGoalService
+        from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.send_goal_service.namespaced_type.name) as SendGoalService
         # The get_result service using a wrapped version of the result message as a response.
-        from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.get_result_service.structure_type.name) as GetResultService
+        from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.get_result_service.namespaced_type.name) as GetResultService
         # The feedback message with generic fields which wraps the feedback message.
-        from @('.'.join(action.structure_type.namespaces)).@(module_name) import @(action.feedback_message.structure.type.name) as FeedbackMessage
+        from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.feedback_message.structure.namespaced_type.name) as FeedbackMessage
 
         # The generic service to cancel a goal.
         from action_msgs.srv._cancel_goal import CancelGoal as CancelGoalService

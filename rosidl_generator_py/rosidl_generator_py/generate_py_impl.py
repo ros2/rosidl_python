@@ -21,14 +21,14 @@ from rosidl_cmake import expand_template
 from rosidl_cmake import generate_files
 from rosidl_cmake import get_newest_modification_time
 from rosidl_cmake import read_generator_arguments
+from rosidl_parser.definition import AbstractNestedType
+from rosidl_parser.definition import AbstractSequence
+from rosidl_parser.definition import AbstractString
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import IdlContent
 from rosidl_parser.definition import IdlLocator
 from rosidl_parser.definition import NamespacedType
-from rosidl_parser.definition import NestedType
-from rosidl_parser.definition import Sequence
-from rosidl_parser.definition import String
 from rosidl_parser.parser import parse_idl_file
 
 SPECIAL_NESTED_BASIC_TYPES = {
@@ -115,25 +115,25 @@ def generate_py(generator_arguments_file, typesupport_impls):
 def value_to_py(type_, value, array_as_tuple=False):
     assert value is not None
 
-    if not isinstance(type_, NestedType):
+    if not isinstance(type_, AbstractNestedType):
         return primitive_value_to_py(type_, value)
 
     py_values = []
     for single_value in literal_eval(value):
-        py_value = primitive_value_to_py(type_.basetype, single_value)
+        py_value = primitive_value_to_py(type_.value_type, single_value)
         py_values.append(py_value)
 
     if (
-        isinstance(type_.basetype, BasicType) and
-        type_.basetype.type in SPECIAL_NESTED_BASIC_TYPES
+        isinstance(type_.value_type, BasicType) and
+        type_.value_type.typename in SPECIAL_NESTED_BASIC_TYPES
     ):
         if isinstance(type_, Array):
             return 'numpy.array((%s, ), dtype=%s)' % (
                 ', '.join(py_values),
-                SPECIAL_NESTED_BASIC_TYPES[type_.basetype.type]['dtype'])
-        if isinstance(type_, Sequence):
+                SPECIAL_NESTED_BASIC_TYPES[type_.value_type.typename]['dtype'])
+        if isinstance(type_, AbstractSequence):
             return "array.array('%s', (%s, ))" % (
-                SPECIAL_NESTED_BASIC_TYPES[type_.basetype.type]['type_code'],
+                SPECIAL_NESTED_BASIC_TYPES[type_.value_type.typename]['type_code'],
                 ', '.join(py_values))
         assert False
     if array_as_tuple:
@@ -145,15 +145,15 @@ def value_to_py(type_, value, array_as_tuple=False):
 def primitive_value_to_py(type_, value):
     assert value is not None
 
-    if isinstance(type_, String):
+    if isinstance(type_, AbstractString):
         return quoted_string(value)
 
     assert isinstance(type_, BasicType)
 
-    if type_.type == 'boolean':
+    if type_.typename == 'boolean':
         return 'True' if value else 'False'
 
-    if type_.type in (
+    if type_.typename in (
         'int8', 'uint8',
         'int16', 'uint16',
         'int32', 'uint32',
@@ -161,26 +161,26 @@ def primitive_value_to_py(type_, value):
     ):
         return str(value)
 
-    if type_.type == 'char':
+    if type_.typename == 'char':
         return repr('%c' % value)
 
-    if type_.type == 'octet':
+    if type_.typename == 'octet':
         return repr(bytes([value]))
 
-    if type_.type in ('float', 'double'):
+    if type_.typename in ('float', 'double'):
         return '%s' % value
 
-    assert False, "unknown primitive type '%s'" % type_.type
+    assert False, "unknown primitive type '%s'" % type_.typename
 
 
 def constant_value_to_py(type_, value):
     assert value is not None
 
     if isinstance(type_, BasicType):
-        if type_.type == 'bool':
+        if type_.typename == 'bool':
             return 'True' if value else 'False'
 
-        if type_.type in (
+        if type_.typename in (
             'int8', 'uint8',
             'int16', 'uint16',
             'int32', 'uint32',
@@ -188,16 +188,16 @@ def constant_value_to_py(type_, value):
         ):
             return str(value)
 
-        if type_.type == 'char':
+        if type_.typename == 'char':
             return repr('%c' % value)
 
-        if type_.type == 'octet':
+        if type_.typename == 'octet':
             return repr(bytes([value]))
 
-        if type_.type in ('float', 'double'):
+        if type_.typename in ('float', 'double'):
             return '%s' % value
 
-    if isinstance(type_, String):
+    if isinstance(type_, AbstractString):
         return quoted_string(value)
 
     assert False, "unknown constant type '%s'" % type_
@@ -219,23 +219,26 @@ def get_python_type(type_):
     if isinstance(type_, NamespacedType):
         return type_.name
 
-    if isinstance(type_, String):
+    if isinstance(type_, AbstractString):
         return 'str'
 
-    if isinstance(type_, NestedType):
-        if isinstance(type_.basetype, BasicType) and type_.basetype.type == 'octet':
+    if isinstance(type_, AbstractNestedType):
+        if isinstance(type_.value_type, BasicType) and type_.value_type.typename == 'octet':
             return 'bytes'
 
-        if isinstance(type_.basetype, BasicType) and type_.basetype.type in ('char', 'wchar'):
+        if (
+            isinstance(type_.value_type, BasicType) and
+            type_.value_type.typename in ('char', 'wchar')
+        ):
             return 'str'
 
-    if isinstance(type_, BasicType) and type_.type == 'boolean':
+    if isinstance(type_, BasicType) and type_.typename == 'boolean':
         return 'bool'
 
-    if isinstance(type_, BasicType) and type_.type == 'octet':
+    if isinstance(type_, BasicType) and type_.typename == 'octet':
         return 'bytes'
 
-    if isinstance(type_, BasicType) and type_.type in (
+    if isinstance(type_, BasicType) and type_.typename in (
         'int8', 'uint8',
         'int16', 'uint16',
         'int32', 'uint32',
@@ -243,12 +246,12 @@ def get_python_type(type_):
     ):
         return 'int'
 
-    if isinstance(type_, BasicType) and type_.type in (
+    if isinstance(type_, BasicType) and type_.typename in (
         'float', 'double',
     ):
         return 'float'
 
-    if isinstance(type_, BasicType) and type_.type in (
+    if isinstance(type_, BasicType) and type_.typename in (
         'char', 'wchar',
     ):
         return 'str'

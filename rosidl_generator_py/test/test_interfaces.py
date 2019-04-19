@@ -114,9 +114,9 @@ def test_default_values():
     assert 'Hello world!' == Strings.DEF_STRING__DEFAULT
     assert 'Hello world!' == a.DEF_STRING__DEFAULT
 
-    assert 'Hello\'world!' == a.DEF_STRING2__DEFAULT
+    assert "Hello'world!" == a.DEF_STRING2__DEFAULT
     assert 'Hello"world!' == a.DEF_STRING3__DEFAULT
-    assert 'Hello\'world!' == a.DEF_STRING4__DEFAULT
+    assert "Hello'world!" == a.DEF_STRING4__DEFAULT
     assert 'Hello"world!' == a.DEF_STRING5__DEFAULT
     with pytest.raises(AttributeError):
         setattr(Strings, 'DEF_STRING__DEFAULT', 'bar')

@@ -43,7 +43,7 @@ static struct PyModuleDef @(package_name)__module = {
 @{
 TEMPLATE(
     '_msg_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, idl_type=message.structure.type, message=message,
+    package_name=package_name, idl_type=message.structure.namespaced_type, message=message,
     typesupport_impl=typesupport_impl, include_directives=include_directives,
     register_functions=register_functions)
 }@
@@ -60,7 +60,7 @@ from rosidl_parser.definition import Service
 @{
 TEMPLATE(
     '_srv_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, idl_type=service.structure_type,
+    package_name=package_name, idl_type=service.namespaced_type,
     service=service, typesupport_impl=typesupport_impl,
     include_directives=include_directives,
     register_functions=register_functions)
@@ -78,7 +78,7 @@ from rosidl_parser.definition import Action
 @{
 TEMPLATE(
     '_action_pkg_typesupport_entry_point.c.em',
-    package_name=package_name, idl_type=action.structure_type,
+    package_name=package_name, idl_type=action.namespaced_type,
     action=action, typesupport_impl=typesupport_impl,
     include_directives=include_directives,
     register_functions=register_functions)

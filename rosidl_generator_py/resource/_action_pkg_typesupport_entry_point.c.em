@@ -70,7 +70,7 @@ int8_t
   int8_t err;
   PyObject * pyobject_@(function_name) = NULL;
   pyobject_@(function_name) = PyCapsule_New(
-    (void *)ROSIDL_TYPESUPPORT_INTERFACE__ACTION_SYMBOL_NAME(rosidl_typesupport_c, @(', '.join(action.namespaced_type.namespaces + [action.namespaced_type.name])))(),
+    (void *)ROSIDL_TYPESUPPORT_INTERFACE__ACTION_SYMBOL_NAME(rosidl_typesupport_c, @(', '.join(action.namespaced_type.namespaced_name())))(),
     NULL, NULL);
   if (!pyobject_@(function_name)) {
     // previously added objects will be removed when the module is destroyed

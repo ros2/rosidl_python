@@ -94,6 +94,8 @@ def test_constructor():
 
 
 def test_constants():
+    assert Constants.FLAG_TRUE is True
+    assert Constants.FLAG_FALSE is False
     assert 123 == Constants.X
     assert -123 == Constants.Y
     assert 'foo' == Constants.FOO

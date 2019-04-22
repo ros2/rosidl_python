@@ -177,7 +177,7 @@ def constant_value_to_py(type_, value):
     assert value is not None
 
     if isinstance(type_, BasicType):
-        if type_.typename == 'bool':
+        if type_.typename == 'boolean':
             return 'True' if value else 'False'
 
         if type_.typename in (

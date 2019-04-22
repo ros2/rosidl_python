@@ -116,7 +116,7 @@ if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_
 // end nested array functions include
 @[end if]@
 @{
-msg_typename = '__'.join(message.structure.namespaced_type.namespaces + [message.structure.namespaced_type.name])
+msg_typename = '__'.join(message.structure.namespaced_type.namespaced_name())
 }@
 @
 @[for member in message.structure.members]@
@@ -191,7 +191,7 @@ if isinstance(type_, AbstractNestedType):
     }
 @[  if isinstance(type_, NamespacedType)]@
 @{
-nested_type = '__'.join(type_.namespaces + [type_.name])
+nested_type = '__'.join(type_.namespaced_name())
 }@
 @[    if isinstance(member.type, AbstractNestedType)]@
     PyObject * seq_field = PySequence_Fast(field, "expected a sequence in '@(member.name)'");
@@ -496,7 +496,7 @@ if isinstance(type_, AbstractNestedType):
 @[ else]@
 @[  if isinstance(type_, NamespacedType)]@
 @{
-nested_type = '__'.join(type_.namespaces + [type_.name])
+nested_type = '__'.join(type_.namespaced_name())
 }@
 @[    if isinstance(member.type, AbstractNestedType)]@
 @[      if isinstance(member.type, AbstractSequence)]@

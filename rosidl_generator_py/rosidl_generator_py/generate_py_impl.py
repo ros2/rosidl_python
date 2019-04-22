@@ -26,8 +26,11 @@ from rosidl_parser.definition import AbstractSequence
 from rosidl_parser.definition import AbstractString
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
+from rosidl_parser.definition import CHARACTER_TYPES
+from rosidl_parser.definition import FLOATING_POINT_TYPES
 from rosidl_parser.definition import IdlContent
 from rosidl_parser.definition import IdlLocator
+from rosidl_parser.definition import INTEGER_TYPES
 from rosidl_parser.definition import NamespacedType
 from rosidl_parser.parser import parse_idl_file
 
@@ -153,12 +156,7 @@ def primitive_value_to_py(type_, value):
     if type_.typename == 'boolean':
         return 'True' if value else 'False'
 
-    if type_.typename in (
-        'int8', 'uint8',
-        'int16', 'uint16',
-        'int32', 'uint32',
-        'int64', 'uint64',
-    ):
+    if type_.typename in INTEGER_TYPES:
         return str(value)
 
     if type_.typename == 'char':
@@ -167,7 +165,7 @@ def primitive_value_to_py(type_, value):
     if type_.typename == 'octet':
         return repr(bytes([value]))
 
-    if type_.typename in ('float', 'double'):
+    if type_.typename in FLOATING_POINT_TYPES:
         return '%s' % value
 
     assert False, "unknown primitive type '%s'" % type_.typename
@@ -180,12 +178,7 @@ def constant_value_to_py(type_, value):
         if type_.typename == 'bool':
             return 'True' if value else 'False'
 
-        if type_.typename in (
-            'int8', 'uint8',
-            'int16', 'uint16',
-            'int32', 'uint32',
-            'int64', 'uint64',
-        ):
+        if type_.typename in INTEGER_TYPES:
             return str(value)
 
         if type_.typename == 'char':
@@ -194,7 +187,7 @@ def constant_value_to_py(type_, value):
         if type_.typename == 'octet':
             return repr(bytes([value]))
 
-        if type_.typename in ('float', 'double'):
+        if type_.typename in FLOATING_POINT_TYPES:
             return '%s' % value
 
     if isinstance(type_, AbstractString):
@@ -228,7 +221,7 @@ def get_python_type(type_):
 
         if (
             isinstance(type_.value_type, BasicType) and
-            type_.value_type.typename in ('char', 'wchar')
+            type_.value_type.typename in CHARACTER_TYPES
         ):
             return 'str'
 
@@ -238,22 +231,13 @@ def get_python_type(type_):
     if isinstance(type_, BasicType) and type_.typename == 'octet':
         return 'bytes'
 
-    if isinstance(type_, BasicType) and type_.typename in (
-        'int8', 'uint8',
-        'int16', 'uint16',
-        'int32', 'uint32',
-        'int64', 'uint64',
-    ):
+    if isinstance(type_, BasicType) and type_.typename in INTEGER_TYPES:
         return 'int'
 
-    if isinstance(type_, BasicType) and type_.typename in (
-        'float', 'double',
-    ):
+    if isinstance(type_, BasicType) and type_.typename in FLOATING_POINT_TYPES:
         return 'float'
 
-    if isinstance(type_, BasicType) and type_.typename in (
-        'char', 'wchar',
-    ):
+    if isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES:
         return 'str'
 
     assert False, "unknown type '%s'" % type_

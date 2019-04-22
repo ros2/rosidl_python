@@ -46,7 +46,7 @@ class Metaclass_@(action.namespaced_type.name)(type):
             import logging
             import traceback
             logger = logging.getLogger(
-                '@('.'.join(action.namespaced_type.namespaces + [action.namespaced_type.name]))')
+                '@('.'.join(action.namespaced_type.namespaced_name()))')
             logger.debug(
                 'Failed to import needed modules for type support:\n' +
                 traceback.format_exc())

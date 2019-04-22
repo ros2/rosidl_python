@@ -25,7 +25,7 @@ function_name = 'type_support'
 
 ROSIDL_GENERATOR_C_IMPORT
 const rosidl_service_type_support_t *
-ROSIDL_TYPESUPPORT_INTERFACE__SERVICE_SYMBOL_NAME(rosidl_typesupport_c, @(', '.join(service.namespaced_type.namespaces + [service.namespaced_type.name])))();
+ROSIDL_TYPESUPPORT_INTERFACE__SERVICE_SYMBOL_NAME(rosidl_typesupport_c, @(', '.join(service.namespaced_type.namespaced_name())))();
 
 @{
 register_function = '_register_srv_type__' + '__'.join(service.namespaced_type.namespaces[1:] + [type_name])
@@ -37,7 +37,7 @@ int8_t
   int8_t err;
   PyObject * pyobject_@(function_name) = NULL;
   pyobject_@(function_name) = PyCapsule_New(
-    (void *)ROSIDL_TYPESUPPORT_INTERFACE__SERVICE_SYMBOL_NAME(rosidl_typesupport_c, @(', '.join(service.namespaced_type.namespaces + [service.namespaced_type.name])))(),
+    (void *)ROSIDL_TYPESUPPORT_INTERFACE__SERVICE_SYMBOL_NAME(rosidl_typesupport_c, @(', '.join(service.namespaced_type.namespaced_name())))(),
     NULL, NULL);
   if (!pyobject_@(function_name)) {
     // previously added objects will be removed when the module is destroyed

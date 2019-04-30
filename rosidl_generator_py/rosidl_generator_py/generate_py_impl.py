@@ -21,9 +21,9 @@ from rosidl_cmake import expand_template
 from rosidl_cmake import generate_files
 from rosidl_cmake import get_newest_modification_time
 from rosidl_cmake import read_generator_arguments
+from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
-from rosidl_parser.definition import AbstractString
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import CHARACTER_TYPES
@@ -148,7 +148,7 @@ def value_to_py(type_, value, array_as_tuple=False):
 def primitive_value_to_py(type_, value):
     assert value is not None
 
-    if isinstance(type_, AbstractString):
+    if isinstance(type_, AbstractGenericString):
         return quoted_string(value)
 
     assert isinstance(type_, BasicType)
@@ -190,7 +190,7 @@ def constant_value_to_py(type_, value):
         if type_.typename in FLOATING_POINT_TYPES:
             return '%s' % value
 
-    if isinstance(type_, AbstractString):
+    if isinstance(type_, AbstractGenericString):
         return quoted_string(value)
 
     assert False, "unknown constant type '%s'" % type_
@@ -212,7 +212,7 @@ def get_python_type(type_):
     if isinstance(type_, NamespacedType):
         return type_.name
 
-    if isinstance(type_, AbstractString):
+    if isinstance(type_, AbstractGenericString):
         return 'str'
 
     if isinstance(type_, AbstractNestedType):

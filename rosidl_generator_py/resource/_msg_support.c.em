@@ -416,6 +416,7 @@ nested_type = '__'.join(type_.namespaced_name())
     char * buffer;
     Py_ssize_t length;
     int rc = PyBytes_AsStringAndSize(encoded_field, &buffer, &length);
+    Py_DECREF(encoded_field);
     if (rc) {
       Py_DECREF(field);
       return false;
@@ -426,7 +427,6 @@ nested_type = '__'.join(type_.namespaced_name())
       Py_DECREF(field);
       return false;
     }
-    Py_DECREF(encoded_field);
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'boolean']@
     assert(PyBool_Check(field));
     ros_message->@(member.name) = (Py_True == field);

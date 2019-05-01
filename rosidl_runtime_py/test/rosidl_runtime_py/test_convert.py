@@ -25,17 +25,17 @@ from test_msgs import message_fixtures
 def test_primitives():
     # Smoke-test the formatters on a bunch of messages
     msgs = []
-    msgs.extend(message_fixtures.get_msg_bounded_array_nested())
-    msgs.extend(message_fixtures.get_msg_bounded_array_primitives())
+    msgs.extend(message_fixtures.get_msg_arrays())
+    msgs.extend(message_fixtures.get_msg_basic_types())
+    msgs.extend(message_fixtures.get_msg_bounded_sequences())
     msgs.extend(message_fixtures.get_msg_builtins())
-    msgs.extend(message_fixtures.get_msg_dynamic_array_nested())
-    msgs.extend(message_fixtures.get_msg_dynamic_array_primitives())
-    msgs.extend(message_fixtures.get_msg_dynamic_array_primitives_nested())
+    msgs.extend(message_fixtures.get_msg_constants())
+    msgs.extend(message_fixtures.get_msg_defaults())
     msgs.extend(message_fixtures.get_msg_empty())
+    msgs.extend(message_fixtures.get_msg_multi_nested())
     msgs.extend(message_fixtures.get_msg_nested())
-    msgs.extend(message_fixtures.get_msg_primitives())
-    msgs.extend(message_fixtures.get_msg_static_array_nested())
-    msgs.extend(message_fixtures.get_msg_static_array_primitives())
+    msgs.extend(message_fixtures.get_msg_strings())
+    msgs.extend(message_fixtures.get_msg_unbounded_sequences())
     for m in msgs:
         message_to_csv(m, 100)
         message_to_csv(m, None)

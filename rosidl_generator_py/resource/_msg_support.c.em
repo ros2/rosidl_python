@@ -331,6 +331,7 @@ nested_type = '__'.join(type_.namespaced_name())
       char * buffer;
       Py_ssize_t length;
       int rc = PyBytes_AsStringAndSize(encoded_item, &buffer, &length);
+      Py_DECREF(encoded_item);
       if (rc) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
@@ -343,7 +344,6 @@ nested_type = '__'.join(type_.namespaced_name())
         Py_DECREF(field);
         return false;
       }
-      Py_DECREF(encoded_item);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'boolean']@
       assert(PyBool_Check(item));
       @primitive_msg_type_to_c(member.type.value_type) tmp = (item == Py_True);

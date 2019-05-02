@@ -22,6 +22,7 @@ from rosidl_generator_py.msg import Primitives
 from rosidl_generator_py.msg import StringArrays
 from rosidl_generator_py.msg import Strings
 from rosidl_generator_py.msg import Various
+from rosidl_generator_py.msg import WStrings
 
 
 def test_strings():
@@ -29,6 +30,13 @@ def test_strings():
 
     assert '' == a.empty_string
     assert 'Hello world!' == a.def_string
+
+
+def test_wstrings():
+    a = WStrings()
+
+    assert '' == a.empty_wstring
+    assert 'Hello world!' == a.def_wstring
 
 
 def test_arrays_of_bounded_strings():
@@ -122,6 +130,21 @@ def test_default_values():
     assert 'Hello"world!' == a.DEF_STRING5__DEFAULT
     with pytest.raises(AttributeError):
         setattr(Strings, 'DEF_STRING__DEFAULT', 'bar')
+
+    a = WStrings()
+    assert '' == a.empty_wstring
+    assert 'Hello world!' == a.def_wstring
+    a.def_wstring = 'Bye world'
+    assert 'Bye world' == a.def_wstring
+    assert 'Hello world!' == WStrings.DEF_WSTRING__DEFAULT
+    assert 'Hello world!' == a.DEF_WSTRING__DEFAULT
+
+    assert "Hello'world!" == a.DEF_WSTRING2__DEFAULT
+    assert 'Hello"world!' == a.DEF_WSTRING3__DEFAULT
+    assert "Hello'world!" == a.DEF_WSTRING4__DEFAULT
+    assert 'Hello"world!' == a.DEF_WSTRING5__DEFAULT
+    with pytest.raises(AttributeError):
+        setattr(WStrings, 'DEF_WSTRING__DEFAULT', 'bar')
 
     b = StringArrays()
     assert ['What', 'a', 'wonderful', 'world', '!'] == b.DEF_STRING_DYNAMIC_ARRAY_VALUE__DEFAULT

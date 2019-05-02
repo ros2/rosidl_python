@@ -43,6 +43,7 @@ if(BUILD_TESTING)
     #"msg/Uint64.msg"
     #"msg/Uint8.msg"
     "msg/Various.msg"
+    "msg/WStrings.msg"
   )
 
   include(cmake/register_py.cmake)

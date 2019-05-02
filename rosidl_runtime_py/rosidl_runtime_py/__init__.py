@@ -15,10 +15,12 @@
 from .convert import message_to_csv
 from .convert import message_to_ordereddict
 from .convert import message_to_yaml
+from .import_message import import_message_type
 from .set_message import set_message_fields
 
 
 __all__ = [
+    'import_message_type',
     'message_to_csv',
     'message_to_ordereddict',
     'message_to_yaml',

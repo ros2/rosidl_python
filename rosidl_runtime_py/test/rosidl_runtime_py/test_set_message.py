@@ -23,17 +23,18 @@ from test_msgs import message_fixtures
 def test_set_message_fields_none():
     # Smoke-test on a bunch of messages
     msgs = []
-    msgs.extend(message_fixtures.get_msg_bounded_array_nested())
-    msgs.extend(message_fixtures.get_msg_bounded_array_primitives())
+    msgs.extend(message_fixtures.get_msg_arrays())
+    msgs.extend(message_fixtures.get_msg_basic_types())
+    msgs.extend(message_fixtures.get_msg_bounded_sequences())
     msgs.extend(message_fixtures.get_msg_builtins())
-    msgs.extend(message_fixtures.get_msg_dynamic_array_nested())
-    msgs.extend(message_fixtures.get_msg_dynamic_array_primitives())
-    msgs.extend(message_fixtures.get_msg_dynamic_array_primitives_nested())
+    msgs.extend(message_fixtures.get_msg_constants())
+    msgs.extend(message_fixtures.get_msg_defaults())
     msgs.extend(message_fixtures.get_msg_empty())
+    msgs.extend(message_fixtures.get_msg_multi_nested())
     msgs.extend(message_fixtures.get_msg_nested())
-    msgs.extend(message_fixtures.get_msg_primitives())
-    msgs.extend(message_fixtures.get_msg_static_array_nested())
-    msgs.extend(message_fixtures.get_msg_static_array_primitives())
+    msgs.extend(message_fixtures.get_msg_strings())
+    msgs.extend(message_fixtures.get_msg_unbounded_sequences())
+
     for m in msgs:
         original_m = copy.copy(m)
         set_message_fields(m, {})
@@ -42,18 +43,16 @@ def test_set_message_fields_none():
 
 
 def test_set_message_fields_partial():
-    original_msg = message_fixtures.get_msg_primitives()[0]
+    original_msg = message_fixtures.get_msg_basic_types()[0]
     original_msg.bool_value = False
     original_msg.char_value = 3
     original_msg.int32_value = 42
-    original_msg.string_value = ''
 
     modified_msg = copy.copy(original_msg)
     values = {}
     values['bool_value'] = True
     values['char_value'] = 1
     values['int32_value'] = 24
-    values['string_value'] = 'testing set message fields partial'
     set_message_fields(modified_msg, values)
 
     for _attr in original_msg.__slots__:
@@ -66,7 +65,7 @@ def test_set_message_fields_partial():
 
 
 def test_set_message_fields_full():
-    msg_list = message_fixtures.get_msg_primitives()
+    msg_list = message_fixtures.get_msg_basic_types()
     msg0 = msg_list[0]
     msg1 = msg_list[1]
 
@@ -82,7 +81,7 @@ def test_set_message_fields_full():
 
 
 def test_set_message_fields_invalid():
-    msg = message_fixtures.get_msg_primitives()[0]
+    msg = message_fixtures.get_msg_basic_types()[0]
     invalid_field = {}
     invalid_field['test_invalid_field'] = 42
     with pytest.raises(AttributeError):

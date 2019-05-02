@@ -69,7 +69,7 @@ for member in message.structure.members:
 @(import_statement)@
 @[        if import_statement not in import_statements]@
 @{import_statements.add(import_statement)}@
-  # noqa: E402@
+  # noqa: E402, I100@
 @[        end if]
 @[    end for]@
 @[end if]@

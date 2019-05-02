@@ -376,7 +376,7 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
             from collections.abc import Set
             from collections import UserList
             from collections import UserString
-@[  elif isinstance(type_, AbstractString) and type_.has_maximum_size()]@
+@[  elif isinstance(type_, AbstractGenericString) and type_.has_maximum_size()]@
             from collections import UserString
 @[  elif isinstance(type_, BasicType) and type_.typename == 'octet']@
             from collections.abc import ByteString

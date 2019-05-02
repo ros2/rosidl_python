@@ -15,9 +15,12 @@ from rosidl_parser.definition import NamespacedType
 def primitive_msg_type_to_c(type_):
     from rosidl_generator_c import BASIC_IDL_TYPES_TO_C
     from rosidl_parser.definition import AbstractString
+    from rosidl_parser.definition import AbstractWString
     from rosidl_parser.definition import BasicType
     if isinstance(type_, AbstractString):
         return 'rosidl_generator_c__String'
+    if isinstance(type_, AbstractWString):
+        return 'rosidl_generator_c__U16String'
     assert isinstance(type_, BasicType)
     return BASIC_IDL_TYPES_TO_C[type_.typename]
 
@@ -262,6 +265,13 @@ nested_type = '__'.join(type_.namespaced_name())
       Py_DECREF(field);
       return false;
     }
+@[      elif isinstance(member.type.value_type, AbstractWString)]@
+    if (!rosidl_generator_c__U16String__Sequence__init(&(ros_message->@(member.name)), size)) {
+      PyErr_SetString(PyExc_RuntimeError, "unable to create U16String__Sequence ros_message");
+      Py_DECREF(seq_field);
+      Py_DECREF(field);
+      return false;
+    }
 @[      else]@
     if (!rosidl_generator_c__@(member.type.value_type.typename)__Sequence__init(&(ros_message->@(member.name)), size)) {
       PyErr_SetString(PyExc_RuntimeError, "unable to create @(member.type.value_type.typename)__Sequence ros_message");
@@ -309,6 +319,31 @@ nested_type = '__'.join(type_.namespaced_name())
       }
       rosidl_generator_c__String__assign(&dest[i], PyBytes_AS_STRING(encoded_item));
       Py_DECREF(encoded_item);
+@[    elif isinstance(member.type.value_type, AbstractWString)]@
+      assert(PyUnicode_Check(item));
+      // the returned string starts with a BOM mark
+      PyObject * encoded_item = PyUnicode_AsUTF16String(item);
+      if (!encoded_item) {
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+      char * buffer;
+      Py_ssize_t length;
+      int rc = PyBytes_AsStringAndSize(encoded_item, &buffer, &length);
+      Py_DECREF(encoded_item);
+      if (rc) {
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+      // use offset of 2 to skip BOM mark
+      bool succeeded = rosidl_generator_c__U16String__assignn_from_char(&dest[i], buffer + 2, length - 2);
+      if (!succeeded) {
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'boolean']@
       assert(PyBool_Check(item));
       @primitive_msg_type_to_c(member.type.value_type) tmp = (item == Py_True);
@@ -370,6 +405,30 @@ nested_type = '__'.join(type_.namespaced_name())
     }
     rosidl_generator_c__String__assign(&ros_message->@(member.name), PyBytes_AS_STRING(encoded_field));
     Py_DECREF(encoded_field);
+@[  elif isinstance(member.type, AbstractWString)]@
+    assert(PyUnicode_Check(field));
+    // the returned string starts with a BOM mark
+    PyObject * encoded_field = PyUnicode_AsUTF16String(field);
+    if (!encoded_field) {
+      Py_DECREF(field);
+      return false;
+    }
+    char * buffer;
+    Py_ssize_t length;
+    int rc = PyBytes_AsStringAndSize(encoded_field, &buffer, &length);
+    Py_DECREF(encoded_field);
+    if (rc) {
+      Py_DECREF(field);
+      return false;
+    }
+    // use offset of 2 to skip BOM mark
+    {
+      bool succeeded = rosidl_generator_c__U16String__assignn_from_char(&ros_message->@(member.name), buffer + 2, length - 2);
+      if (!succeeded) {
+        Py_DECREF(field);
+        return false;
+      }
+    }
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'boolean']@
     assert(PyBool_Check(field));
     ros_message->@(member.name) = (Py_True == field);
@@ -560,6 +619,15 @@ nested_type = '__'.join(type_.namespaced_name())
       int rc = PyList_SetItem(field, i, decoded_item);
       (void)rc;
       assert(rc == 0);
+@[    elif isinstance(member.type.value_type, AbstractWString)]@
+      int byteorder = 0;
+      PyObject * decoded_item = PyUnicode_DecodeUTF16((const char *)src[i].data, src[i].size * sizeof(uint16_t), NULL, &byteorder);
+      if (!decoded_item) {
+        return NULL;
+      }
+      int rc = PyList_SetItem(field, i, decoded_item);
+      (void)rc;
+      assert(rc == 0);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'boolean']@
 @# using PyBool_FromLong because PyList_SetItem will steal ownership of the passed item
       int rc = PyList_SetItem(field, i, PyBool_FromLong(src[i] ? 1 : 0));
@@ -611,6 +679,15 @@ nested_type = '__'.join(type_.namespaced_name())
       ros_message->@(member.name).data,
       strlen(ros_message->@(member.name).data),
       "strict");
+    if (!field) {
+      return NULL;
+    }
+@[  elif isinstance(member.type, AbstractWString)]@
+    int byteorder = 0;
+    field = PyUnicode_DecodeUTF16(
+      (const char *)ros_message->@(member.name).data,
+      ros_message->@(member.name).size * sizeof(uint16_t),
+      NULL, &byteorder);
     if (!field) {
       return NULL;
     }

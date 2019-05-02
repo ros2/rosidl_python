@@ -9,7 +9,6 @@ from rosidl_generator_py.generate_py_impl import value_to_py
 from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
-from rosidl_parser.definition import AbstractString
 from rosidl_parser.definition import AbstractWString
 from rosidl_parser.definition import ACTION_FEEDBACK_SUFFIX
 from rosidl_parser.definition import ACTION_GOAL_SUFFIX
@@ -376,7 +375,7 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
             from collections.abc import Set
             from collections import UserList
             from collections import UserString
-@[  elif isinstance(type_, AbstractString) and type_.has_maximum_size()]@
+@[  elif isinstance(type_, AbstractGenericString) and type_.has_maximum_size()]@
             from collections import UserString
 @[  elif isinstance(type_, BasicType) and type_.typename == 'octet']@
             from collections.abc import ByteString
@@ -391,7 +390,7 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
                  not isinstance(value, str) and
                  not isinstance(value, UserString) and
 @{assert_msg_suffixes = ['a set or sequence']}@
-@[    if isinstance(type_, AbstractString) and type_.has_maximum_size()]@
+@[    if isinstance(type_, AbstractGenericString) and type_.has_maximum_size()]@
                  all(len(val) <= @(type_.maximum_size) for val in value) and
 @{assert_msg_suffixes.append('and each string value not longer than %d' % type_.maximum_size)}@
 @[    end if]@

@@ -422,10 +422,12 @@ nested_type = '__'.join(type_.namespaced_name())
       return false;
     }
     // use offset of 2 to skip BOM mark
-    bool succeeded = rosidl_generator_c__U16String__assignn_from_char(&ros_message->@(member.name), buffer + 2, length - 2);
-    if (!succeeded) {
-      Py_DECREF(field);
-      return false;
+    {
+      bool succeeded = rosidl_generator_c__U16String__assignn_from_char(&ros_message->@(member.name), buffer + 2, length - 2);
+      if (!succeeded) {
+        Py_DECREF(field);
+        return false;
+      }
     }
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'boolean']@
     assert(PyBool_Check(field));

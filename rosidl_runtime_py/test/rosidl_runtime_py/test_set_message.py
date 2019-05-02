@@ -94,40 +94,36 @@ def test_set_message_fields_invalid():
 
 
 def test_set_nested_namespaced_fields():
-    msg = message_fixtures.get_msg_dynamic_array_nested()[0]
+    unbounded_sequence_msg = message_fixtures.get_msg_unbounded_sequences()[1]
     test_values = {
-        'primitive_values': [
-            {'string_value': 'foo', 'int8_value': 42},
-            {'string_value': 'bar', 'int8_value': 11}
+        'basic_types_values': [
+            {'float64_value': 42.42, 'int8_value': 42},
+            {'float64_value': 11.11, 'int8_value': 11}
         ]
     }
-    set_message_fields(msg, test_values)
-    assert msg.primitive_values[0].string_value == 'foo'
-    assert msg.primitive_values[0].int8_value == 42
-    assert msg.primitive_values[0].uint8_value == 0
-    assert msg.primitive_values[1].string_value == 'bar'
-    assert msg.primitive_values[1].int8_value == 11
-    assert msg.primitive_values[1].uint8_value == 0
+    set_message_fields(unbounded_sequence_msg, test_values)
+    assert unbounded_sequence_msg.basic_types_values[0].float64_value == 42.42
+    assert unbounded_sequence_msg.basic_types_values[0].int8_value == 42
+    assert unbounded_sequence_msg.basic_types_values[0].uint8_value == 0
+    assert unbounded_sequence_msg.basic_types_values[1].float64_value == 11.11
+    assert unbounded_sequence_msg.basic_types_values[1].int8_value == 11
+    assert unbounded_sequence_msg.basic_types_values[1].uint8_value == 0
 
-    static_array_msg = message_fixtures.get_msg_static_array_nested()[0]
+    arrays_msg = message_fixtures.get_msg_arrays()[0]
     test_values = {
-        'primitive_values': [
-            {'string_value': 'foo', 'int8_value': 42},
-            {'string_value': 'bar', 'int8_value': 11},
-            {'string_value': 'baz', 'int8_value': 22},
-            {'string_value': 'foobar', 'int8_value': 33}
+        'basic_types_values': [
+            {'float64_value': 42.42, 'int8_value': 42},
+            {'float64_value': 11.11, 'int8_value': 11},
+            {'float64_value': 22.22, 'int8_value': 22},
         ]
     }
-    set_message_fields(static_array_msg, test_values)
-    assert static_array_msg.primitive_values[0].string_value == 'foo'
-    assert static_array_msg.primitive_values[0].int8_value == 42
-    assert static_array_msg.primitive_values[0].uint8_value == 0
-    assert static_array_msg.primitive_values[1].string_value == 'bar'
-    assert static_array_msg.primitive_values[1].int8_value == 11
-    assert static_array_msg.primitive_values[1].uint8_value == 0
-    assert static_array_msg.primitive_values[2].string_value == 'baz'
-    assert static_array_msg.primitive_values[2].int8_value == 22
-    assert static_array_msg.primitive_values[2].uint8_value == 0
-    assert static_array_msg.primitive_values[3].string_value == 'foobar'
-    assert static_array_msg.primitive_values[3].int8_value == 33
-    assert static_array_msg.primitive_values[3].uint8_value == 0
+    set_message_fields(arrays_msg, test_values)
+    assert arrays_msg.basic_types_values[0].float64_value == 42.42
+    assert arrays_msg.basic_types_values[0].int8_value == 42
+    assert arrays_msg.basic_types_values[0].uint8_value == 0
+    assert arrays_msg.basic_types_values[1].float64_value == 11.11
+    assert arrays_msg.basic_types_values[1].int8_value == 11
+    assert arrays_msg.basic_types_values[1].uint8_value == 0
+    assert arrays_msg.basic_types_values[2].float64_value == 22.22
+    assert arrays_msg.basic_types_values[2].int8_value == 22
+    assert arrays_msg.basic_types_values[2].uint8_value == 0

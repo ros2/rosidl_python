@@ -15,8 +15,8 @@
 from typing import Any
 from typing import Dict
 
+from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import NamespacedType
-from rosidl_parser.definition import NestedType
 from rosidl_runtime_py.convert import get_message_slot_types
 from rosidl_runtime_py.import_message import import_message_from_namespaced_type
 
@@ -40,8 +40,8 @@ def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
             set_message_fields(value, field_value)
         rosidl_type = get_message_slot_types(msg)[field_name]
         # Check if field is an array of ROS messages
-        if isinstance(rosidl_type, NestedType):
-            if isinstance(rosidl_type.basetype, NamespacedType):
+        if isinstance(rosidl_type, AbstractNestedType):
+            if isinstance(rosidl_type.value_type, NamespacedType):
                 field_elem_type = import_message_from_namespaced_type(rosidl_type)
                 for n in range(len(value)):
                     submsg = field_elem_type()

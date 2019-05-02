@@ -27,9 +27,10 @@ from rosidl_generator_py.msg import WStrings
 
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BoundedSequence
+from rosidl_parser.definition import BoundedString
 from rosidl_parser.definition import NamespacedType
-from rosidl_parser.definition import String
 from rosidl_parser.definition import UnboundedSequence
+from rosidl_parser.definition import UnboundedString
 
 
 def test_strings():
@@ -313,22 +314,22 @@ def test_slot_attributes():
     assert nested_slot_types[0].name == 'Primitives'
 
     assert isinstance(nested_slot_types[1], Array)
-    assert isinstance(nested_slot_types[1].basetype, NamespacedType)
-    assert nested_slot_types[1].basetype.namespaces == \
+    assert isinstance(nested_slot_types[1].value_type, NamespacedType)
+    assert nested_slot_types[1].value_type.namespaces == \
         ['rosidl_generator_py', 'msg']
-    assert nested_slot_types[1].basetype.name == 'Primitives'
+    assert nested_slot_types[1].value_type.name == 'Primitives'
 
     assert isinstance(nested_slot_types[2], BoundedSequence)
-    assert isinstance(nested_slot_types[2].basetype, NamespacedType)
-    assert nested_slot_types[2].basetype.namespaces == \
+    assert isinstance(nested_slot_types[2].value_type, NamespacedType)
+    assert nested_slot_types[2].value_type.namespaces == \
         ['rosidl_generator_py', 'msg']
-    assert nested_slot_types[2].basetype.name == 'Primitives'
+    assert nested_slot_types[2].value_type.name == 'Primitives'
 
     assert isinstance(nested_slot_types[3], UnboundedSequence)
-    assert isinstance(nested_slot_types[3].basetype, NamespacedType)
-    assert nested_slot_types[3].basetype.namespaces == \
+    assert isinstance(nested_slot_types[3].value_type, NamespacedType)
+    assert nested_slot_types[3].value_type.namespaces == \
         ['rosidl_generator_py', 'msg']
-    assert nested_slot_types[3].basetype.name == 'Primitives'
+    assert nested_slot_types[3].value_type.name == 'Primitives'
 
 
 def test_string_slot_attributes():
@@ -340,24 +341,22 @@ def test_string_slot_attributes():
     assert len(string_slot_types) == len(string_slots)
 
     assert isinstance(string_slot_types[0], Array)
-    assert isinstance(string_slot_types[0].basetype, String)
+    assert isinstance(string_slot_types[0].value_type, BoundedString)
     assert string_slot_types[0].size == 3
-    assert string_slot_types[0].basetype.maximum_size == 5
+    assert string_slot_types[0].value_type.maximum_size == 5
 
     assert isinstance(string_slot_types[1], BoundedSequence)
-    assert isinstance(string_slot_types[1].basetype, String)
-    assert string_slot_types[1].upper_bound == 10
-    assert string_slot_types[1].basetype.maximum_size == 5
+    assert isinstance(string_slot_types[1].value_type, BoundedString)
+    assert string_slot_types[1].maximum_size == 10
+    assert string_slot_types[1].value_type.maximum_size == 5
 
     assert isinstance(string_slot_types[2], UnboundedSequence)
-    assert isinstance(string_slot_types[2].basetype, String)
-    assert string_slot_types[2].basetype.maximum_size == 5
+    assert isinstance(string_slot_types[2].value_type, BoundedString)
+    assert string_slot_types[2].value_type.maximum_size == 5
 
     assert isinstance(string_slot_types[3], UnboundedSequence)
-    assert isinstance(string_slot_types[3].basetype, String)
-    assert string_slot_types[3].basetype.maximum_size is None
+    assert isinstance(string_slot_types[3].value_type, UnboundedString)
 
     assert isinstance(string_slot_types[4], Array)
-    assert isinstance(string_slot_types[4].basetype, String)
+    assert isinstance(string_slot_types[4].value_type, UnboundedString)
     assert string_slot_types[4].size == 3
-    assert string_slot_types[4].basetype.maximum_size is None

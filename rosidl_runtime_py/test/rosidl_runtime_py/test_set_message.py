@@ -91,3 +91,39 @@ def test_set_message_fields_invalid():
     invalid_type['int32_value'] = 'this is not an integer'
     with pytest.raises(ValueError):
         set_message_fields(msg, invalid_type)
+
+
+def test_set_nested_namespaced_fields():
+    unbounded_sequence_msg = message_fixtures.get_msg_unbounded_sequences()[1]
+    test_values = {
+        'basic_types_values': [
+            {'float64_value': 42.42, 'int8_value': 42},
+            {'float64_value': 11.11, 'int8_value': 11}
+        ]
+    }
+    set_message_fields(unbounded_sequence_msg, test_values)
+    assert unbounded_sequence_msg.basic_types_values[0].float64_value == 42.42
+    assert unbounded_sequence_msg.basic_types_values[0].int8_value == 42
+    assert unbounded_sequence_msg.basic_types_values[0].uint8_value == 0
+    assert unbounded_sequence_msg.basic_types_values[1].float64_value == 11.11
+    assert unbounded_sequence_msg.basic_types_values[1].int8_value == 11
+    assert unbounded_sequence_msg.basic_types_values[1].uint8_value == 0
+
+    arrays_msg = message_fixtures.get_msg_arrays()[0]
+    test_values = {
+        'basic_types_values': [
+            {'float64_value': 42.42, 'int8_value': 42},
+            {'float64_value': 11.11, 'int8_value': 11},
+            {'float64_value': 22.22, 'int8_value': 22},
+        ]
+    }
+    set_message_fields(arrays_msg, test_values)
+    assert arrays_msg.basic_types_values[0].float64_value == 42.42
+    assert arrays_msg.basic_types_values[0].int8_value == 42
+    assert arrays_msg.basic_types_values[0].uint8_value == 0
+    assert arrays_msg.basic_types_values[1].float64_value == 11.11
+    assert arrays_msg.basic_types_values[1].int8_value == 11
+    assert arrays_msg.basic_types_values[1].uint8_value == 0
+    assert arrays_msg.basic_types_values[2].float64_value == 22.22
+    assert arrays_msg.basic_types_values[2].int8_value == 22
+    assert arrays_msg.basic_types_values[2].uint8_value == 0

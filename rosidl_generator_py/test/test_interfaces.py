@@ -16,6 +16,7 @@ import array
 
 import numpy
 import pytest
+
 from rosidl_generator_py.msg import Constants
 from rosidl_generator_py.msg import Nested
 from rosidl_generator_py.msg import Primitives
@@ -23,6 +24,13 @@ from rosidl_generator_py.msg import StringArrays
 from rosidl_generator_py.msg import Strings
 from rosidl_generator_py.msg import Various
 from rosidl_generator_py.msg import WStrings
+
+from rosidl_parser.definition import Array
+from rosidl_parser.definition import BoundedSequence
+from rosidl_parser.definition import BoundedString
+from rosidl_parser.definition import NamespacedType
+from rosidl_parser.definition import UnboundedSequence
+from rosidl_parser.definition import UnboundedString
 
 
 def test_strings():
@@ -314,7 +322,7 @@ def test_slot_attributes():
         assert expected_slot_type == nested_slot_types_dict[expected_field]
 
 
-def test_primative_slot_attributes():
+def test_string_slot_attributes():
     b = StringArrays()
     assert hasattr(b, 'get_fields_and_field_types')
     assert hasattr(b, '__slots__')
@@ -349,3 +357,63 @@ def test_modifying_slot_fields_and_types():
     string_slot_types_dict_len = len(string_slot_types_dict)
     string_slot_types_dict[1] = 2
     assert len(getattr(b, 'get_fields_and_field_types')()) == string_slot_types_dict_len
+
+
+def test_slot_types():
+    a = Nested()
+    assert hasattr(a, 'SLOT_TYPES')
+    assert hasattr(a, '__slots__')
+    nested_slot_types = Nested.SLOT_TYPES
+    nested_slots = getattr(a, '__slots__')
+    assert len(nested_slot_types) == len(nested_slots)
+    assert isinstance(nested_slot_types[0], NamespacedType)
+    assert nested_slot_types[0].namespaces == ['rosidl_generator_py', 'msg']
+    assert nested_slot_types[0].name == 'Primitives'
+
+    assert isinstance(nested_slot_types[1], Array)
+    assert isinstance(nested_slot_types[1].value_type, NamespacedType)
+    assert nested_slot_types[1].value_type.namespaces == \
+        ['rosidl_generator_py', 'msg']
+    assert nested_slot_types[1].value_type.name == 'Primitives'
+
+    assert isinstance(nested_slot_types[2], BoundedSequence)
+    assert isinstance(nested_slot_types[2].value_type, NamespacedType)
+    assert nested_slot_types[2].value_type.namespaces == \
+        ['rosidl_generator_py', 'msg']
+    assert nested_slot_types[2].value_type.name == 'Primitives'
+
+    assert isinstance(nested_slot_types[3], UnboundedSequence)
+    assert isinstance(nested_slot_types[3].value_type, NamespacedType)
+    assert nested_slot_types[3].value_type.namespaces == \
+        ['rosidl_generator_py', 'msg']
+    assert nested_slot_types[3].value_type.name == 'Primitives'
+
+
+def test_string_slot_types():
+    b = StringArrays()
+    assert hasattr(b, 'SLOT_TYPES')
+    assert hasattr(b, '__slots__')
+    string_slot_types = StringArrays.SLOT_TYPES
+    string_slots = getattr(b, '__slots__')
+    assert len(string_slot_types) == len(string_slots)
+
+    assert isinstance(string_slot_types[0], Array)
+    assert isinstance(string_slot_types[0].value_type, BoundedString)
+    assert string_slot_types[0].size == 3
+    assert string_slot_types[0].value_type.maximum_size == 5
+
+    assert isinstance(string_slot_types[1], BoundedSequence)
+    assert isinstance(string_slot_types[1].value_type, BoundedString)
+    assert string_slot_types[1].maximum_size == 10
+    assert string_slot_types[1].value_type.maximum_size == 5
+
+    assert isinstance(string_slot_types[2], UnboundedSequence)
+    assert isinstance(string_slot_types[2].value_type, BoundedString)
+    assert string_slot_types[2].value_type.maximum_size == 5
+
+    assert isinstance(string_slot_types[3], UnboundedSequence)
+    assert isinstance(string_slot_types[3].value_type, UnboundedString)
+
+    assert isinstance(string_slot_types[4], Array)
+    assert isinstance(string_slot_types[4].value_type, UnboundedString)
+    assert string_slot_types[4].size == 3

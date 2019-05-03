@@ -22,6 +22,7 @@ from rosidl_parser.definition import FLOATING_POINT_TYPES
 from rosidl_parser.definition import INTEGER_TYPES
 from rosidl_parser.definition import NamespacedType
 from rosidl_parser.definition import SIGNED_INTEGER_TYPES
+from rosidl_parser.definition import UnboundedSequence
 from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 }@
 @#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -30,6 +31,9 @@ from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 from collections import OrderedDict
 import numpy
 imports = OrderedDict()
+if message.structure.members:
+    imports.setdefault(
+        'import rosidl_parser.definition', [])  # used for SLOT_TYPES
 for member in message.structure.members:
     if (
         isinstance(member.type, AbstractNestedType) and
@@ -65,7 +69,7 @@ for member in message.structure.members:
 @(import_statement)@
 @[        if import_statement not in import_statements]@
 @{import_statements.add(import_statement)}@
-  # noqa: E402@
+  # noqa: E402, I100@
 @[        end if]
 @[    end for]@
 @[end if]@
@@ -226,6 +230,39 @@ string@
 ',
 @[end for]@
     }
+
+    SLOT_TYPES = (
+@[for member in message.structure.members]@
+@{
+type_ = member.type
+if isinstance(type_, AbstractNestedType):
+    type_ = type_.value_type
+}@
+        @
+@[  if isinstance(member.type, AbstractNestedType)]@
+@(member.type.__class__.__module__).@(member.type.__class__.__name__)(@
+@[  end if]@
+@# the typename of the non-nested type or the nested value_type
+@(type_.__class__.__module__).@(type_.__class__.__name__)(@
+@[  if isinstance(type_, BasicType)]@
+'@(type_.typename)'@
+@[  elif isinstance(type_, AbstractGenericString) and type_.has_maximum_size()]@
+@(type_.maximum_size)@
+@[  elif isinstance(type_, NamespacedType)]@
+[@(', '.join("'%s'" % n for n in type_.namespaces))], '@(type_.name)'@
+@[  end if]@
+)@
+@[  if isinstance(member.type, Array)]@
+, @(member.type.size)@
+@[  elif isinstance(member.type, BoundedSequence)]@
+, @(member.type.maximum_size)@
+@[  end if]@
+@[  if isinstance(member.type, AbstractNestedType)]@
+)@
+@[  end if]@
+,  # noqa: E501
+@[end for]@
+    )
 
     def __init__(self, **kwargs):
         assert all('_' + key in self.__slots__ for key in kwargs.keys()), \

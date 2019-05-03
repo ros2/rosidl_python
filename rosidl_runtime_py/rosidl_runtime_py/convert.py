@@ -51,7 +51,7 @@ def message_to_yaml(msg: Any, truncate_length: int = None) -> str:
 
     return yaml.dump(
         message_to_ordereddict(msg, truncate_length=truncate_length),
-        width=sys.maxsize,
+        allow_unicode=True, width=sys.maxsize,
     )
 
 

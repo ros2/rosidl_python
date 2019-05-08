@@ -517,24 +517,44 @@ if isinstance(type_, AbstractNestedType):
     memcpy(dst, src, @(member.type.size) * sizeof(@primitive_msg_type_to_c(member.type.value_type)));
     Py_DECREF(field);
 @[    elif isinstance(member.type, AbstractSequence)]@
+    field = PyObject_GetAttrString(_pymessage, "@(member.name)");
+    if (!field) {
+      return NULL;
+    }
+    assert(field->ob_type != NULL);
+    assert(field->ob_type->tp_name != NULL);
+    assert(strcmp(field->ob_type->tp_name, "array.array") == 0);
+    // ensure that itemsize matches the sizeof of the ROS message field
+    PyObject * itemsize_attr = PyObject_GetAttrString(field, "itemsize");
+    assert(itemsize_attr != NULL);
+    size_t itemsize = PyLong_AsSize_t(itemsize_attr);
+    Py_DECREF(itemsize_attr);
+    if (itemsize != sizeof(@primitive_msg_type_to_c(member.type.value_type))) {
+      PyErr_SetString(PyExc_RuntimeError, "itemsize doesn't match expectation");
+      Py_DECREF(field);
+      return NULL;
+    }
+    // clear the array, poor approach to remove potential default values
+    Py_ssize_t length = PyObject_Length(field);
+    if (-1 == length) {
+      Py_DECREF(field);
+      return NULL;
+    }
+    if (length > 0) {
+      PyObject * pop = PyObject_GetAttrString(field, "pop");
+      assert(pop != NULL);
+      for (Py_ssize_t i = 0; i < length; ++i) {
+        PyObject * ret = PyObject_CallFunctionObjArgs(pop, NULL);
+        if (!ret) {
+          Py_DECREF(pop);
+          Py_DECREF(field);
+          return NULL;
+        }
+        Py_DECREF(ret);
+      }
+      Py_DECREF(pop);
+    }
     if (ros_message->@(member.name).size > 0) {
-      field = PyObject_GetAttrString(_pymessage, "@(member.name)");
-      if (!field) {
-        return NULL;
-      }
-      assert(field->ob_type != NULL);
-      assert(field->ob_type->tp_name != NULL);
-      assert(strcmp(field->ob_type->tp_name, "array.array") == 0);
-      // ensure that itemsize matches the sizeof of the ROS message field
-      PyObject * itemsize_attr = PyObject_GetAttrString(field, "itemsize");
-      assert(itemsize_attr != NULL);
-      size_t itemsize = PyLong_AsSize_t(itemsize_attr);
-      Py_DECREF(itemsize_attr);
-      if (itemsize != sizeof(@primitive_msg_type_to_c(member.type.value_type))) {
-        PyErr_SetString(PyExc_RuntimeError, "itemsize doesn't match expectation");
-        Py_DECREF(field);
-        return NULL;
-      }
       // populating the array.array using the frombytes method
       PyObject * frombytes = PyObject_GetAttrString(field, "frombytes");
       assert(frombytes != NULL);
@@ -549,8 +569,8 @@ if isinstance(type_, AbstractNestedType):
         return NULL;
       }
       Py_DECREF(ret);
-      Py_DECREF(field);
     }
+    Py_DECREF(field);
 @[    end if]@
 @[ else]@
 @[  if isinstance(type_, NamespacedType)]@

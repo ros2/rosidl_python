@@ -321,7 +321,7 @@ nested_type = '__'.join(type_.namespaced_name())
       Py_DECREF(encoded_item);
 @[    elif isinstance(member.type.value_type, AbstractWString)]@
       assert(PyUnicode_Check(item));
-      // the returned string starts with a BOM mark
+      // the returned string starts with a BOM mark and uses native byte order
       PyObject * encoded_item = PyUnicode_AsUTF16String(item);
       if (!encoded_item) {
         Py_DECREF(seq_field);
@@ -407,7 +407,7 @@ nested_type = '__'.join(type_.namespaced_name())
     Py_DECREF(encoded_field);
 @[  elif isinstance(member.type, AbstractWString)]@
     assert(PyUnicode_Check(field));
-    // the returned string starts with a BOM mark
+    // the returned string starts with a BOM mark and uses native byte order
     PyObject * encoded_field = PyUnicode_AsUTF16String(field);
     if (!encoded_field) {
       Py_DECREF(field);

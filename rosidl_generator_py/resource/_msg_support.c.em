@@ -298,7 +298,7 @@ nested_type = '__'.join(type_.namespaced_name())
       @primitive_msg_type_to_c(member.type.value_type) tmp = *(@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_')) *)PyArray_GETPTR1(seq_field, i);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'char']@
       assert(PyUnicode_Check(item));
-      PyObject * encoded_item = PyUnicode_AsASCIIString(item);
+      PyObject * encoded_item = PyUnicode_AsUTF8String(item);
       if (!encoded_item) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
@@ -311,7 +311,7 @@ nested_type = '__'.join(type_.namespaced_name())
       @primitive_msg_type_to_c(member.type.value_type) tmp = PyBytes_AS_STRING(item)[0];
 @[    elif isinstance(member.type.value_type, AbstractString)]@
       assert(PyUnicode_Check(item));
-      PyObject * encoded_item = PyUnicode_AsASCIIString(item);
+      PyObject * encoded_item = PyUnicode_AsUTF8String(item);
       if (!encoded_item) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
@@ -321,7 +321,7 @@ nested_type = '__'.join(type_.namespaced_name())
       Py_DECREF(encoded_item);
 @[    elif isinstance(member.type.value_type, AbstractWString)]@
       assert(PyUnicode_Check(item));
-      // the returned string starts with a BOM mark
+      // the returned string starts with a BOM mark and uses native byte order
       PyObject * encoded_item = PyUnicode_AsUTF16String(item);
       if (!encoded_item) {
         Py_DECREF(seq_field);
@@ -386,7 +386,7 @@ nested_type = '__'.join(type_.namespaced_name())
     Py_DECREF(seq_field);
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'char']@
     assert(PyUnicode_Check(field));
-    PyObject * encoded_field = PyUnicode_AsASCIIString(field);
+    PyObject * encoded_field = PyUnicode_AsUTF8String(field);
     if (!encoded_field) {
       Py_DECREF(field);
       return false;
@@ -398,7 +398,7 @@ nested_type = '__'.join(type_.namespaced_name())
     ros_message->@(member.name) = PyBytes_AS_STRING(field)[0];
 @[  elif isinstance(member.type, AbstractString)]@
     assert(PyUnicode_Check(field));
-    PyObject * encoded_field = PyUnicode_AsASCIIString(field);
+    PyObject * encoded_field = PyUnicode_AsUTF8String(field);
     if (!encoded_field) {
       Py_DECREF(field);
       return false;
@@ -407,7 +407,7 @@ nested_type = '__'.join(type_.namespaced_name())
     Py_DECREF(encoded_field);
 @[  elif isinstance(member.type, AbstractWString)]@
     assert(PyUnicode_Check(field));
-    // the returned string starts with a BOM mark
+    // the returned string starts with a BOM mark and uses native byte order
     PyObject * encoded_field = PyUnicode_AsUTF16String(field);
     if (!encoded_field) {
       Py_DECREF(field);
@@ -632,7 +632,7 @@ nested_type = '__'.join(type_.namespaced_name())
       (void)rc;
       assert(rc == 0);
 @[    elif isinstance(member.type.value_type, AbstractString)]@
-      PyObject * decoded_item = PyUnicode_DecodeASCII(src[i].data, strlen(src[i].data), "strict");
+      PyObject * decoded_item = PyUnicode_DecodeUTF8(src[i].data, strlen(src[i].data), "strict");
       if (!decoded_item) {
         return NULL;
       }
@@ -695,7 +695,7 @@ nested_type = '__'.join(type_.namespaced_name())
       return NULL;
     }
 @[  elif isinstance(member.type, AbstractString)]@
-    field = PyUnicode_DecodeASCII(
+    field = PyUnicode_DecodeUTF8(
       ros_message->@(member.name).data,
       strlen(ros_message->@(member.name).data),
       "strict");

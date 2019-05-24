@@ -71,19 +71,28 @@ def message_to_csv(msg: Any, truncate_length: int = None,
     :param no_str: Exclude string fields of the message
     :returns: A string of comma-separated values representing the input message.
     """
-    def to_string(val):
-        nonlocal truncate_length
+    def to_string(val, field_type=None, has_maximum_size=None):
+        nonlocal truncate_length, no_arr, no_str
         r = ''
         if any(isinstance(val, t) for t in [list, tuple, array.array, numpy.ndarray]):
-            for i, v in enumerate(val):
-                if r:
-                    r += ','
-                if truncate_length is not None and i >= truncate_length:
-                    r += '...'
-                    break
-                r += to_string(v)
+            if no_arr is True and field_type is not None:
+                if(callable(has_maximum_size) and has_maximum_size()):
+                    r = '<array type: <{0}>>'.format(field_type)
+                else:
+                    r = '<array type: <{0}>, length: <{1}>>'.format(
+                        field_type, len(value))
+            else:
+                for i, v in enumerate(val):
+                    if r:
+                        r += ','
+                    if truncate_length is not None and i >= truncate_length:
+                        r += '...'
+                        break
+                    r += to_string(v)
         elif any(isinstance(val, t) for t in [bool, bytes, float, int, str, numpy.number]):
-            if any(isinstance(val, t) for t in [bytes, str]):
+            if no_str is True and isinstance(val, str):
+                val = '<string length: <{0}>>'.format(len(val))
+            elif any(isinstance(val, t) for t in [bytes, str]):
                 if truncate_length is not None and len(val) > truncate_length:
                     val = val[:truncate_length]
                     if isinstance(val, bytes):
@@ -95,22 +104,18 @@ def message_to_csv(msg: Any, truncate_length: int = None,
             r = message_to_csv(val, truncate_length, no_arr, no_str)
         return r
     result = ''
+    slot_types = get_message_slot_types(msg)
+
     # We rely on __slots__ retaining the order of the fields in the .msg file.
     for field_name in msg.__slots__:
         value = getattr(msg, field_name)
         field_type = msg._fields_and_field_types[field_name[1:]]
+        has_maximum_size = getattr(slot_types[field_name[1:]], 'has_maximum_size', None)
 
         if result:
             result += ','
 
-        if no_arr is True and any(
-                isinstance(value, t) for t in [list, tuple, array.array, numpy.ndarray]):
-            result += '<array type: <{0}>, length: <{1}>>'.format(
-                field_type, len(value))
-        elif no_str is True and isinstance(value, str):
-            result += '<string length: <{0}>>'.format(len(value))
-        else:
-            result += to_string(value)
+        result += to_string(value, field_type, has_maximum_size)
     return result
 
 
@@ -133,43 +138,51 @@ def message_to_ordereddict(
         set to the values of the input message.
     """
     d = OrderedDict()
+    slot_types = get_message_slot_types(msg)
+
     # We rely on __slots__ retaining the order of the fields in the .msg file.
     for field_name in msg.__slots__:
         value = getattr(msg, field_name, None)
         field_type = msg._fields_and_field_types[field_name[1:]]
+        has_maximum_size = getattr(slot_types[field_name[1:]], 'has_maximum_size', None)
 
-        if no_arr is True and any(
-                isinstance(value, t) for t in [list, tuple, array.array, numpy.ndarray]):
-            d[field_name[1:]] = '<array type: <{0}>, length: <{1}>>'.format(
-                field_type, len(value))
-        elif no_str is True and isinstance(value, str):
-            d[field_name[1:]] = '<string length: <{0}>>'.format(len(value))
-        else:
-            value = _convert_value(
-                value, truncate_length=truncate_length, no_arr=no_arr, no_str=no_str)
-            # Remove leading underscore from field name
-            d[field_name[1:]] = value
+        value = _convert_value(
+            value, field_type, has_maximum_size,
+            truncate_length=truncate_length, no_arr=no_arr, no_str=no_str)
+        # Remove leading underscore from field name
+        d[field_name[1:]] = value
     return d
 
 
-def _convert_value(value, truncate_length=None, no_arr=False, no_str=False):
+def _convert_value(value, field_type=None, has_maximum_size=None,
+                   truncate_length=None, no_arr=False, no_str=False):
+
     if isinstance(value, bytes):
         if truncate_length is not None and len(value) > truncate_length:
             value = ''.join([chr(c) for c in value[:truncate_length]]) + '...'
         else:
             value = ''.join([chr(c) for c in value])
     elif isinstance(value, str):
-        if truncate_length is not None and len(value) > truncate_length:
+        if no_str is True:
+            value = '<string length: <{0}>>'.format(len(value))
+        elif truncate_length is not None and len(value) > truncate_length:
             value = value[:truncate_length] + '...'
     elif isinstance(value, (list, tuple, array.array, numpy.ndarray)):
         # Since arrays and ndarrays can't contain mixed types convert to list
         typename = tuple if isinstance(value, tuple) else list
-        if truncate_length is not None and len(value) > truncate_length:
+        if no_arr is True and field_type is not None:
+            if(callable(has_maximum_size) and has_maximum_size()):
+                value = '<array type: <{0}>>'.format(field_type)
+            else:
+                value = '<array type: <{0}>, length: <{1}>>'.format(
+                    field_type, len(value))
+        elif truncate_length is not None and len(value) > truncate_length:
             # Truncate the sequence
             value = value[:truncate_length]
             # Truncate every item in the sequence
             value = typename(
-                [_convert_value(v, truncate_length) for v in value] + ['...'])
+                [_convert_value(v, truncate_length=truncate_length,
+                                no_arr=no_arr, no_str=no_str) for v in value] + ['...'])
         else:
             # Truncate every item in the list
             value = typename(

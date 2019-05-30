@@ -336,16 +336,16 @@ if isinstance(type_, AbstractNestedType):
         typename.append(self.__class__.__name__)
         args = []
         for s, t in zip(self.__slots__, self.SLOT_TYPES):
-            field = getattr(self, s, None)
+            field = getattr(self, s)
             fieldstr = repr(field)
             if isinstance(t, rosidl_parser.definition.AbstractSequence):
-                # Calling `.tolist()` on a large array could be memory
-                # expensive, so instead we first repr() it, then strip off the
-                # "array('i')" or "array('i', [1])".
-                if fieldstr[9:11] == ', ':
-                    fieldstr = fieldstr[11:-1]
-                elif len(fieldstr) == 10:
+                if len(field) == 0:
                     fieldstr = '[]'
+                else:
+                    assert fieldstr.startswith('array(')
+                    prefix = "array('X', "
+                    suffix = ')'
+                    fieldstr = fieldstr[len(prefix):-len(suffix)]
             args.append(s[1:] + '=' + fieldstr)
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 

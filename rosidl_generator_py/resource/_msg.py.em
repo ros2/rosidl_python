@@ -338,10 +338,15 @@ if isinstance(type_, AbstractNestedType):
         args = []
         for s in self.__slots__:
             field = getattr(self, s, None)
-            if type(field) == array.array:
-                t = repr(field.tolist())
-            else:
-                t = repr(field)
+            t = repr(field)
+            if type(field) is array.array:
+                # Calling `.tolist()` on a large array could be memory
+                # expensive, so instead we first repr() it, then strip off the
+                # "array('i')" or "array('i', [1])".
+                if t[9:11] == ', ':
+                    t = t[11:-1]
+                elif len(t) == 10:
+                    t = '[]'
             args.append(s[1:] + '=' + t)
 @[else]@
         args = [s[1:] + '=' + repr(getattr(self, s, None)) for s in self.__slots__]

@@ -335,7 +335,7 @@ if isinstance(type_, AbstractNestedType):
         typename.pop()
         typename.append(self.__class__.__name__)
         args = []
-        for s,t in zip(self.__slots__, self.SLOT_TYPES):
+        for s, t in zip(self.__slots__, self.SLOT_TYPES):
             field = getattr(self, s, None)
             fieldstr = repr(field)
             if isinstance(t, rosidl_parser.definition.AbstractSequence):

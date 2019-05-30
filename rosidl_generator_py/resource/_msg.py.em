@@ -334,23 +334,19 @@ if isinstance(type_, AbstractNestedType):
         typename = self.__class__.__module__.split('.')
         typename.pop()
         typename.append(self.__class__.__name__)
-@[if 'import array' in imports]@
         args = []
-        for s in self.__slots__:
+        for s,t in zip(self.__slots__, self.SLOT_TYPES):
             field = getattr(self, s, None)
-            t = repr(field)
-            if type(field) is array.array:
+            fieldstr = repr(field)
+            if isinstance(t, rosidl_parser.definition.AbstractSequence):
                 # Calling `.tolist()` on a large array could be memory
                 # expensive, so instead we first repr() it, then strip off the
                 # "array('i')" or "array('i', [1])".
-                if t[9:11] == ', ':
-                    t = t[11:-1]
-                elif len(t) == 10:
-                    t = '[]'
-            args.append(s[1:] + '=' + t)
-@[else]@
-        args = [s[1:] + '=' + repr(getattr(self, s, None)) for s in self.__slots__]
-@[end if]@
+                if fieldstr[9:11] == ', ':
+                    fieldstr = fieldstr[11:-1]
+                elif len(fieldstr) == 10:
+                    fieldstr = '[]'
+            args.append(s[1:] + '=' + fieldstr)
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 
     def __eq__(self, other):

@@ -36,17 +36,14 @@ def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
     for field_name, field_value in values.items():
         field = getattr(msg, field_name)
         field_type = type(field)
-        try:
-            if field_type is array.array:
-                value = field_type(field.typecode, field_value)
-            else:
+        if field_type is array.array:
+            value = field_type(field.typecode, field_value)
+        else:
+            try:
                 value = field_type(field_value)
-        except TypeError:
-            if field_type is array.array:
-                value = field_type(field.typecode)
-            else:
+            except TypeError:
                 value = field_type()
-            set_message_fields(value, field_value)
+                set_message_fields(value, field_value)
         rosidl_type = get_message_slot_types(msg)[field_name]
         # Check if field is an array of ROS messages
         if isinstance(rosidl_type, AbstractNestedType):

@@ -334,7 +334,18 @@ if isinstance(type_, AbstractNestedType):
         typename = self.__class__.__module__.split('.')
         typename.pop()
         typename.append(self.__class__.__name__)
+@[if 'import array' in imports]@
+        args = []
+        for s in self.__slots__:
+            field = getattr(self, s, None)
+            if type(field) == array.array:
+                t = repr(field.tolist())
+            else:
+                t = repr(field)
+            args.append(s[1:] + '=' + t)
+@[else]@
         args = [s[1:] + '=' + repr(getattr(self, s, None)) for s in self.__slots__]
+@[end if]@
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 
     def __eq__(self, other):

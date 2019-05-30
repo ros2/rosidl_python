@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import array
+
 from typing import Any
 from typing import Dict
 
@@ -34,7 +36,11 @@ def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
     for field_name, field_value in values.items():
         field_type = type(getattr(msg, field_name))
         try:
-            value = field_type(field_value)
+            if field_type == array.array:
+                field_typecode = getattr(msg, field_name).typecode
+                value = field_type(field_typecode, field_value)
+            else:
+                value = field_type(field_value)
         except TypeError:
             value = field_type()
             set_message_fields(value, field_value)

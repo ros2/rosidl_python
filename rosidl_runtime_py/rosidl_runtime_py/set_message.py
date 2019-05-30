@@ -34,15 +34,18 @@ def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
     :raises ValueError: If a message value does not match its field type.
     """
     for field_name, field_value in values.items():
-        field_type = type(getattr(msg, field_name))
+        field = getattr(msg, field_name)
+        field_type = type(field)
         try:
-            if field_type == array.array:
-                field_typecode = getattr(msg, field_name).typecode
-                value = field_type(field_typecode, field_value)
+            if field_type is array.array:
+                value = field_type(field.typecode, field_value)
             else:
                 value = field_type(field_value)
         except TypeError:
-            value = field_type()
+            if field_type is array.array:
+                value = field_type(field.typecode)
+            else:
+                value = field_type()
             set_message_fields(value, field_value)
         rosidl_type = get_message_slot_types(msg)[field_name]
         # Check if field is an array of ROS messages

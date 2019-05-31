@@ -341,9 +341,11 @@ if isinstance(type_, AbstractNestedType):
             # We use Python array type for fields that can be directly stored
             # in them, and "normal" sequences for everything else.  If it is
             # a type that we store in an array, strip off the 'array' portion.
-            if isinstance(t, rosidl_parser.definition.AbstractSequence) and \
-               isinstance(t.value_type, rosidl_parser.definition.BasicType) and \
-               t.value_type.typename in @([*SPECIAL_NESTED_BASIC_TYPES]):
+            if (
+                isinstance(t, rosidl_parser.definition.AbstractSequence) and \
+                isinstance(t.value_type, rosidl_parser.definition.BasicType) and \
+                t.value_type.typename in @([*SPECIAL_NESTED_BASIC_TYPES])
+            ):
                 if len(field) == 0:
                     fieldstr = '[]'
                 else:

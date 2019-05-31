@@ -334,7 +334,19 @@ if isinstance(type_, AbstractNestedType):
         typename = self.__class__.__module__.split('.')
         typename.pop()
         typename.append(self.__class__.__name__)
-        args = [s[1:] + '=' + repr(getattr(self, s, None)) for s in self.__slots__]
+        args = []
+        for s, t in zip(self.__slots__, self.SLOT_TYPES):
+            field = getattr(self, s)
+            fieldstr = repr(field)
+            if isinstance(t, rosidl_parser.definition.AbstractSequence):
+                if len(field) == 0:
+                    fieldstr = '[]'
+                else:
+                    assert fieldstr.startswith('array(')
+                    prefix = "array('X', "
+                    suffix = ')'
+                    fieldstr = fieldstr[len(prefix):-len(suffix)]
+            args.append(s[1:] + '=' + fieldstr)
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 
     def __eq__(self, other):

@@ -339,16 +339,15 @@ if isinstance(type_, AbstractNestedType):
             field = getattr(self, s)
             fieldstr = repr(field)
             if isinstance(t, rosidl_parser.definition.AbstractSequence):
-                # It is possible that the user assigned a non-array type to
-                # the AbstractSequence field, so only remove 'array(' if it
-                # is in the string.
-                if fieldstr.startswith('array('):
-                    if len(field) == 0:
-                        fieldstr = '[]'
-                    else:
-                        prefix = "array('X', "
-                        suffix = ')'
-                        fieldstr = fieldstr[len(prefix):-len(suffix)]
+                if len(field) == 0:
+                    fieldstr = '[]'
+                elif fieldstr.startswith('array('):
+                    # It is possible that the user assigned a non-array type to
+                    # the AbstractSequence field, so only remove 'array(' if it
+                    # is in the string.
+                    prefix = "array('X', "
+                    suffix = ')'
+                    fieldstr = fieldstr[len(prefix):-len(suffix)]
             args.append(s[1:] + '=' + fieldstr)
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 

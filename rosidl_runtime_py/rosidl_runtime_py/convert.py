@@ -41,8 +41,8 @@ def message_to_yaml(msg: Any, truncate_length: int = None,
     :param msg: The ROS message to convert.
     :param truncate_length: Truncate values for all message fields to this length.
         This does not truncate the list of message fields.
-    :param no_arr: Exclude array fields of the message
-    :param no_str: Exclude string fields of the message
+    :param no_arr: Exclude array fields of the message.
+    :param no_str: Exclude string fields of the message.
     :returns: A YAML string representation of the input ROS message.
     """
     global __yaml_representer_registered
@@ -67,8 +67,8 @@ def message_to_csv(msg: Any, truncate_length: int = None,
     :param msg: The ROS message to convert.
     :param truncate_length: Truncate values for all message fields to this length.
         This does not truncate the list of message fields.
-    :param no_arr: Exclude array fields of the message
-    :param no_str: Exclude string fields of the message
+    :param no_arr: Exclude array fields of the message.
+    :param no_str: Exclude string fields of the message.
     :returns: A string of comma-separated values representing the input message.
     """
     def to_string(val, field_type=None, has_maximum_size=None):
@@ -76,7 +76,7 @@ def message_to_csv(msg: Any, truncate_length: int = None,
         r = ''
         if any(isinstance(val, t) for t in [list, tuple, array.array, numpy.ndarray]):
             if no_arr is True and field_type is not None:
-                if(callable(has_maximum_size) and has_maximum_size()):
+                if callable(has_maximum_size) and has_maximum_size():
                     r = '<array type: <{0}>>'.format(field_type)
                 else:
                     r = '<array type: <{0}>, length: <{1}>>'.format(
@@ -132,8 +132,8 @@ def message_to_ordereddict(
     :param msg: The ROS message to convert.
     :param truncate_length: Truncate values for all message fields to this length.
         This does not truncate the list of fields (ie. the dictionary keys).
-    :param no_arr: Exclude array fields of the message
-    :param no_str: Exclude string fields of the message
+    :param no_arr: Exclude array fields of the message.
+    :param no_str: Exclude string fields of the message.
     :returns: An OrderedDict where the keys are the ROS message fields and the values are
         set to the values of the input message.
     """
@@ -171,7 +171,7 @@ def _convert_value(value, field_type=None, has_maximum_size=None,
         # Since arrays and ndarrays can't contain mixed types convert to list
         typename = tuple if isinstance(value, tuple) else list
         if no_arr is True and field_type is not None:
-            if(callable(has_maximum_size) and has_maximum_size()):
+            if callable(has_maximum_size) and has_maximum_size():
                 value = '<array type: <{0}>>'.format(field_type)
             else:
                 value = '<array type: <{0}>, length: <{1}>>'.format(

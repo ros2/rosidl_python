@@ -18,10 +18,36 @@ import sys
 from typing import Any
 
 import numpy
+import rosidl_parser.definition
 import yaml
 
 
 __yaml_representer_registered = False
+
+
+def __get_type_name(value_type):
+    if isinstance(value_type, rosidl_parser.definition.BasicType):
+        return value_type.typename
+    elif isinstance(value_type, rosidl_parser.definition.NamedType):
+        return value_type.name
+    elif isinstance(value_type, rosidl_parser.definition.NamespacedType):
+        return '/'.join(value_type.namespaced_name())
+    else:
+        return 'unknown'
+
+
+def __abbreviate_array_info(value, field_type):
+    value_type_name = __get_type_name(field_type.value_type)
+    if isinstance(field_type, rosidl_parser.definition.Array):
+        return '<array type: {0}[{1}]>'.format(
+            value_type_name, field_type.size)
+    elif isinstance(field_type, rosidl_parser.definition.BoundedSequence):
+        return '<sequence type: {0}[{1}], length: {2}>'.format(
+            value_type_name, field_type.maximum_size, len(value))
+    elif isinstance(field_type, rosidl_parser.definition.UnboundedSequence):
+        return '<sequence type: {0}, length: {1}>'.format(
+            value_type_name, len(value))
+    return 'unknown'
 
 
 # Custom representer for getting clean YAML output that preserves the order in an OrderedDict.
@@ -55,7 +81,7 @@ def message_to_yaml(msg: Any, truncate_length: int = None,
     return yaml.dump(
         message_to_ordereddict(
             msg, truncate_length=truncate_length, no_arr=no_arr, no_str=no_str),
-        width=sys.maxsize, allow_unicode=True
+        allow_unicode=True, width=sys.maxsize,
     )
 
 
@@ -71,16 +97,12 @@ def message_to_csv(msg: Any, truncate_length: int = None,
     :param no_str: Exclude string fields of the message.
     :returns: A string of comma-separated values representing the input message.
     """
-    def to_string(val, field_type=None, has_maximum_size=None):
+    def to_string(val, field_type=None):
         nonlocal truncate_length, no_arr, no_str
         r = ''
         if any(isinstance(val, t) for t in [list, tuple, array.array, numpy.ndarray]):
             if no_arr is True and field_type is not None:
-                if callable(has_maximum_size) and has_maximum_size():
-                    r = '<array type: <{0}>>'.format(field_type)
-                else:
-                    r = '<array type: <{0}>, length: <{1}>>'.format(
-                        field_type, len(value))
+                r = __abbreviate_array_info(val, field_type)
             else:
                 for i, v in enumerate(val):
                     if r:
@@ -104,18 +126,15 @@ def message_to_csv(msg: Any, truncate_length: int = None,
             r = message_to_csv(val, truncate_length, no_arr, no_str)
         return r
     result = ''
-    slot_types = get_message_slot_types(msg)
 
     # We rely on __slots__ retaining the order of the fields in the .msg file.
-    for field_name in msg.__slots__:
+    for field_name, field_type in zip(msg.__slots__, msg.SLOT_TYPES):
         value = getattr(msg, field_name)
-        field_type = msg._fields_and_field_types[field_name[1:]]
-        has_maximum_size = getattr(slot_types[field_name[1:]], 'has_maximum_size', None)
 
         if result:
             result += ','
 
-        result += to_string(value, field_type, has_maximum_size)
+        result += to_string(value, field_type)
     return result
 
 
@@ -138,23 +157,20 @@ def message_to_ordereddict(
         set to the values of the input message.
     """
     d = OrderedDict()
-    slot_types = get_message_slot_types(msg)
 
     # We rely on __slots__ retaining the order of the fields in the .msg file.
-    for field_name in msg.__slots__:
+    for field_name, field_type in zip(msg.__slots__, msg.SLOT_TYPES):
         value = getattr(msg, field_name, None)
-        field_type = msg._fields_and_field_types[field_name[1:]]
-        has_maximum_size = getattr(slot_types[field_name[1:]], 'has_maximum_size', None)
 
         value = _convert_value(
-            value, field_type, has_maximum_size,
+            value, field_type,
             truncate_length=truncate_length, no_arr=no_arr, no_str=no_str)
         # Remove leading underscore from field name
         d[field_name[1:]] = value
     return d
 
 
-def _convert_value(value, field_type=None, has_maximum_size=None,
+def _convert_value(value, field_type=None,
                    truncate_length=None, no_arr=False, no_str=False):
 
     if isinstance(value, bytes):
@@ -171,11 +187,7 @@ def _convert_value(value, field_type=None, has_maximum_size=None,
         # Since arrays and ndarrays can't contain mixed types convert to list
         typename = tuple if isinstance(value, tuple) else list
         if no_arr is True and field_type is not None:
-            if callable(has_maximum_size) and has_maximum_size():
-                value = '<array type: <{0}>>'.format(field_type)
-            else:
-                value = '<array type: <{0}>, length: <{1}>>'.format(
-                    field_type, len(value))
+            value = __abbreviate_array_info(value, field_type)
         elif truncate_length is not None and len(value) > truncate_length:
             # Truncate the sequence
             value = value[:truncate_length]

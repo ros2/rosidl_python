@@ -198,7 +198,8 @@ def _convert_value(value, field_type=None,
         else:
             # Truncate every item in the list
             value = typename(
-                [_convert_value(v, truncate_length, no_arr, no_str) for v in value])
+                [_convert_value(v, truncate_length=truncate_length,
+                                no_arr=no_arr, no_str=no_str) for v in value])
     elif isinstance(value, dict) or isinstance(value, OrderedDict):
         # Convert each key and value in the mapping
         new_value = {} if isinstance(value, dict) else OrderedDict()

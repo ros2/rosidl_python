@@ -127,3 +127,20 @@ def test_set_nested_namespaced_fields():
     assert arrays_msg.basic_types_values[2].float64_value == 22.22
     assert arrays_msg.basic_types_values[2].int8_value == 22
     assert arrays_msg.basic_types_values[2].uint8_value == 0
+
+
+def test_set_message_fields_nested_type():
+    msg_basic_types = message_fixtures.get_msg_basic_types()[0]
+    msg0 = message_fixtures.get_msg_nested()[0]
+
+    msg0.basic_types_value.bool_value = False
+    msg0.basic_types_value.char_value = 3
+    msg0.basic_types_value.int32_value = 42
+
+    assert msg0.basic_types_value != msg_basic_types
+
+    test_values = {}
+    test_values['basic_types_value'] = msg_basic_types
+    set_message_fields(msg0, test_values)
+
+    assert msg0.basic_types_value == msg_basic_types

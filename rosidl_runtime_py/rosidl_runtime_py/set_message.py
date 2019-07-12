@@ -38,6 +38,8 @@ def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
         field_type = type(field)
         if field_type is array.array:
             value = field_type(field.typecode, field_value)
+        elif type(field_value) is field_type:
+            value = field_value
         else:
             try:
                 value = field_type(field_value)

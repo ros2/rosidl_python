@@ -20,5 +20,5 @@ from rosidl_parser.definition import NamespacedType
 
 def import_message_from_namespaced_type(message_type: NamespacedType) -> Any:
     module = importlib.import_module(
-        '.'.join(message_type.value_type.namespaces))
-    return getattr(module, message_type.value_type.name)
+        '.'.join(message_type.namespaces))
+    return getattr(module, message_type.name)

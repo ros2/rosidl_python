@@ -18,6 +18,7 @@ from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import BOOLEAN_TYPE
 from rosidl_parser.definition import BoundedSequence
 from rosidl_parser.definition import CHARACTER_TYPES
+from rosidl_parser.definition import EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME
 from rosidl_parser.definition import FLOATING_POINT_TYPES
 from rosidl_parser.definition import INTEGER_TYPES
 from rosidl_parser.definition import NamespacedType
@@ -187,12 +188,18 @@ class @(message.structure.namespaced_type.name)(metaclass=Metaclass_@(message.st
 
     __slots__ = [
 @[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
         '_@(member.name)',
 @[end for]@
     ]
 
     _fields_and_field_types = {
 @[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
 @{
 type_ = member.type
 if isinstance(type_, AbstractNestedType):
@@ -233,6 +240,9 @@ string@
 
     SLOT_TYPES = (
 @[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
 @{
 type_ = member.type
 if isinstance(type_, AbstractNestedType):
@@ -269,6 +279,9 @@ if isinstance(type_, AbstractNestedType):
             'Invalid arguments passed to constructor: %s' % \
             ', '.join(sorted(k for k in kwargs.keys() if '_' + k not in self.__slots__))
 @[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
 @{
 type_ = member.type
 if isinstance(type_, AbstractNestedType):
@@ -360,6 +373,9 @@ if isinstance(type_, AbstractNestedType):
         if not isinstance(other, self.__class__):
             return False
 @[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
 @[  if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
         if all(self.@(member.name) != other.@(member.name)):
 @[  else]@
@@ -374,6 +390,9 @@ if isinstance(type_, AbstractNestedType):
         from copy import copy
         return copy(cls._fields_and_field_types)
 @[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
 
 @{
 type_ = member.type

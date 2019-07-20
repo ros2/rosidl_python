@@ -115,7 +115,17 @@ if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_
 @[if nested_types]@
 // Nested array functions includes
 @[  for type_ in sorted(nested_types)]@
-#include "@('/'.join(type_[:-1]))/@(convert_camel_case_to_lower_case_underscore(type_[-1]))__functions.h"
+@{
+nested_header = '/'.join(type_[:-1] + (convert_camel_case_to_lower_case_underscore(type_[-1]),))
+nested_header += '__functions.h'
+}@
+@[    if nested_header in include_directives]@
+// already included above
+// @
+@[    else]@
+@{include_directives.add(nested_header)}@
+@[    end if]@
+#include "@(nested_header)"
 @[  end for]@
 // end nested array functions include
 @[end if]@

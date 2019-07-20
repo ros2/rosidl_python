@@ -50,7 +50,7 @@ def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
         # Check if field is an array of ROS messages
         if isinstance(rosidl_type, AbstractNestedType):
             if isinstance(rosidl_type.value_type, NamespacedType):
-                field_elem_type = import_message_from_namespaced_type(rosidl_type)
+                field_elem_type = import_message_from_namespaced_type(rosidl_type.value_type)
                 for n in range(len(value)):
                     submsg = field_elem_type()
                     set_message_fields(submsg, value[n])

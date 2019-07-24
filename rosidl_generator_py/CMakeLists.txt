@@ -49,6 +49,7 @@ if(BUILD_TESTING)
   include(cmake/register_py.cmake)
   include(cmake/rosidl_generator_py_get_typesupports.cmake)
 
+  set(rosidl_generator_py_FOUND "1")
   set(rosidl_generator_py_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
   # Need to call extras before get_typesupports, to register the extension

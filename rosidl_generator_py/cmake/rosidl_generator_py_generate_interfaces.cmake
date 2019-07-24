@@ -273,6 +273,8 @@ foreach(_typesupport_impl ${_typesupport_impls})
   ament_target_dependencies(${_target_name}
     "rosidl_generator_c"
     "rosidl_generator_py"
+  )
+  target_link_libraries(${_target_name}
     "${rosidl_generate_interfaces_TARGET}__rosidl_generator_c"
   )
 

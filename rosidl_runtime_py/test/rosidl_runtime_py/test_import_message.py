@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+import warnings
 
+from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import NamespacedType
 from rosidl_parser.definition import UnboundedSequence
 
@@ -26,10 +27,14 @@ def test_import_namespaced_type():
     fixture_namespaced_type = NamespacedType(['test_msgs', 'msg'], 'Empty')
     imported_message = import_message_from_namespaced_type(fixture_namespaced_type)
     assert type(imported_message) == type(Empty)
+
     not_namespaced_type = UnboundedSequence(fixture_namespaced_type)
     assert not isinstance(not_namespaced_type, NamespacedType)
-    with pytest.raises(AttributeError):
-        import_message_from_namespaced_type(not_namespaced_type)
-    imported_message2 = import_message_from_namespaced_type(
-        not_namespaced_type.value_type)
+    assert isinstance(not_namespaced_type, AbstractNestedType)
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        imported_message2 = import_message_from_namespaced_type(not_namespaced_type)
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
     assert type(imported_message2) == type(Empty)

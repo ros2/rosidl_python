@@ -17,45 +17,49 @@ from typing import Text
 from rosidl_parser.definition import NamespacedType
 
 
-def __full_type_to_namespaced_type(path: Text, default_namespace=None):
+def get_namespaced_type(path: Text):
+    """Create a `NamespacedType` object from the full name of an interface."""
+    return __get_namespaced_type(path)
+
+
+def get_action_namespaced_type(path: Text):
+    """Create a `NamespacedType` object from the full name of an action."""
+    return __get_namespaced_type(path, 'action')
+
+
+def get_message_namespaced_type(path: Text):
+    """Create a `NamespacedType` object from the full name of a message."""
+    return __get_namespaced_type(path, 'msg')
+
+
+def get_service_namespaced_type(path: Text):
+    """Create a `NamespacedType` object from the full name of a service."""
+    return __get_namespaced_type(path, 'srv')
+
+
+def is_action(interface):
+    """Return `True` if `action` is an action."""
+    return (
+        hasattr(interface, 'Goal') and
+        hasattr(interface, 'Result') and
+        hasattr(interface, 'Feedback')
+    )
+
+
+def is_service(interface):
+    """Return `True` if `srv` is a service."""
+    return hasattr(interface, 'Request') and hasattr(interface, 'Response')
+
+
+def is_message(interface):
+    """Return `True` if `msg` is a message."""
+    return hasattr(interface, 'SLOT_TYPES')
+
+
+def __get_namespaced_type(path: Text, default_namespace=None):
     namespace = path.split(sep='/')
     name = namespace[-1]
     namespace = namespace[0:-1]
     if len(namespace) == 1 and default_namespace is not None:
         namespace.append(default_namespace)
     return NamespacedType(namespace, name)
-
-
-def full_type_to_namespaced_type(path: Text):
-    """Create a `NamespacedType` object from the full name of an action."""
-    return __full_type_to_namespaced_type(path)
-
-
-def full_action_type_to_namespaced_type(path: Text):
-    """Create a `NamespacedType` object from the full name of an action."""
-    return __full_type_to_namespaced_type(path, 'action')
-
-
-def full_msg_type_to_namespaced_type(path: Text):
-    """Create a `NamespacedType` object from the full name of a message."""
-    return __full_type_to_namespaced_type(path, 'msg')
-
-
-def full_srv_type_to_namespaced_type(path: Text):
-    """Create a `NamespacedType` object from the full name of a service."""
-    return __full_type_to_namespaced_type(path, 'srv')
-
-
-def is_action(action):
-    """Return `True` if `action` is an action."""
-    return hasattr(action, 'Goal')
-
-
-def is_srv(srv):
-    """Return `True` if `srv` is a service."""
-    return hasattr(srv, 'Request')
-
-
-def is_msg(msg):
-    """Return `True` if `msg` is a message."""
-    return hasattr(msg, 'get_fields_and_field_types')

@@ -35,37 +35,37 @@ class TestConfig:
     TestConfig(
         path='test_msgs/msg/Empty',
         object_type=test_msgs.msg.Empty,
-        to_namespaced_type_method=utilities.full_msg_type_to_namespaced_type,
-        is_method=utilities.is_msg
+        to_namespaced_type_method=utilities.get_message_namespaced_type,
+        is_method=utilities.is_message
     ),
     TestConfig(
         path='test_msgs/Empty',
         object_type=test_msgs.msg.Empty,
-        to_namespaced_type_method=utilities.full_msg_type_to_namespaced_type,
-        is_method=utilities.is_msg
+        to_namespaced_type_method=utilities.get_message_namespaced_type,
+        is_method=utilities.is_message
     ),
     TestConfig(
         path='test_msgs/srv/Empty',
         object_type=test_msgs.srv.Empty,
-        to_namespaced_type_method=utilities.full_srv_type_to_namespaced_type,
-        is_method=utilities.is_srv
+        to_namespaced_type_method=utilities.get_service_namespaced_type,
+        is_method=utilities.is_service
     ),
     TestConfig(
         path='test_msgs/Empty',
         object_type=test_msgs.srv.Empty,
-        to_namespaced_type_method=utilities.full_srv_type_to_namespaced_type,
-        is_method=utilities.is_srv
+        to_namespaced_type_method=utilities.get_service_namespaced_type,
+        is_method=utilities.is_service
     ),
     TestConfig(
         path='test_msgs/action/Fibonacci',
         object_type=test_msgs.action.Fibonacci,
-        to_namespaced_type_method=utilities.full_action_type_to_namespaced_type,
+        to_namespaced_type_method=utilities.get_action_namespaced_type,
         is_method=utilities.is_action
     ),
     TestConfig(
         path='test_msgs/Fibonacci',
         object_type=test_msgs.action.Fibonacci,
-        to_namespaced_type_method=utilities.full_action_type_to_namespaced_type,
+        to_namespaced_type_method=utilities.get_action_namespaced_type,
         is_method=utilities.is_action
     ),
 ))

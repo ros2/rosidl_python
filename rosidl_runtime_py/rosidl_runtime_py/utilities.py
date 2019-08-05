@@ -17,13 +17,18 @@ from typing import Text
 from rosidl_parser.definition import NamespacedType
 
 
-def __full_type_to_namespaced_type(path: Text, default_namespace):
+def __full_type_to_namespaced_type(path: Text, default_namespace=None):
     namespace = path.split(sep='/')
     name = namespace[-1]
     namespace = namespace[0:-1]
-    if len(namespace) == 1:
+    if len(namespace) == 1 and default_namespace is not None:
         namespace.append(default_namespace)
     return NamespacedType(namespace, name)
+
+
+def full_type_to_namespaced_type(path: Text):
+    """Create a `NamespacedType` object from the full name of an action."""
+    return __full_type_to_namespaced_type(path)
 
 
 def full_action_type_to_namespaced_type(path: Text):

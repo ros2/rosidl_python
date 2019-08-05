@@ -15,6 +15,36 @@
 from typing import Text
 
 from rosidl_parser.definition import NamespacedType
+from rosidl_runtime_py.import_message import import_message_from_namespaced_type
+
+
+def get_interface(path: Text):
+    """Get an interface from its full name."""
+    return import_message_from_namespaced_type(get_namespaced_type(path))
+
+
+def get_message(path: Text):
+    """Get a message from its full name."""
+    interface = import_message_from_namespaced_type(get_message_namespaced_type(path))
+    if not is_message(interface):
+        raise RuntimeError('Expected the full name of a message')
+    return interface
+
+
+def get_service(path: Text):
+    """Get a service from its full name."""
+    interface = import_message_from_namespaced_type(get_service_namespaced_type(path))
+    if not is_service(interface):
+        raise RuntimeError('Expected the full name of a service')
+    return interface
+
+
+def get_action(path: Text):
+    """Get a message from its full name."""
+    interface = import_message_from_namespaced_type(get_action_namespaced_type(path))
+    if not is_action(interface):
+        raise RuntimeError('Expected the full name of an action')
+    return interface
 
 
 def get_namespaced_type(path: Text):

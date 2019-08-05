@@ -24,7 +24,7 @@ import test_msgs.srv
 
 class TestConfig:
 
-    def __init__(self, *, path, object_type, to_namespaced_type_method, is_method):
+    def __init__(self, *, path, object_type=None, to_namespaced_type_method=None, is_method=None):
         self.path = path
         self.object_type = object_type
         self.to_namespaced_type_method = to_namespaced_type_method
@@ -69,7 +69,49 @@ class TestConfig:
         is_method=utilities.is_action
     ),
 ))
-def test_utilities(config):
+def test_get_namespaced_type_functions(config):
     message = import_message_from_namespaced_type(config.to_namespaced_type_method(config.path))
     assert message is config.object_type
     assert config.is_method(message)
+
+
+def test_is_interface_functions():
+    assert utilities.is_message(test_msgs.msg.Empty)
+    assert not utilities.is_message(test_msgs.srv.Empty)
+    assert not utilities.is_message(test_msgs.action.Fibonacci)
+    assert not utilities.is_service(test_msgs.msg.Empty)
+    assert utilities.is_service(test_msgs.srv.Empty)
+    assert not utilities.is_service(test_msgs.action.Fibonacci)
+    assert not utilities.is_action(test_msgs.msg.Empty)
+    assert not utilities.is_action(test_msgs.srv.Empty)
+    assert utilities.is_action(test_msgs.action.Fibonacci)
+
+
+def get_interface_functions():
+    assert utilities.get_interface('test_msgs/msg/Empty') is test_msgs.msg.Empty
+    assert utilities.get_interface('test_msgs/srv/Empty') is test_msgs.srv.Empty
+    assert utilities.get_interface('test_msgs/action/Fibonacci') is test_msgs.action.Fibonacci
+    assert utilities.get_message('test_msgs/msg/Empty') is test_msgs.msg.Empty
+    assert utilities.get_service('test_msgs/srv/Empty') is test_msgs.srv.Empty
+    assert utilities.get_action('test_msgs/action/Fibonacci') is test_msgs.action.Fibonacci
+    assert utilities.get_message('test_msgs/Empty') is test_msgs.msg.Empty
+    assert utilities.get_service('test_msgs/Empty') is test_msgs.srv.Empty
+    assert utilities.get_action('test_msgs/Fibonacci') is test_msgs.action.Fibonacci
+    with pytest.raises(RuntimeError) as ex:
+        utilities.get_message('test_msgs/srv/Empty')
+    ex.matches('Expected the full name of a message')
+    with pytest.raises(RuntimeError) as ex:
+        utilities.get_message('test_msgs/action/Fibonacci')
+    ex.matches('Expected the full name of a message')
+    with pytest.raises(RuntimeError) as ex:
+        utilities.get_service('test_msgs/msg/Empty')
+    ex.matches('Expected the full name of a service')
+    with pytest.raises(RuntimeError) as ex:
+        utilities.get_service('test_msgs/action/Fibonacci')
+    ex.matches('Expected the full name of a service')
+    with pytest.raises(RuntimeError) as ex:
+        utilities.get_action('test_msgs/msg/Empty')
+    ex.matches('Expected the full name of an action')
+    with pytest.raises(RuntimeError) as ex:
+        utilities.get_action('test_msgs/srv/Empty')
+    ex.matches('Expected the full name of an action')

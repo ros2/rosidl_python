@@ -97,21 +97,21 @@ def get_interface_functions():
     assert utilities.get_message('test_msgs/Empty') is test_msgs.msg.Empty
     assert utilities.get_service('test_msgs/Empty') is test_msgs.srv.Empty
     assert utilities.get_action('test_msgs/Fibonacci') is test_msgs.action.Fibonacci
-    with pytest.raises(RuntimeError) as ex:
+    with pytest.raises(ValueError) as ex:
         utilities.get_message('test_msgs/srv/Empty')
-    ex.matches('Expected the full name of a message')
-    with pytest.raises(RuntimeError) as ex:
+    ex.matches("Expected the full name of a message, got 'test_msgs/srv/Empty'")
+    with pytest.raises(ValueError) as ex:
         utilities.get_message('test_msgs/action/Fibonacci')
-    ex.matches('Expected the full name of a message')
-    with pytest.raises(RuntimeError) as ex:
+    ex.matches("Expected the full name of a message, got 'test_msgs/action/Fibonacci'")
+    with pytest.raises(ValueError) as ex:
         utilities.get_service('test_msgs/msg/Empty')
-    ex.matches('Expected the full name of a service')
-    with pytest.raises(RuntimeError) as ex:
+    ex.matches("Expected the full name of a service, got 'test_msgs/msg/Empty'")
+    with pytest.raises(ValueError) as ex:
         utilities.get_service('test_msgs/action/Fibonacci')
-    ex.matches('Expected the full name of a service')
-    with pytest.raises(RuntimeError) as ex:
+    ex.matches("Expected the full name of a service, got 'test_msgs/action/Fibonacci'")
+    with pytest.raises(ValueError) as ex:
         utilities.get_action('test_msgs/msg/Empty')
-    ex.matches('Expected the full name of an action')
-    with pytest.raises(RuntimeError) as ex:
+    ex.matches("Expected the full name of an action, got 'test_msgs/msg/Empty'")
+    with pytest.raises(ValueError) as ex:
         utilities.get_action('test_msgs/srv/Empty')
-    ex.matches('Expected the full name of an action')
+    ex.matches("Expected the full name of an action, got 'test_msgs/srv/Empty'")

@@ -18,53 +18,53 @@ from rosidl_parser.definition import NamespacedType
 from rosidl_runtime_py.import_message import import_message_from_namespaced_type
 
 
-def get_interface(path: Text):
+def get_interface(identifier: Text):
     """Get an interface from its full name."""
-    return import_message_from_namespaced_type(get_namespaced_type(path))
+    return import_message_from_namespaced_type(get_namespaced_type(identifier))
 
 
-def get_message(path: Text):
+def get_message(identifier: Text):
     """Get a message from its full name."""
-    interface = import_message_from_namespaced_type(get_message_namespaced_type(path))
+    interface = import_message_from_namespaced_type(get_message_namespaced_type(identifier))
     if not is_message(interface):
-        raise RuntimeError('Expected the full name of a message')
+        raise ValueError("Expected the full name of a message, got '{}'".format(identifier))
     return interface
 
 
-def get_service(path: Text):
+def get_service(identifier: Text):
     """Get a service from its full name."""
-    interface = import_message_from_namespaced_type(get_service_namespaced_type(path))
+    interface = import_message_from_namespaced_type(get_service_namespaced_type(identifier))
     if not is_service(interface):
-        raise RuntimeError('Expected the full name of a service')
+        raise ValueError("Expected the full name of a service, got '{}'".format(identifier))
     return interface
 
 
-def get_action(path: Text):
+def get_action(identifier: Text):
     """Get a message from its full name."""
-    interface = import_message_from_namespaced_type(get_action_namespaced_type(path))
+    interface = import_message_from_namespaced_type(get_action_namespaced_type(identifier))
     if not is_action(interface):
-        raise RuntimeError('Expected the full name of an action')
+        raise ValueError("Expected the full name of an action, got '{}'".format(identifier))
     return interface
 
 
-def get_namespaced_type(path: Text):
+def get_namespaced_type(identifier: Text):
     """Create a `NamespacedType` object from the full name of an interface."""
-    return _get_namespaced_type(path)
+    return _get_namespaced_type(identifier)
 
 
-def get_message_namespaced_type(path: Text):
+def get_message_namespaced_type(identifier: Text):
     """Create a `NamespacedType` object from the full name of a message."""
-    return _get_namespaced_type(path, 'msg')
+    return _get_namespaced_type(identifier, default_namespace='msg')
 
 
-def get_service_namespaced_type(path: Text):
+def get_service_namespaced_type(identifier: Text):
     """Create a `NamespacedType` object from the full name of a service."""
-    return _get_namespaced_type(path, 'srv')
+    return _get_namespaced_type(identifier, default_namespace='srv')
 
 
-def get_action_namespaced_type(path: Text):
+def get_action_namespaced_type(identifier: Text):
     """Create a `NamespacedType` object from the full name of an action."""
-    return _get_namespaced_type(path, 'action')
+    return _get_namespaced_type(identifier, default_namespace='action')
 
 
 def is_message(interface):
@@ -86,8 +86,8 @@ def is_action(interface):
     )
 
 
-def _get_namespaced_type(path: Text, default_namespace=None):
-    namespace = path.split(sep='/')
+def _get_namespaced_type(identifier: Text, *, default_namespace=None):
+    namespace = identifier.split(sep='/')
     name = namespace[-1]
     namespace = namespace[0:-1]
     if len(namespace) == 1 and default_namespace is not None:

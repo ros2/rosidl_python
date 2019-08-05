@@ -19,26 +19,36 @@ from rosidl_parser.definition import NamespacedType
 
 def get_namespaced_type(path: Text):
     """Create a `NamespacedType` object from the full name of an interface."""
-    return __get_namespaced_type(path)
-
-
-def get_action_namespaced_type(path: Text):
-    """Create a `NamespacedType` object from the full name of an action."""
-    return __get_namespaced_type(path, 'action')
+    return _get_namespaced_type(path)
 
 
 def get_message_namespaced_type(path: Text):
     """Create a `NamespacedType` object from the full name of a message."""
-    return __get_namespaced_type(path, 'msg')
+    return _get_namespaced_type(path, 'msg')
 
 
 def get_service_namespaced_type(path: Text):
     """Create a `NamespacedType` object from the full name of a service."""
-    return __get_namespaced_type(path, 'srv')
+    return _get_namespaced_type(path, 'srv')
+
+
+def get_action_namespaced_type(path: Text):
+    """Create a `NamespacedType` object from the full name of an action."""
+    return _get_namespaced_type(path, 'action')
+
+
+def is_message(interface):
+    """Return `True` if `interface` is a message."""
+    return hasattr(interface, 'SLOT_TYPES')
+
+
+def is_service(interface):
+    """Return `True` if `interface` is a service."""
+    return hasattr(interface, 'Request') and hasattr(interface, 'Response')
 
 
 def is_action(interface):
-    """Return `True` if `action` is an action."""
+    """Return `True` if `interface` is an action."""
     return (
         hasattr(interface, 'Goal') and
         hasattr(interface, 'Result') and
@@ -46,17 +56,7 @@ def is_action(interface):
     )
 
 
-def is_service(interface):
-    """Return `True` if `srv` is a service."""
-    return hasattr(interface, 'Request') and hasattr(interface, 'Response')
-
-
-def is_message(interface):
-    """Return `True` if `msg` is a message."""
-    return hasattr(interface, 'SLOT_TYPES')
-
-
-def __get_namespaced_type(path: Text, default_namespace=None):
+def _get_namespaced_type(path: Text, default_namespace=None):
     namespace = path.split(sep='/')
     name = namespace[-1]
     namespace = namespace[0:-1]

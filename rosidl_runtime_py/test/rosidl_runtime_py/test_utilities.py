@@ -24,55 +24,62 @@ import test_msgs.srv
 
 class TestConfig:
 
-    def __init__(self, *, path, object_type=None, to_namespaced_type_method=None, is_method=None):
+    def __init__(
+        self,
+        *,
+        path,
+        object_type=None,
+        to_namespaced_type_function=None,
+        is_function=None
+    ):
         self.path = path
         self.object_type = object_type
-        self.to_namespaced_type_method = to_namespaced_type_method
-        self.is_method = is_method
+        self.to_namespaced_type_function = to_namespaced_type_function
+        self.is_function = is_function
 
 
 @pytest.mark.parametrize('config', (
     TestConfig(
         path='test_msgs/msg/Empty',
         object_type=test_msgs.msg.Empty,
-        to_namespaced_type_method=utilities.get_message_namespaced_type,
-        is_method=utilities.is_message
+        to_namespaced_type_function=utilities.get_message_namespaced_type,
+        is_function=utilities.is_message
     ),
     TestConfig(
         path='test_msgs/Empty',
         object_type=test_msgs.msg.Empty,
-        to_namespaced_type_method=utilities.get_message_namespaced_type,
-        is_method=utilities.is_message
+        to_namespaced_type_function=utilities.get_message_namespaced_type,
+        is_function=utilities.is_message
     ),
     TestConfig(
         path='test_msgs/srv/Empty',
         object_type=test_msgs.srv.Empty,
-        to_namespaced_type_method=utilities.get_service_namespaced_type,
-        is_method=utilities.is_service
+        to_namespaced_type_function=utilities.get_service_namespaced_type,
+        is_function=utilities.is_service
     ),
     TestConfig(
         path='test_msgs/Empty',
         object_type=test_msgs.srv.Empty,
-        to_namespaced_type_method=utilities.get_service_namespaced_type,
-        is_method=utilities.is_service
+        to_namespaced_type_function=utilities.get_service_namespaced_type,
+        is_function=utilities.is_service
     ),
     TestConfig(
         path='test_msgs/action/Fibonacci',
         object_type=test_msgs.action.Fibonacci,
-        to_namespaced_type_method=utilities.get_action_namespaced_type,
-        is_method=utilities.is_action
+        to_namespaced_type_function=utilities.get_action_namespaced_type,
+        is_function=utilities.is_action
     ),
     TestConfig(
         path='test_msgs/Fibonacci',
         object_type=test_msgs.action.Fibonacci,
-        to_namespaced_type_method=utilities.get_action_namespaced_type,
-        is_method=utilities.is_action
+        to_namespaced_type_function=utilities.get_action_namespaced_type,
+        is_function=utilities.is_action
     ),
 ))
 def test_get_namespaced_type_functions(config):
-    message = import_message_from_namespaced_type(config.to_namespaced_type_method(config.path))
+    message = import_message_from_namespaced_type(config.to_namespaced_type_function(config.path))
     assert message is config.object_type
-    assert config.is_method(message)
+    assert config.is_function(message)
 
 
 def test_is_interface_functions():
@@ -87,31 +94,30 @@ def test_is_interface_functions():
     assert utilities.is_action(test_msgs.action.Fibonacci)
 
 
-def get_interface_functions():
-    assert utilities.get_interface('test_msgs/msg/Empty') is test_msgs.msg.Empty
-    assert utilities.get_interface('test_msgs/srv/Empty') is test_msgs.srv.Empty
-    assert utilities.get_interface('test_msgs/action/Fibonacci') is test_msgs.action.Fibonacci
-    assert utilities.get_message('test_msgs/msg/Empty') is test_msgs.msg.Empty
-    assert utilities.get_service('test_msgs/srv/Empty') is test_msgs.srv.Empty
-    assert utilities.get_action('test_msgs/action/Fibonacci') is test_msgs.action.Fibonacci
-    assert utilities.get_message('test_msgs/Empty') is test_msgs.msg.Empty
-    assert utilities.get_service('test_msgs/Empty') is test_msgs.srv.Empty
-    assert utilities.get_action('test_msgs/Fibonacci') is test_msgs.action.Fibonacci
+@pytest.mark.parametrize('function,identifier,result', (
+    (utilities.get_interface, 'test_msgs/msg/Empty', test_msgs.msg.Empty),
+    (utilities.get_interface, 'test_msgs/srv/Empty', test_msgs.srv.Empty),
+    (utilities.get_interface, 'test_msgs/action/Fibonacci', test_msgs.action.Fibonacci),
+    (utilities.get_message, 'test_msgs/msg/Empty', test_msgs.msg.Empty),
+    (utilities.get_message, 'test_msgs/Empty', test_msgs.msg.Empty),
+    (utilities.get_service, 'test_msgs/srv/Empty', test_msgs.srv.Empty),
+    (utilities.get_service, 'test_msgs/Empty', test_msgs.srv.Empty),
+    (utilities.get_action, 'test_msgs/action/Fibonacci', test_msgs.action.Fibonacci),
+    (utilities.get_action, 'test_msgs/Fibonacci', test_msgs.action.Fibonacci),
+))
+def test_get_interface_functions(function, identifier, result):
+    assert function(identifier) is result
+
+
+@pytest.mark.parametrize('function,identifier,interface_type', (
+    (utilities.get_message, 'test_msgs/srv/Empty', 'a message'),
+    (utilities.get_message, 'test_msgs/action/Fibonacci', 'a message'),
+    (utilities.get_service, 'test_msgs/msg/Empty', 'a service'),
+    (utilities.get_service, 'test_msgs/action/Fibonacci', 'a service'),
+    (utilities.get_action, 'test_msgs/msg/Empty', 'an action'),
+    (utilities.get_action, 'test_msgs/srv/Empty', 'an action'),
+))
+def test_get_interface_raises(function, identifier, interface_type):
     with pytest.raises(ValueError) as ex:
-        utilities.get_message('test_msgs/srv/Empty')
-    ex.matches("Expected the full name of a message, got 'test_msgs/srv/Empty'")
-    with pytest.raises(ValueError) as ex:
-        utilities.get_message('test_msgs/action/Fibonacci')
-    ex.matches("Expected the full name of a message, got 'test_msgs/action/Fibonacci'")
-    with pytest.raises(ValueError) as ex:
-        utilities.get_service('test_msgs/msg/Empty')
-    ex.matches("Expected the full name of a service, got 'test_msgs/msg/Empty'")
-    with pytest.raises(ValueError) as ex:
-        utilities.get_service('test_msgs/action/Fibonacci')
-    ex.matches("Expected the full name of a service, got 'test_msgs/action/Fibonacci'")
-    with pytest.raises(ValueError) as ex:
-        utilities.get_action('test_msgs/msg/Empty')
-    ex.matches("Expected the full name of an action, got 'test_msgs/msg/Empty'")
-    with pytest.raises(ValueError) as ex:
-        utilities.get_action('test_msgs/srv/Empty')
-    ex.matches("Expected the full name of an action, got 'test_msgs/srv/Empty'")
+        function(identifier)
+    ex.match("Expected the full name of {}, got '{}'".format(interface_type, identifier))

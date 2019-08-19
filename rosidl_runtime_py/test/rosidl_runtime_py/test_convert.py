@@ -37,12 +37,12 @@ def test_primitives():
     msgs.extend(message_fixtures.get_msg_strings())
     msgs.extend(message_fixtures.get_msg_unbounded_sequences())
     for m in msgs:
-        message_to_csv(m, 100)
-        message_to_csv(m, None)
-        message_to_ordereddict(m, 100)
-        message_to_ordereddict(m, None)
-        message_to_yaml(m, 100)
-        message_to_yaml(m, None)
+        message_to_csv(m, truncate_length=100)
+        message_to_csv(m, truncate_length=None)
+        message_to_ordereddict(m, truncate_length=100)
+        message_to_ordereddict(m, truncate_length=None)
+        message_to_yaml(m, truncate_length=100)
+        message_to_yaml(m, truncate_length=None)
 
 
 def test_convert_primitives():

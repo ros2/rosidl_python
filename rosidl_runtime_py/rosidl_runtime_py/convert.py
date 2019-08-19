@@ -60,11 +60,12 @@ def __represent_ordereddict(dumper, data):
 
 
 def message_to_yaml(
-        msg: Any,
-        *,
-        truncate_length: int = None,
-        no_arr: bool = False,
-        no_str: bool = False) -> str:
+    msg: Any,
+    *,
+    truncate_length: int = None,
+    no_arr: bool = False,
+    no_str: bool = False
+) -> str:
     """
     Convert a ROS message to a YAML string.
 
@@ -90,11 +91,12 @@ def message_to_yaml(
 
 
 def message_to_csv(
-        msg: Any,
-        *,
-        truncate_length: int = None,
-        no_arr: bool = False,
-        no_str: bool = False) -> str:
+    msg: Any,
+    *,
+    truncate_length: int = None,
+    no_arr: bool = False,
+    no_str: bool = False
+) -> str:
     """
     Convert a ROS message to string of comma-separated values.
 
@@ -149,11 +151,12 @@ def message_to_csv(
 # Convert a msg to an OrderedDict. We do this instead of implementing a generic __dict__() method
 # in the msg because we want to preserve order of fields from the .msg file(s).
 def message_to_ordereddict(
-        msg: Any,
-        *,
-        truncate_length: int = None,
-        no_arr: bool = False,
-        no_str: bool = False) -> OrderedDict:
+    msg: Any,
+    *,
+    truncate_length: int = None,
+    no_arr: bool = False,
+    no_str: bool = False
+) -> OrderedDict:
     """
     Convert a ROS message to an OrderedDict.
 
@@ -180,12 +183,13 @@ def message_to_ordereddict(
 
 
 def _convert_value(
-        value,
-        *,
-        field_type=None,
-        truncate_length=None,
-        no_arr=False,
-        no_str=False):
+    value,
+    *,
+    field_type=None,
+    truncate_length=None,
+    no_arr=False,
+    no_str=False
+):
 
     if isinstance(value, bytes):
         if truncate_length is not None and len(value) > truncate_length:

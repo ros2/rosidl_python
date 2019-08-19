@@ -59,8 +59,12 @@ def __represent_ordereddict(dumper, data):
     return yaml.nodes.MappingNode(u'tag:yaml.org,2002:map', items)
 
 
-def message_to_yaml(msg: Any, truncate_length: int = None,
-                    no_arr: bool = False, no_str: bool = False) -> str:
+def message_to_yaml(
+        msg: Any,
+        *,
+        truncate_length: int = None,
+        no_arr: bool = False,
+        no_str: bool = False) -> str:
     """
     Convert a ROS message to a YAML string.
 
@@ -85,8 +89,12 @@ def message_to_yaml(msg: Any, truncate_length: int = None,
     )
 
 
-def message_to_csv(msg: Any, truncate_length: int = None,
-                   no_arr: bool = False, no_str: bool = False) -> str:
+def message_to_csv(
+        msg: Any,
+        *,
+        truncate_length: int = None,
+        no_arr: bool = False,
+        no_str: bool = False) -> str:
     """
     Convert a ROS message to string of comma-separated values.
 
@@ -123,7 +131,7 @@ def message_to_csv(msg: Any, truncate_length: int = None,
                         val += '...'
             r = str(val)
         else:
-            r = message_to_csv(val, truncate_length, no_arr, no_str)
+            r = message_to_csv(val, truncate_length=truncate_length, no_arr=no_arr, no_str=no_str)
         return r
     result = ''
 
@@ -142,6 +150,7 @@ def message_to_csv(msg: Any, truncate_length: int = None,
 # in the msg because we want to preserve order of fields from the .msg file(s).
 def message_to_ordereddict(
         msg: Any,
+        *,
         truncate_length: int = None,
         no_arr: bool = False,
         no_str: bool = False) -> OrderedDict:
@@ -163,15 +172,20 @@ def message_to_ordereddict(
         value = getattr(msg, field_name, None)
 
         value = _convert_value(
-            value, field_type,
+            value, field_type=field_type,
             truncate_length=truncate_length, no_arr=no_arr, no_str=no_str)
         # Remove leading underscore from field name
         d[field_name[1:]] = value
     return d
 
 
-def _convert_value(value, field_type=None,
-                   truncate_length=None, no_arr=False, no_str=False):
+def _convert_value(
+        value,
+        *,
+        field_type=None,
+        truncate_length=None,
+        no_arr=False,
+        no_str=False):
 
     if isinstance(value, bytes):
         if truncate_length is not None and len(value) > truncate_length:

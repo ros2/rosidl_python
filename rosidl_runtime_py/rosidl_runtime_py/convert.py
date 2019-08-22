@@ -28,6 +28,10 @@ __yaml_representer_registered = False
 def __get_type_name(value_type):
     if isinstance(value_type, rosidl_parser.definition.BasicType):
         return value_type.typename
+    elif isinstance(value_type, rosidl_parser.definition.AbstractString):
+        return 'string'
+    elif isinstance(value_type, rosidl_parser.definition.AbstractWString):
+        return 'wstring'
     elif isinstance(value_type, rosidl_parser.definition.NamedType):
         return value_type.name
     elif isinstance(value_type, rosidl_parser.definition.NamespacedType):

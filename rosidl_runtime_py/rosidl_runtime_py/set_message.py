@@ -17,6 +17,8 @@ import array
 from typing import Any
 from typing import Dict
 
+import numpy
+
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import NamespacedType
 from rosidl_runtime_py.convert import get_message_slot_types
@@ -38,6 +40,8 @@ def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
         field_type = type(field)
         if field_type is array.array:
             value = field_type(field.typecode, field_value)
+        elif field_type is numpy.ndarray:
+            value = numpy.array(field_value, dtype=field.dtype)
         elif type(field_value) is field_type:
             value = field_value
         else:

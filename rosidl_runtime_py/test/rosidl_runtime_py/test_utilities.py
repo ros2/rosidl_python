@@ -22,7 +22,7 @@ import test_msgs.msg
 import test_msgs.srv
 
 
-class TestConfig:
+class Config:
 
     def __init__(
         self,
@@ -39,37 +39,37 @@ class TestConfig:
 
 
 @pytest.mark.parametrize('config', (
-    TestConfig(
+    Config(
         path='test_msgs/msg/Empty',
         object_type=test_msgs.msg.Empty,
         to_namespaced_type_function=utilities.get_message_namespaced_type,
         is_function=utilities.is_message
     ),
-    TestConfig(
+    Config(
         path='test_msgs/Empty',
         object_type=test_msgs.msg.Empty,
         to_namespaced_type_function=utilities.get_message_namespaced_type,
         is_function=utilities.is_message
     ),
-    TestConfig(
+    Config(
         path='test_msgs/srv/Empty',
         object_type=test_msgs.srv.Empty,
         to_namespaced_type_function=utilities.get_service_namespaced_type,
         is_function=utilities.is_service
     ),
-    TestConfig(
+    Config(
         path='test_msgs/Empty',
         object_type=test_msgs.srv.Empty,
         to_namespaced_type_function=utilities.get_service_namespaced_type,
         is_function=utilities.is_service
     ),
-    TestConfig(
+    Config(
         path='test_msgs/action/Fibonacci',
         object_type=test_msgs.action.Fibonacci,
         to_namespaced_type_function=utilities.get_action_namespaced_type,
         is_function=utilities.is_action
     ),
-    TestConfig(
+    Config(
         path='test_msgs/Fibonacci',
         object_type=test_msgs.action.Fibonacci,
         to_namespaced_type_function=utilities.get_action_namespaced_type,

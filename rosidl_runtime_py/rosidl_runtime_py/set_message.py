@@ -13,14 +13,17 @@
 # limitations under the License.
 
 import array
+import numpy
 
 from typing import Any
 from typing import Dict
 
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import NamespacedType
+from rosidl_parser.definition import BasicType
 from rosidl_runtime_py.convert import get_message_slot_types
 from rosidl_runtime_py.import_message import import_message_from_namespaced_type
+from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 
 
 def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
@@ -38,6 +41,8 @@ def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
         field_type = type(field)
         if field_type is array.array:
             value = field_type(field.typecode, field_value)
+        elif field_type is numpy.ndarray:
+            value = field_type(shape=field.shape, dtype=field.dtype)
         else:
             try:
                 value = field_type(field_value)
@@ -53,4 +58,9 @@ def set_message_fields(msg: Any, values: Dict[str, str]) -> None:
                     submsg = field_elem_type()
                     set_message_fields(submsg, value[n])
                     value[n] = submsg
+            if isinstance(rosidl_type.value_type, BasicType):
+                field_elem_type = rosidl_type.value_type.typename
+                field_elem_type = eval(SPECIAL_NESTED_BASIC_TYPES[field_elem_type]['dtype'])
+                for n in range(len(field_value)):
+                    value[n] = field_elem_type(field_value[n])
         setattr(msg, field_name, value)

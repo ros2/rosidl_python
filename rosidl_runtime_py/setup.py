@@ -1,10 +1,15 @@
 from setuptools import find_packages
 from setuptools import setup
 
+package_name = 'rosidl_runtime_py'
+
 setup(
-    name='rosidl_runtime_py',
+    name=package_name,
     version='0.7.7',
     packages=find_packages(exclude=['test']),
+    data_files=[
+        ('share/' + package_name, ['package.xml']),
+    ],
     zip_safe=False,
     author='Dirk Thomas',
     author_email='dthomas@osrfoundation.org',

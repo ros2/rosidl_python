@@ -22,29 +22,7 @@ if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
-  set(message_files
-    #"msg/Bool.msg"
-    #"msg/Byte.msg"
-    #"msg/Char.msg"
-    "msg/Constants.msg"
-    "msg/Empty.msg"
-    #"msg/Float32.msg"
-    #"msg/Float64.msg"
-    #"msg/Int16.msg"
-    #"msg/Int32.msg"
-    #"msg/Int64.msg"
-    #"msg/Int8.msg"
-    "msg/Nested.msg"
-    "msg/Primitives.msg"
-    "msg/StringArrays.msg"
-    "msg/Strings.msg"
-    #"msg/Uint16.msg"
-    #"msg/Uint32.msg"
-    #"msg/Uint64.msg"
-    #"msg/Uint8.msg"
-    "msg/Various.msg"
-    "msg/WStrings.msg"
-  )
+  find_package(test_interface_files REQUIRED)
 
   include(cmake/register_py.cmake)
   include(cmake/rosidl_generator_py_get_typesupports.cmake)
@@ -68,7 +46,10 @@ if(BUILD_TESTING)
     # Use a custom suffix for the target name here to detect regressions of this:
     #   https://github.com/ros2/rosidl_python/issues/11
     # The alternative style (just using ${PROJECT_NAME}) is used by most interface packages.
-    rosidl_generate_interfaces(${PROJECT_NAME}_custom ${message_files}
+    rosidl_generate_interfaces(${PROJECT_NAME}_custom
+      ${test_interface_files_MSG_FILES}
+      # Cases not covered by test_interface_files
+      msg/StringArrays.msg
       ADD_LINTER_TESTS
       SKIP_INSTALL
     )

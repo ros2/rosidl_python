@@ -1,4 +1,4 @@
-# Copyright 2016 Open Source Robotics Foundation, Inc.
+# Copyright 2016-2019 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@ import array
 import numpy
 import pytest
 
+from rosidl_generator_py.msg import Arrays
+from rosidl_generator_py.msg import BasicTypes
+from rosidl_generator_py.msg import BoundedSequences
 from rosidl_generator_py.msg import Constants
+from rosidl_generator_py.msg import Defaults
 from rosidl_generator_py.msg import Nested
-from rosidl_generator_py.msg import Primitives
 from rosidl_generator_py.msg import StringArrays
 from rosidl_generator_py.msg import Strings
-from rosidl_generator_py.msg import Various
+from rosidl_generator_py.msg import UnboundedSequences
 from rosidl_generator_py.msg import WStrings
 
 from rosidl_parser.definition import Array
@@ -33,287 +36,771 @@ from rosidl_parser.definition import UnboundedSequence
 from rosidl_parser.definition import UnboundedString
 
 
-def test_strings():
-    a = Strings()
+def test_basic_types():
+    msg = BasicTypes()
 
-    assert '' == a.empty_string
-    assert 'Hello world!' == a.def_string
+    # types
+    assert isinstance(msg.bool_value, bool)
+    assert isinstance(msg.byte_value, bytes)
+    assert 1 == len(msg.byte_value)
+    # TODO(jacobperron): char_value is an int, but shouldn't it be a string?
+    # assert isinstance(msg.char_value, str)
+    # assert 1 == len(msg.char_value)
+    assert isinstance(msg.float32_value, float)
+    assert isinstance(msg.float64_value, float)
+    assert isinstance(msg.int8_value, int)
+    assert isinstance(msg.uint8_value, int)
+    assert isinstance(msg.int16_value, int)
+    assert isinstance(msg.uint16_value, int)
+    assert isinstance(msg.int32_value, int)
+    assert isinstance(msg.uint32_value, int)
+    assert isinstance(msg.int64_value, int)
+    assert isinstance(msg.uint64_value, int)
+
+    # default values
+    assert msg.bool_value is False
+    assert bytes([0]) == msg.byte_value
+    # TODO(jacobperron): This test fails as 'char_value' has type int
+    # assert '' == msg.char_value
+    assert 0.0 == msg.float32_value
+    assert 0.0 == msg.float64_value
+    assert 0 == msg.int8_value
+    assert 0 == msg.uint8_value
+    assert 0 == msg.int16_value
+    assert 0 == msg.uint16_value
+    assert 0 == msg.int32_value
+    assert 0 == msg.uint32_value
+    assert 0 == msg.int64_value
+    assert 0 == msg.uint64_value
+
+    # assignment
+    msg.bool_value = True
+    assert msg.bool_value is True
+    msg.byte_value = b'2'
+    assert bytes([50]) == msg.byte_value
+    # msg.char_value = 'R'
+    # assert 'R' == msg.char_value
+    msg.float32_value = 1.125
+    assert 1.125 == msg.float32_value
+    msg.float64_value = 1.125
+    assert 1.125 == msg.float64_value
+    msg.int8_value = -50
+    assert -50 == msg.int8_value
+    msg.uint8_value = 200
+    assert 200 == msg.uint8_value
+    msg.int16_value = -1000
+    assert -1000 == msg.int16_value
+    msg.uint16_value = 2000
+    assert 2000 == msg.uint16_value
+    msg.int32_value = -30000
+    assert -30000 == msg.int32_value
+    msg.uint32_value = 60000
+    assert 60000 == msg.uint32_value
+    msg.int64_value = -40000000
+    assert -40000000 == msg.int64_value
+    msg.uint64_value = 50000000
+    assert 50000000 == msg.uint64_value
+
+    # out of range
+    with pytest.raises(AssertionError):
+        setattr(msg, 'char_value', '\x80')
+    for i in [8, 16, 32, 64]:
+        with pytest.raises(AssertionError):
+            setattr(msg, 'int%d_value' % i, 2**(i - 1))
+        with pytest.raises(AssertionError):
+            setattr(msg, 'int%d_value' % i, -2**(i - 1) - 1)
+        with pytest.raises(AssertionError):
+            setattr(msg, 'uint%d_value' % i, -1)
+        with pytest.raises(AssertionError):
+            setattr(msg, 'int%d_value' % i, 2**i)
+
+
+def test_strings():
+    msg = Strings()
+
+    # types
+    assert isinstance(msg.string_value, str)
+    assert isinstance(msg.string_value_default1, str)
+    assert isinstance(msg.bounded_string_value_default1, str)
+
+    # default values
+    assert '' == msg.string_value
+    assert 'Hello world!' == msg.string_value_default1
+    assert "Hello'world!" == msg.string_value_default2
+    assert 'Hello"world!' == msg.string_value_default3
+    assert "Hello'world!" == msg.string_value_default4
+    assert 'Hello"world!' == msg.string_value_default5
+    assert 'Hello world!' == Strings.STRING_CONST
+    assert '' == msg.bounded_string_value
+    assert 'Hello world!' == msg.bounded_string_value_default1
+    assert "Hello'world!" == msg.bounded_string_value_default2
+    assert 'Hello"world!' == msg.bounded_string_value_default3
+    assert "Hello'world!" == msg.bounded_string_value_default4
+    assert 'Hello"world!' == msg.bounded_string_value_default5
+
+    # assignment
+    msg.string_value = 'foo'
+    assert 'foo' == msg.string_value
+    msg.string_value_default1 = 'bar'
+    assert 'bar' == msg.string_value_default1
+    msg.bounded_string_value = 'foo bounded'
+    assert 'foo bounded' == msg.bounded_string_value
+    msg.bounded_string_value_default1 = 'bar bounded'
+    assert 'bar bounded' == msg.bounded_string_value_default1
+
+    # set invalid value type
+    with pytest.raises(AssertionError):
+        setattr(msg, 'string_value', 1234)
+
+    # get/set invalid attribute
+    with pytest.raises(AttributeError):
+        setattr(msg, 'invalid_string1', 'foo')
+    with pytest.raises(AttributeError):
+        getattr(msg, 'invalid_string2')
+
+    # out of bounds
+    msg.bounded_string_value = 'a' * 22
+    assert 'a' * 22 == msg.bounded_string_value
+    with pytest.raises(AssertionError):
+        setattr(msg, 'bounded_string_value', 'a' * 23)
+    msg.bounded_string_value_default1 = 'a' * 22
+    assert 'a' * 22 == msg.bounded_string_value_default1
+    with pytest.raises(AssertionError):
+        setattr(msg, 'bounded_string_value_default1', 'a' * 23)
 
 
 def test_wstrings():
-    a = WStrings()
+    msg = WStrings()
 
-    assert '' == a.empty_wstring
-    assert 'Hello world!' == a.def_wstring
+    # types
+    assert isinstance(msg.wstring_value, str)
+    assert isinstance(msg.wstring_value_default1, str)
+
+    # default values
+    assert '' == msg.wstring_value
+    assert 'Hello world!' == msg.wstring_value_default1
+    assert 'Hellö wörld!' == msg.wstring_value_default2
+    assert 'ハローワールド' == msg.wstring_value_default3
 
 
 def test_arrays_of_bounded_strings():
-    a = StringArrays()
+    msg = StringArrays()
     array_valid_string_length = ['a' * 2, 'b' * 3, 'c' * 4]
     array_too_long_strings = ['a' * 2, 'b' * 3, 'c' * 6]
-    assert ['', '', ''] == a.ub_string_static_array_value
-    a.ub_string_static_array_value = array_valid_string_length
-    assert array_valid_string_length == a.ub_string_static_array_value
+    assert ['', '', ''] == msg.ub_string_static_array_value
+    msg.ub_string_static_array_value = array_valid_string_length
+    assert array_valid_string_length == msg.ub_string_static_array_value
 
     with pytest.raises(AssertionError):
-        setattr(a, 'ub_string_static_array_value', array_too_long_strings)
+        setattr(msg, 'ub_string_static_array_value', array_too_long_strings)
 
     with pytest.raises(AssertionError):
-        setattr(a, 'ub_string_static_array_value', ['a' * 2, 'b' * 3])
+        setattr(msg, 'ub_string_static_array_value', ['a' * 2, 'b' * 3])
 
-    assert [] == a.ub_string_ub_array_value
-    a.ub_string_ub_array_value = array_valid_string_length
-    assert array_valid_string_length == a.ub_string_ub_array_value
+    assert [] == msg.ub_string_ub_array_value
+    msg.ub_string_ub_array_value = array_valid_string_length
+    assert array_valid_string_length == msg.ub_string_ub_array_value
 
     with pytest.raises(AssertionError):
-        setattr(a, 'ub_string_ub_array_value', array_too_long_strings)
+        setattr(msg, 'ub_string_ub_array_value', array_too_long_strings)
 
     array10strings = [] + [str(i) for i in range(10)]
-    a.ub_string_ub_array_value = array10strings
-    assert array10strings == a.ub_string_ub_array_value
+    msg.ub_string_ub_array_value = array10strings
+    assert array10strings == msg.ub_string_ub_array_value
 
     with pytest.raises(AssertionError):
-        setattr(a, 'ub_string_ub_array_value', array10strings + ['gfg'])
+        setattr(msg, 'ub_string_ub_array_value', array10strings + ['gfg'])
 
-    assert [] == a.ub_string_dynamic_array_value
-    a.ub_string_dynamic_array_value = array_valid_string_length
-    assert array_valid_string_length == a.ub_string_dynamic_array_value
+    assert [] == msg.ub_string_dynamic_array_value
+    msg.ub_string_dynamic_array_value = array_valid_string_length
+    assert array_valid_string_length == msg.ub_string_dynamic_array_value
 
     with pytest.raises(AssertionError):
-        setattr(a, 'ub_string_dynamic_array_value', array_too_long_strings)
+        setattr(msg, 'ub_string_dynamic_array_value', array_too_long_strings)
 
     array10strings = [] + [str(i) for i in range(10)]
-    a.ub_string_dynamic_array_value = array10strings
-    assert array10strings == a.ub_string_dynamic_array_value
+    msg.ub_string_dynamic_array_value = array10strings
+    assert array10strings == msg.ub_string_dynamic_array_value
     array10strings += ['gfg']
-    a.ub_string_dynamic_array_value = array10strings
-    assert array10strings == a.ub_string_dynamic_array_value
-
-
-def test_invalid_attribute():
-    a = Strings()
-
-    with pytest.raises(AttributeError):
-        setattr(a, 'invalid_string1', 'foo')
-
-    with pytest.raises(AttributeError):
-        getattr(a, 'invalid_string2')
+    msg.ub_string_dynamic_array_value = array10strings
+    assert array10strings == msg.ub_string_dynamic_array_value
 
 
 def test_constructor():
-    a = Strings(empty_string='foo')
+    msg = Strings(string_value='foo')
 
-    assert'foo' == a.empty_string
+    assert'foo' == msg.string_value
 
     with pytest.raises(AssertionError):
         Strings(unknown_field='test')
 
 
 def test_constants():
-    assert Constants.FLAG_TRUE is True
-    assert Constants.FLAG_FALSE is False
-    assert 123 == Constants.X
-    assert -123 == Constants.Y
-    assert 'foo' == Constants.FOO
-    assert 127 == Constants.TOTO
-    assert b'0' == Constants.TATA
+    assert Constants.BOOL_CONST is True
+    assert bytes([50]) == Constants.BYTE_CONST
+    assert 100 == Constants.CHAR_CONST
+    assert 1.125 == Constants.FLOAT32_CONST
+    assert 1.125 == Constants.FLOAT64_CONST
+    assert -50 == Constants.INT8_CONST
+    assert 200 == Constants.UINT8_CONST
+    assert -1000 == Constants.INT16_CONST
+    assert 2000 == Constants.UINT16_CONST
+    assert -30000 == Constants.INT32_CONST
+    assert 60000 == Constants.UINT32_CONST
+    assert -40000000 == Constants.INT64_CONST
+    assert 50000000 == Constants.UINT64_CONST
 
+    # check we can't overwrite existing constant
     with pytest.raises(AttributeError):
-        setattr(Constants, 'FOO', 'bar')
+        setattr(Constants, 'INT32_CONST', 42)
 
 
 def test_default_values():
-    a = Strings()
+    msg = Defaults()
 
-    assert '' == a.empty_string
-    assert 'Hello world!' == a.def_string
-    a.def_string = 'Bye world'
-    assert 'Bye world' == a.def_string
-    assert 'Hello world!' == Strings.DEF_STRING__DEFAULT
-    assert 'Hello world!' == a.DEF_STRING__DEFAULT
+    assert msg.bool_value is True
+    assert bytes([50]) == msg.byte_value
+    assert 100 == msg.char_value
+    assert 1.125 == msg.float32_value
+    assert 1.125 == msg.float64_value
+    assert -50 == msg.int8_value
+    assert 200 == msg.uint8_value
+    assert -1000 == msg.int16_value
+    assert 2000 == msg.uint16_value
+    assert -30000 == msg.int32_value
+    assert 60000 == msg.uint32_value
+    assert -40000000 == msg.int64_value
+    assert 50000000 == msg.uint64_value
 
-    assert "Hello'world!" == a.DEF_STRING2__DEFAULT
-    assert 'Hello"world!' == a.DEF_STRING3__DEFAULT
-    assert "Hello'world!" == a.DEF_STRING4__DEFAULT
-    assert 'Hello"world!' == a.DEF_STRING5__DEFAULT
+    # overwrite value
+    msg.int32_value = 42
+    assert 42 == msg.int32_value
+    # check actual default is not changed
+    assert -30000 == Defaults.INT32_VALUE__DEFAULT
+    # check that we can't change default
     with pytest.raises(AttributeError):
-        setattr(Strings, 'DEF_STRING__DEFAULT', 'bar')
-
-    a = WStrings()
-    assert '' == a.empty_wstring
-    assert 'Hello world!' == a.def_wstring
-    a.def_wstring = 'Bye world'
-    assert 'Bye world' == a.def_wstring
-    assert 'Hello world!' == WStrings.DEF_WSTRING__DEFAULT
-    assert 'Hello world!' == a.DEF_WSTRING__DEFAULT
-
-    assert "Hello'world!" == a.DEF_WSTRING2__DEFAULT
-    assert 'Hello"world!' == a.DEF_WSTRING3__DEFAULT
-    assert "Hello'world!" == a.DEF_WSTRING4__DEFAULT
-    assert 'Hello"world!' == a.DEF_WSTRING5__DEFAULT
-    with pytest.raises(AttributeError):
-        setattr(WStrings, 'DEF_WSTRING__DEFAULT', 'bar')
-
-    b = StringArrays()
-    assert ['What', 'a', 'wonderful', 'world', '!'] == b.DEF_STRING_DYNAMIC_ARRAY_VALUE__DEFAULT
-    assert ['Hello', 'World', '!'] == b.DEF_STRING_STATIC_ARRAY_VALUE__DEFAULT
-    assert ['Hello', 'World', '!'] == b.DEF_STRING_BOUNDED_ARRAY_VALUE__DEFAULT
-
-    assert ['H"el\'lo', 'Wo\'r"ld'] == b.DEF_VARIOUS_QUOTES__DEFAULT
-    assert ['Hel,lo', ',World', 'abcd', '!,'] == b.DEF_VARIOUS_COMMAS__DEFAULT
-
-    c = Various()
-    assert isinstance(c.TWO_UINT16_VALUE__DEFAULT, numpy.ndarray)
-    assert (2, ) == c.TWO_UINT16_VALUE__DEFAULT.shape
-    assert numpy.uint16 == c.TWO_UINT16_VALUE__DEFAULT.dtype
-    assert [5, 23] == c.TWO_UINT16_VALUE__DEFAULT.tolist()
-
-    assert isinstance(
-        c.UP_TO_THREE_INT32_VALUES_WITH_DEFAULT_VALUES__DEFAULT, array.array)
-    assert 'i' == \
-        c.UP_TO_THREE_INT32_VALUES_WITH_DEFAULT_VALUES__DEFAULT.typecode
-    assert [5, 23] == \
-        c.UP_TO_THREE_INT32_VALUES_WITH_DEFAULT_VALUES__DEFAULT.tolist()
-
-    assert 1 == c.CHAR_VALUE__DEFAULT
-    assert '1' != c.CHAR_VALUE__DEFAULT
-    assert b'\x01' == c.BYTE_VALUE__DEFAULT
-    assert b'1' != c.BYTE_VALUE__DEFAULT
+        setattr(Defaults, 'INT32_VALUE__DEFAULT', 24)
 
 
-def test_check_constraints():
-    a = Strings()
-    a.empty_string = 'test'
-    assert 'test' == a.empty_string
-    with pytest.raises(AssertionError):
-        setattr(a, 'empty_string', 1234)
-    a.ub_string = 'a' * 22
-    assert 'a' * 22 == a.ub_string
-    with pytest.raises(AssertionError):
-        setattr(a, 'ub_string', 'a' * 23)
+def test_arrays():
+    msg = Arrays()
 
-    b = Nested()
-    primitives = Primitives()
-    b.primitives = primitives
-    assert b.primitives == primitives
-    with pytest.raises(AssertionError):
-        setattr(b, 'primitives', 'foo')
+    # types
+    assert isinstance(msg.bool_values, list)
+    assert isinstance(msg.byte_values, list)
+    # assert isinstance(msg.char_values, list)
+    assert isinstance(msg.float32_values, numpy.ndarray)
+    assert isinstance(msg.float64_values, numpy.ndarray)
+    assert isinstance(msg.int8_values, numpy.ndarray)
+    assert isinstance(msg.uint8_values, numpy.ndarray)
+    assert isinstance(msg.int16_values, numpy.ndarray)
+    assert isinstance(msg.uint16_values, numpy.ndarray)
+    assert isinstance(msg.int32_values, numpy.ndarray)
+    assert isinstance(msg.uint32_values, numpy.ndarray)
+    assert isinstance(msg.int64_values, numpy.ndarray)
+    assert isinstance(msg.uint64_values, numpy.ndarray)
 
-    list_of_primitives = [primitives, primitives]
-    tuple_of_primitives = (primitives, primitives)
-    b.two_primitives = list_of_primitives
-    assert b.two_primitives == list_of_primitives
-    assert type(b.two_primitives) == list
-    b.two_primitives = tuple_of_primitives
-    assert b.two_primitives == tuple_of_primitives
-    assert type(b.two_primitives) == tuple
-    with pytest.raises(AssertionError):
-        setattr(b, 'two_primitives', Primitives())
-    with pytest.raises(AssertionError):
-        setattr(b, 'two_primitives', [Primitives()])
-    with pytest.raises(AssertionError):
-        setattr(b, 'two_primitives', [primitives, primitives, primitives])
+    # TODO(jacobperron): Add checks for remaining fields
 
-    b.up_to_three_primitives = []
-    assert [] == b.up_to_three_primitives
-    b.up_to_three_primitives = [primitives]
-    assert [primitives] == b.up_to_three_primitives
-    b.up_to_three_primitives = [primitives, primitives]
-    assert [primitives, primitives] == b.up_to_three_primitives
-    b.up_to_three_primitives = [primitives, primitives, primitives]
-    assert [primitives, primitives, primitives] == b.up_to_three_primitives
-    with pytest.raises(AssertionError):
-        setattr(
-            b, 'up_to_three_primitives',
-            [primitives, primitives, primitives, primitives])
+    # defaults
+    assert 3 == len(msg.bool_values)
+    assert 3 == len(msg.byte_values)
+    assert 3 == len(msg.char_values)
+    assert 3 == len(msg.float32_values)
+    assert 3 == len(msg.float64_values)
+    assert 3 == len(msg.int8_values)
+    assert 3 == len(msg.uint8_values)
+    assert 3 == len(msg.int16_values)
+    assert 3 == len(msg.uint16_values)
+    assert 3 == len(msg.int32_values)
+    assert 3 == len(msg.uint32_values)
+    assert 3 == len(msg.int64_values)
+    assert 3 == len(msg.uint64_values)
 
-    b.unbounded_primitives = [primitives, primitives]
-    assert [primitives, primitives] == b.unbounded_primitives
+    # valid assignment
+    list_of_bool = [True, False, True]
+    msg.bool_values = list_of_bool
+    assert list_of_bool == msg.bool_values
+    list_of_byte = [b'a', b'b', b'c']
+    msg.byte_values = list_of_byte
+    assert list_of_byte == msg.byte_values
+    # list_of_char = ['a', 'b', 'c']
+    # msg.char_values = list_of_char
+    # assert list_of_char == msg.char_values
+    list_of_float32 = [0.0, -1.125, 1.125]
+    msg.float32_values = list_of_float32
+    assert numpy.allclose(list_of_float32, msg.float32_values)
+    list_of_float64 = [0.0, 1.125, 1.125]
+    msg.float64_values = list_of_float64
+    assert numpy.allclose(list_of_float64, msg.float64_values)
+    list_of_int8 = [0, -128, 127]
+    msg.int8_values = list_of_int8
+    assert numpy.array_equal(list_of_int8, msg.int8_values)
+    list_of_uint8 = [0, 1, 255]
+    msg.uint8_values = list_of_uint8
+    assert numpy.array_equal(list_of_uint8, msg.uint8_values)
+    list_of_int16 = [0, -32768, 32767]
+    msg.int16_values = list_of_int16
+    assert numpy.array_equal(list_of_int16, msg.int16_values)
+    list_of_uint16 = [0, 1, 65535]
+    msg.uint16_values = list_of_uint16
+    assert numpy.array_equal(list_of_uint16, msg.uint16_values)
+    list_of_int32 = [0, -2147483648, 2147483647]
+    msg.int32_values = list_of_int32
+    assert numpy.array_equal(list_of_int32, msg.int32_values)
+    list_of_uint32 = [0, 1, 4294967295]
+    msg.uint32_values = list_of_uint32
+    assert numpy.array_equal(list_of_uint32, msg.uint32_values)
+    list_of_int64 = [0, -9223372036854775808, 9223372036854775807]
+    msg.int64_values = list_of_int64
+    assert numpy.array_equal(list_of_int64, msg.int64_values)
+    list_of_uint64 = [0, 1, 18446744073709551615]
+    msg.uint64_values = list_of_uint64
+    assert numpy.array_equal(list_of_uint64, msg.uint64_values)
 
-    c = Various()
-    c.byte_value = b'a'
-    assert b'a' == c.byte_value
-    assert 'a' != c.byte_value
+    # assign wrong size
     with pytest.raises(AssertionError):
-        setattr(c, 'byte_value', 'a')
+        msg.bool_values = [True]
     with pytest.raises(AssertionError):
-        setattr(c, 'byte_value', b'abc')
+        msg.byte_values = [b'd']
+    # with pytest.raises(AssertionError):
+    #     msg.char_values = ['d']
     with pytest.raises(AssertionError):
-        setattr(c, 'byte_value', 'abc')
+        msg.float32_values = [1.125]
+    with pytest.raises(AssertionError):
+        msg.float64_values = [1.125]
+    with pytest.raises(AssertionError):
+        msg.int8_values = [42]
+    with pytest.raises(AssertionError):
+        msg.uint8_values = [42]
+    with pytest.raises(AssertionError):
+        msg.int16_values = [42]
+    with pytest.raises(AssertionError):
+        msg.uint16_values = [42]
+    with pytest.raises(AssertionError):
+        msg.int32_values = [42]
+    with pytest.raises(AssertionError):
+        msg.uint32_values = [42]
+    with pytest.raises(AssertionError):
+        msg.int64_values = [42]
+    with pytest.raises(AssertionError):
+        msg.uint64_values = [42]
 
-    c.char_value = ord('a')
-    assert ord('a') == c.char_value
-    assert b'a' != c.char_value
+    # invalid type
     with pytest.raises(AssertionError):
-        setattr(c, 'char_value', b'a')
+        msg.bool_values = ['not', 'a', 'bool']
     with pytest.raises(AssertionError):
-        setattr(c, 'char_value', 'abc')
+        msg.byte_values = ['not', 'a', 'byte']
+    # with pytest.raises(AssertionError):
+    #     msg.char_values = ['not', 'a', 'char']
     with pytest.raises(AssertionError):
-        setattr(c, 'char_value', b'abc')
+        msg.float32_values = ['not', 'a', 'float32']
+    with pytest.raises(AssertionError):
+        msg.float64_values = ['not', 'a', 'float64']
+    with pytest.raises(AssertionError):
+        msg.int8_values = ['not', 'a', 'int8']
+    with pytest.raises(AssertionError):
+        msg.uint8_values = ['not', 'a', 'uint8']
+    with pytest.raises(AssertionError):
+        msg.int16_values = ['not', 'a', 'int16']
+    with pytest.raises(AssertionError):
+        msg.uint16_values = ['not', 'a', 'uint16']
+    with pytest.raises(AssertionError):
+        msg.int32_values = ['not', 'a', 'int32']
+    with pytest.raises(AssertionError):
+        msg.uint32_values = ['not', 'a', 'uint32']
+    with pytest.raises(AssertionError):
+        msg.int64_values = ['not', 'a', 'int64']
+    with pytest.raises(AssertionError):
+        msg.uint64_values = ['not', 'a', 'uint64']
 
-    c.up_to_three_int32_values = []
-    assert [] == c.up_to_three_int32_values.tolist()
-    c.up_to_three_int32_values = [12345, -12345]
-    assert [12345, -12345] == c.up_to_three_int32_values.tolist()
-    c.up_to_three_int32_values = [12345, -12345, 6789]
-    assert [12345, -12345, 6789] == c.up_to_three_int32_values.tolist()
-    c.up_to_three_int32_values = [12345, -12345, 6789]
+    # out of range
     with pytest.raises(AssertionError):
-        setattr(c, 'up_to_three_int32_values', [12345, -12345, 6789, -6789])
+        setattr(msg, 'int8_values', [2**8, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int8_values', [-2**7 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint8_values', [2**8, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint8_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int16_values', [2**16, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int16_values', [-2**15 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint16_values', [2**16, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint16_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int32_values', [2**32, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int32_values', [-2**31 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint32_values', [2**32, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint32_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int64_values', [2**64, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int64_values', [-2**63 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint64_values', [2**64, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint64_values', [-1, 1, 2])
 
-    c.up_to_three_string_values = []
-    assert [] == c.up_to_three_string_values
-    c.up_to_three_string_values = ['foo', 'bar']
-    assert ['foo', 'bar'] == c.up_to_three_string_values
-    c.up_to_three_string_values = ['foo', 'bar', 'baz']
-    assert ['foo', 'bar', 'baz'] == c.up_to_three_string_values
+
+def test_bounded_sequences():
+    msg = BoundedSequences()
+
+    # types
+    assert isinstance(msg.bool_values, list)
+    assert isinstance(msg.byte_values, list)
+    # assert isinstance(msg.char_values, list)
+    assert isinstance(msg.float32_values, array.array)
+    assert isinstance(msg.float64_values, array.array)
+    assert isinstance(msg.int8_values, array.array)
+    assert isinstance(msg.uint8_values, array.array)
+    assert isinstance(msg.int16_values, array.array)
+    assert isinstance(msg.uint16_values, array.array)
+    assert isinstance(msg.int32_values, array.array)
+    assert isinstance(msg.uint32_values, array.array)
+    assert isinstance(msg.int64_values, array.array)
+    assert isinstance(msg.uint64_values, array.array)
+
+    # TODO(jacobperron): Add checks for remaining fields
+
+    # defaults
+    assert [] == msg.bool_values
+    assert [] == msg.byte_values
+    # assert [] == msg.char_values
+    assert array.array('f') == msg.float32_values
+    assert array.array('d') == msg.float64_values
+    assert array.array('b') == msg.int8_values
+    assert array.array('B') == msg.uint8_values
+    assert array.array('h') == msg.int16_values
+    assert array.array('H') == msg.uint16_values
+    assert array.array('l') == msg.int32_values
+    assert array.array('L') == msg.uint32_values
+    assert array.array('q') == msg.int64_values
+    assert array.array('Q') == msg.uint64_values
+
+    # valid assignment
+    list_of_bool = [True, False, True]
+    short_list_of_bool = [False]
+    msg.bool_values = list_of_bool
+    assert list_of_bool == msg.bool_values
+    msg.bool_values = short_list_of_bool
+    assert short_list_of_bool == msg.bool_values
+    list_of_byte = [b'a', b'b', b'c']
+    short_list_of_byte = [b'd']
+    msg.byte_values = list_of_byte
+    assert list_of_byte == msg.byte_values
+    msg.byte_values = short_list_of_byte
+    assert short_list_of_byte == msg.byte_values
+    # list_of_char = ['a', 'b', 'c']
+    # short_list_of_char = ['d']
+    # msg.char_values = list_of_char
+    # assert list_of_char == msg.char_values
+    # msg.char_values = short_list_of_char
+    # assert short_list_of_char == msg.char_values
+    list_of_float32 = [0.1, 2.3, -3.14]
+    short_list_of_float32 = [1.125]
+    msg.float32_values = list_of_float32
+    assert array.array('f', list_of_float32) == msg.float32_values
+    msg.float32_values = short_list_of_float32
+    assert array.array('d', short_list_of_float32) == msg.float32_values
+    list_of_float64 = [0.1, 2.3, -3.14]
+    short_list_of_float64 = [1.125]
+    msg.float64_values = list_of_float64
+    assert array.array('d', list_of_float64) == msg.float64_values
+    msg.float64_values = short_list_of_float64
+    assert array.array('d', short_list_of_float64) == msg.float64_values
+    list_of_int8 = [0, -128, 127]
+    short_list_of_int8 = [1]
+    msg.int8_values = list_of_int8
+    assert array.array('b', list_of_int8) == msg.int8_values
+    msg.int8_values = short_list_of_int8
+    assert array.array('b', short_list_of_int8) == msg.int8_values
+    list_of_uint8 = [0, 1, 255]
+    short_list_of_uint8 = [1]
+    msg.uint8_values = list_of_uint8
+    assert array.array('B', list_of_uint8) == msg.uint8_values
+    msg.uint8_values = short_list_of_uint8
+    assert array.array('B', short_list_of_uint8) == msg.uint8_values
+    list_of_int16 = [0, -32768, 32767]
+    short_list_of_int16 = [1]
+    msg.int16_values = list_of_int16
+    assert array.array('h', list_of_int16) == msg.int16_values
+    msg.int16_values = short_list_of_int16
+    assert array.array('h', short_list_of_int16) == msg.int16_values
+    list_of_uint16 = [0, 1, 65535]
+    short_list_of_uint16 = [1]
+    msg.uint16_values = list_of_uint16
+    assert array.array('H', list_of_uint16) == msg.uint16_values
+    msg.uint16_values = short_list_of_uint16
+    assert array.array('H', short_list_of_uint16) == msg.uint16_values
+    list_of_int32 = [0, -2147483648, 2147483647]
+    short_list_of_int32 = [1]
+    msg.int32_values = list_of_int32
+    assert array.array('l', list_of_int32) == msg.int32_values
+    msg.int32_values = short_list_of_int32
+    assert array.array('l', short_list_of_int32) == msg.int32_values
+    list_of_uint32 = [0, 1, 4294967295]
+    short_list_of_uint32 = [1]
+    msg.uint32_values = list_of_uint32
+    assert array.array('L', list_of_uint32) == msg.uint32_values
+    msg.uint32_values = short_list_of_uint32
+    assert array.array('L', short_list_of_uint32) == msg.uint32_values
+    list_of_int64 = [0, -9223372036854775808, 9223372036854775807]
+    short_list_of_int64 = [1]
+    msg.int64_values = list_of_int64
+    assert array.array('q', list_of_int64) == msg.int64_values
+    msg.int64_values = short_list_of_int64
+    assert array.array('q', short_list_of_int64) == msg.int64_values
+    list_of_uint64 = [0, 1, 18446744073709551615]
+    short_list_of_uint64 = [1]
+    msg.uint64_values = list_of_uint64
+    assert array.array('Q', list_of_uint64) == msg.uint64_values
+    msg.uint64_values = short_list_of_uint64
+    assert array.array('Q', short_list_of_uint64) == msg.uint64_values
+
+    # too many in sequence
     with pytest.raises(AssertionError):
-        setattr(c, 'up_to_three_string_values', ['foo', 'bar', 'baz', 'hello'])
+        msg.bool_values = [True, False, True, False]
+    with pytest.raises(AssertionError):
+        msg.byte_values = [b'a', b'b', b'c', b'd']
+    # with pytest.raises(AssertionError):
+    #     msg.char_values = ['a', 'b', 'c', 'd']
+    with pytest.raises(AssertionError):
+        msg.float32_values = [1.0, 2.0, 3.0, 4.0]
+    with pytest.raises(AssertionError):
+        msg.float64_values = [1.0, 2.0, 3.0, 4.0]
+    with pytest.raises(AssertionError):
+        msg.int8_values = [1, 2, 3, 4]
+    with pytest.raises(AssertionError):
+        msg.uint8_values = [1, 2, 3, 4]
+    with pytest.raises(AssertionError):
+        msg.int16_values = [1, 2, 3, 4]
+    with pytest.raises(AssertionError):
+        msg.uint16_values = [1, 2, 3, 4]
+    with pytest.raises(AssertionError):
+        msg.int32_values = [1, 2, 3, 4]
+    with pytest.raises(AssertionError):
+        msg.uint32_values = [1, 2, 3, 4]
+    with pytest.raises(AssertionError):
+        msg.int64_values = [1, 2, 3, 4]
+    with pytest.raises(AssertionError):
+        msg.uint64_values = [1, 2, 3, 4]
+
+    # invalid type
+    with pytest.raises(AssertionError):
+        msg.bool_values = ['not', 'a', 'bool']
+    with pytest.raises(AssertionError):
+        msg.byte_values = ['not', 'a', 'byte']
+    # with pytest.raises(AssertionError):
+    #     msg.char_values = ['not', 'a', 'char']
+    with pytest.raises(AssertionError):
+        msg.float32_values = ['not', 'a', 'float32']
+    with pytest.raises(AssertionError):
+        msg.float64_values = ['not', 'a', 'float64']
+    with pytest.raises(AssertionError):
+        msg.int8_values = ['not', 'a', 'int8']
+    with pytest.raises(AssertionError):
+        msg.uint8_values = ['not', 'a', 'uint8']
+    with pytest.raises(AssertionError):
+        msg.int16_values = ['not', 'a', 'int16']
+    with pytest.raises(AssertionError):
+        msg.uint16_values = ['not', 'a', 'uint16']
+    with pytest.raises(AssertionError):
+        msg.int32_values = ['not', 'a', 'int32']
+    with pytest.raises(AssertionError):
+        msg.uint32_values = ['not', 'a', 'uint32']
+    with pytest.raises(AssertionError):
+        msg.int64_values = ['not', 'a', 'int64']
+    with pytest.raises(AssertionError):
+        msg.uint64_values = ['not', 'a', 'uint64']
+
+    # out of range
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int8_values', [2**8, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int8_values', [-2**7 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint8_values', [2**8, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint8_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int16_values', [2**16, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int16_values', [-2**15 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint16_values', [2**16, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint16_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int32_values', [2**32, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int32_values', [-2**31 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint32_values', [2**32, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint32_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int64_values', [2**64, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int64_values', [-2**63 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint64_values', [2**64, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint64_values', [-1, 1, 2])
 
 
-def test_out_of_range():
-    a = Primitives()
-    with pytest.raises(AssertionError):
-        setattr(a, 'char_value', '\x80')
-    for i in [8, 16, 32, 64]:
-        with pytest.raises(AssertionError):
-            setattr(a, 'int%d_value' % i, 2**(i - 1))
-        with pytest.raises(AssertionError):
-            setattr(a, 'int%d_value' % i, -2**(i - 1) - 1)
-        with pytest.raises(AssertionError):
-            setattr(a, 'uint%d_value' % i, -1)
-        with pytest.raises(AssertionError):
-            setattr(a, 'int%d_value' % i, 2**i)
+def test_unbounded_sequences():
+    msg = UnboundedSequences()
 
-    b = Various()
-    with pytest.raises(AssertionError):
-        setattr(b, 'two_uint16_value', [2**16])
-    with pytest.raises(AssertionError):
-        setattr(b, 'two_uint16_value', [-1])
+    # types
+    assert isinstance(msg.byte_values, list)
+    # assert isinstance(msg.char_values, list)
+    assert isinstance(msg.float32_values, array.array)
+    assert isinstance(msg.float64_values, array.array)
+    assert isinstance(msg.int8_values, array.array)
+    assert isinstance(msg.uint8_values, array.array)
+    assert isinstance(msg.int16_values, array.array)
+    assert isinstance(msg.uint16_values, array.array)
+    assert isinstance(msg.int32_values, array.array)
+    assert isinstance(msg.uint32_values, array.array)
+    assert isinstance(msg.int64_values, array.array)
+    assert isinstance(msg.uint64_values, array.array)
 
-    with pytest.raises(AssertionError):
-        setattr(b, 'up_to_three_int32_values', [2**31])
-    with pytest.raises(AssertionError):
-        setattr(b, 'up_to_three_int32_values', [-2**31 - 1])
+    # TODO(jacobperron): Add checks for remaining fields
 
+    # defaults
+    assert [] == msg.bool_values
+    assert [] == msg.byte_values
+    # assert [] == msg.char_values
+    assert array.array('f') == msg.float32_values
+    assert array.array('d') == msg.float64_values
+    assert array.array('b') == msg.int8_values
+    assert array.array('B') == msg.uint8_values
+    assert array.array('h') == msg.int16_values
+    assert array.array('H') == msg.uint16_values
+    assert array.array('l') == msg.int32_values
+    assert array.array('L') == msg.uint32_values
+    assert array.array('q') == msg.int64_values
+    assert array.array('Q') == msg.uint64_values
+
+    # assignment
+    list_of_bool = [True, False, True]
+    msg.bool_values = list_of_bool
+    assert list_of_bool == msg.bool_values
+    list_of_byte = [b'a', b'b', b'c']
+    msg.byte_values = list_of_byte
+    assert list_of_byte == msg.byte_values
+    # list_of_char = ['a', 'b', 'c']
+    # msg.char_values = list_of_char
+    list_of_float32 = [0.1, 2.3, -3.14]
+    msg.float32_values = list_of_float32
+    assert array.array('f', list_of_float32) == msg.float32_values
+    list_of_float64 = [0.1, 2.3, -3.14]
+    msg.float64_values = list_of_float64
+    assert array.array('d', list_of_float64) == msg.float64_values
+    list_of_int8 = [0, -128, 127]
+    msg.int8_values = list_of_int8
+    assert array.array('b', list_of_int8) == msg.int8_values
+    list_of_uint8 = [0, 1, 255]
+    msg.uint8_values = list_of_uint8
+    assert array.array('B', list_of_uint8) == msg.uint8_values
+    list_of_int16 = [0, -32768, 32767]
+    msg.int16_values = list_of_int16
+    assert array.array('h', list_of_int16) == msg.int16_values
+    list_of_uint16 = [0, 1, 65535]
+    msg.uint16_values = list_of_uint16
+    assert array.array('H', list_of_uint16) == msg.uint16_values
+    list_of_int32 = [0, -2147483648, 2147483647]
+    msg.int32_values = list_of_int32
+    assert array.array('l', list_of_int32) == msg.int32_values
+    list_of_uint32 = [0, 1, 4294967295]
+    msg.uint32_values = list_of_uint32
+    assert array.array('L', list_of_uint32) == msg.uint32_values
+    list_of_int64 = [0, -9223372036854775808, 9223372036854775807]
+    msg.int64_values = list_of_int64
+    assert array.array('q', list_of_int64) == msg.int64_values
+    list_of_uint64 = [0, 1, 18446744073709551615]
+    msg.uint64_values = list_of_uint64
+    assert array.array('Q', list_of_uint64) == msg.uint64_values
+
+    # invalid type
     with pytest.raises(AssertionError):
-        setattr(b, 'unbounded_uint64_values', [2**64])
+        msg.bool_values = ['not', 'a', 'bool']
     with pytest.raises(AssertionError):
-        setattr(b, 'unbounded_uint64_values', [-1])
+        msg.byte_values = ['not', 'a', 'byte']
+    # with pytest.raises(AssertionError):
+    #     msg.char_values = ['not', 'a', 'char']
+    with pytest.raises(AssertionError):
+        msg.float32_values = ['not', 'a', 'float32']
+    with pytest.raises(AssertionError):
+        msg.float64_values = ['not', 'a', 'float64']
+    with pytest.raises(AssertionError):
+        msg.int8_values = ['not', 'a', 'int8']
+    with pytest.raises(AssertionError):
+        msg.uint8_values = ['not', 'a', 'uint8']
+    with pytest.raises(AssertionError):
+        msg.int16_values = ['not', 'a', 'int16']
+    with pytest.raises(AssertionError):
+        msg.uint16_values = ['not', 'a', 'uint16']
+    with pytest.raises(AssertionError):
+        msg.int32_values = ['not', 'a', 'int32']
+    with pytest.raises(AssertionError):
+        msg.uint32_values = ['not', 'a', 'uint32']
+    with pytest.raises(AssertionError):
+        msg.int64_values = ['not', 'a', 'int64']
+    with pytest.raises(AssertionError):
+        msg.uint64_values = ['not', 'a', 'uint64']
+
+    # out of range
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int8_values', [2**8, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int8_values', [-2**7 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint8_values', [2**8, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint8_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int16_values', [2**16, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int16_values', [-2**15 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint16_values', [2**16, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint16_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int32_values', [2**32, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int32_values', [-2**31 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint32_values', [2**32, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint32_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int64_values', [2**64, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'int64_values', [-2**63 - 1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint64_values', [2**64, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'uint64_values', [-1, 1, 2])
 
 
 def test_slot_attributes():
-    a = Nested()
-    assert hasattr(a, 'get_fields_and_field_types')
-    assert hasattr(a, '__slots__')
-    nested_slot_types_dict = getattr(a, 'get_fields_and_field_types')()
-    nested_slots = getattr(a, '__slots__')
+    msg = Nested()
+    assert hasattr(msg, 'get_fields_and_field_types')
+    assert hasattr(msg, '__slots__')
+    nested_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
+    nested_slots = getattr(msg, '__slots__')
     assert len(nested_slot_types_dict) == len(nested_slots)
     expected_nested_slot_types_dict = {
-        'primitives': 'rosidl_generator_py/Primitives',
-        'two_primitives': 'rosidl_generator_py/Primitives[2]',
-        'up_to_three_primitives': 'sequence<rosidl_generator_py/Primitives, 3>',
-        'unbounded_primitives': 'sequence<rosidl_generator_py/Primitives>',
+        'basic_types_value': 'rosidl_generator_py/BasicTypes',
     }
     assert len(nested_slot_types_dict) == len(expected_nested_slot_types_dict)
 
@@ -323,11 +810,11 @@ def test_slot_attributes():
 
 
 def test_string_slot_attributes():
-    b = StringArrays()
-    assert hasattr(b, 'get_fields_and_field_types')
-    assert hasattr(b, '__slots__')
-    string_slot_types_dict = getattr(b, 'get_fields_and_field_types')()
-    string_slots = getattr(b, '__slots__')
+    msg = StringArrays()
+    assert hasattr(msg, 'get_fields_and_field_types')
+    assert hasattr(msg, '__slots__')
+    string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
+    string_slots = getattr(msg, '__slots__')
     assert len(string_slot_types_dict) == len(string_slots)
     expected_string_slot_types_dict = {
         'ub_string_static_array_value': 'string<5>[3]',
@@ -351,50 +838,32 @@ def test_string_slot_attributes():
 
 
 def test_modifying_slot_fields_and_types():
-    b = StringArrays()
-    assert hasattr(b, 'get_fields_and_field_types')
-    string_slot_types_dict = getattr(b, 'get_fields_and_field_types')()
+    msg = StringArrays()
+    assert hasattr(msg, 'get_fields_and_field_types')
+    string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
     string_slot_types_dict_len = len(string_slot_types_dict)
     string_slot_types_dict[1] = 2
-    assert len(getattr(b, 'get_fields_and_field_types')()) == string_slot_types_dict_len
+    assert len(getattr(msg, 'get_fields_and_field_types')()) == string_slot_types_dict_len
 
 
 def test_slot_types():
-    a = Nested()
-    assert hasattr(a, 'SLOT_TYPES')
-    assert hasattr(a, '__slots__')
+    msg = Nested()
+    assert hasattr(msg, 'SLOT_TYPES')
+    assert hasattr(msg, '__slots__')
     nested_slot_types = Nested.SLOT_TYPES
-    nested_slots = getattr(a, '__slots__')
+    nested_slots = getattr(msg, '__slots__')
     assert len(nested_slot_types) == len(nested_slots)
     assert isinstance(nested_slot_types[0], NamespacedType)
     assert nested_slot_types[0].namespaces == ['rosidl_generator_py', 'msg']
-    assert nested_slot_types[0].name == 'Primitives'
-
-    assert isinstance(nested_slot_types[1], Array)
-    assert isinstance(nested_slot_types[1].value_type, NamespacedType)
-    assert nested_slot_types[1].value_type.namespaces == \
-        ['rosidl_generator_py', 'msg']
-    assert nested_slot_types[1].value_type.name == 'Primitives'
-
-    assert isinstance(nested_slot_types[2], BoundedSequence)
-    assert isinstance(nested_slot_types[2].value_type, NamespacedType)
-    assert nested_slot_types[2].value_type.namespaces == \
-        ['rosidl_generator_py', 'msg']
-    assert nested_slot_types[2].value_type.name == 'Primitives'
-
-    assert isinstance(nested_slot_types[3], UnboundedSequence)
-    assert isinstance(nested_slot_types[3].value_type, NamespacedType)
-    assert nested_slot_types[3].value_type.namespaces == \
-        ['rosidl_generator_py', 'msg']
-    assert nested_slot_types[3].value_type.name == 'Primitives'
+    assert nested_slot_types[0].name == 'BasicTypes'
 
 
 def test_string_slot_types():
-    b = StringArrays()
-    assert hasattr(b, 'SLOT_TYPES')
-    assert hasattr(b, '__slots__')
+    msg = StringArrays()
+    assert hasattr(msg, 'SLOT_TYPES')
+    assert hasattr(msg, '__slots__')
     string_slot_types = StringArrays.SLOT_TYPES
-    string_slots = getattr(b, '__slots__')
+    string_slots = getattr(msg, '__slots__')
     assert len(string_slot_types) == len(string_slots)
 
     assert isinstance(string_slot_types[0], Array)

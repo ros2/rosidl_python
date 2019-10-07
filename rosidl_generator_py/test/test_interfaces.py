@@ -43,7 +43,7 @@ def test_basic_types():
     assert isinstance(msg.bool_value, bool)
     assert isinstance(msg.byte_value, bytes)
     assert 1 == len(msg.byte_value)
-    # for legacy reasons, 'char' interface type maps to 'uint8'
+    # for legacy reasons, 'char' from a .msg interface maps to 'uint8'
     assert isinstance(msg.char_value, int)
     assert isinstance(msg.float32_value, float)
     assert isinstance(msg.float64_value, float)
@@ -286,7 +286,7 @@ def test_arrays():
     # types
     assert isinstance(msg.bool_values, list)
     assert isinstance(msg.byte_values, list)
-    # for legacy reasons, 'char' interface type maps to 'int'
+    # for legacy reasons, 'char' from a .msg interface maps to 'uint8'
     assert isinstance(msg.char_values, numpy.ndarray)
     assert isinstance(msg.float32_values, numpy.ndarray)
     assert isinstance(msg.float64_values, numpy.ndarray)
@@ -458,7 +458,7 @@ def test_bounded_sequences():
     # types
     assert isinstance(msg.bool_values, list)
     assert isinstance(msg.byte_values, list)
-    # for legacy reasons, 'char' interface type maps to 'uint8'
+    # for legacy reasons, 'char' from a .msg interface maps to 'uint8'
     assert isinstance(msg.char_values, array.array)
     assert isinstance(msg.float32_values, array.array)
     assert isinstance(msg.float64_values, array.array)
@@ -668,7 +668,7 @@ def test_unbounded_sequences():
 
     # types
     assert isinstance(msg.byte_values, list)
-    # for legacy reasons, 'char' interface type maps to 'uint8'
+    # for legacy reasons, 'char' from a .msg interface maps to 'uint8'
     assert isinstance(msg.char_values, array.array)
     assert isinstance(msg.float32_values, array.array)
     assert isinstance(msg.float64_values, array.array)

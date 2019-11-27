@@ -190,7 +190,13 @@ target_include_directories(${_target_name_lib}
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
   ${PythonExtra_INCLUDE_DIRS}
 )
-if(APPLE OR WIN32)
+
+# Check if numpy is in the include path
+find_file(_numpy_h numpy/numpyconfig.h
+  PATHS ${PythonExtra_INCLUDE_DIRS}
+)
+
+if(APPLE OR WIN32 OR NOT _numpy_h)
   # add include directory for numpy headers
   set(_python_code
     "import numpy"
@@ -207,6 +213,7 @@ if(APPLE OR WIN32)
       "execute_process(${PYTHON_EXECUTABLE} -c '${_python_code}') returned "
       "error code ${_result}")
   endif()
+  message(STATUS "Using numpy include directory: ${_output}")
   target_include_directories(${_target_name_lib} PUBLIC "${_output}")
 endif()
 

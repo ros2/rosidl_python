@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ast import literal_eval
+import keyword
 import os
 import pathlib
+import sys
+from ast import literal_eval
 
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 from rosidl_cmake import expand_template
@@ -31,6 +33,7 @@ from rosidl_parser.definition import FLOATING_POINT_TYPES
 from rosidl_parser.definition import IdlContent
 from rosidl_parser.definition import IdlLocator
 from rosidl_parser.definition import INTEGER_TYPES
+from rosidl_parser.definition import Message
 from rosidl_parser.definition import NamespacedType
 from rosidl_parser.parser import parse_idl_file
 
@@ -72,6 +75,18 @@ def generate_py(generator_arguments_file, typesupport_impls):
         locator = IdlLocator(*idl_parts)
         idl_file = parse_idl_file(locator)
         idl_content.elements += idl_file.content.elements
+
+    # NOTE(sam): remove when a language specific name mangling is implemented
+    for message in idl_content.get_elements_of_type(Message):
+        for member in message.structure.members:
+            msg_name = message.structure.namespaced_type.name
+            if (keyword.iskeyword(member.name)):
+                print(('Member name "{}" in the message "{}" is a '
+                       'reserved keyword in Python and is not supported '
+                       'at the moment. Please use a different name.')
+                      .format(member.name, msg_name), file=sys.stderr)
+
+    # TODO(sam): add reseved keyword warnings for services and actions
 
     for subfolder in modules.keys():
         with open(os.path.join(args['output_dir'], subfolder, '__init__.py'), 'w') as f:

@@ -26,6 +26,7 @@ from rosidl_cmake import read_generator_arguments
 from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
+from rosidl_parser.definition import Action
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import CHARACTER_TYPES
@@ -35,6 +36,7 @@ from rosidl_parser.definition import IdlLocator
 from rosidl_parser.definition import INTEGER_TYPES
 from rosidl_parser.definition import Message
 from rosidl_parser.definition import NamespacedType
+from rosidl_parser.definition import Service
 from rosidl_parser.parser import parse_idl_file
 
 SPECIAL_NESTED_BASIC_TYPES = {
@@ -77,16 +79,45 @@ def generate_py(generator_arguments_file, typesupport_impls):
         idl_content.elements += idl_file.content.elements
 
     # NOTE(sam): remove when a language specific name mangling is implemented
+
+    def print_warning_if_reserved_keyword(member_name, interface_type, interface_name):
+        if (keyword.iskeyword(member.name)):
+            print(
+                "Member name '{}' in the {} '{}' is a "
+                'reserved keyword in Python and is not supported '
+                'at the moment. Please use a different name.'
+                .format(member_name, interface_type, interface_name),
+                file=sys.stderr)
+
     for message in idl_content.get_elements_of_type(Message):
         for member in message.structure.members:
-            msg_name = message.structure.namespaced_type.name
-            if (keyword.iskeyword(member.name)):
-                print(('Member name "{}" in the message "{}" is a '
-                       'reserved keyword in Python and is not supported '
-                       'at the moment. Please use a different name.')
-                      .format(member.name, msg_name), file=sys.stderr)
+            print_warning_if_reserved_keyword(
+                member.name, 'message',
+                message.structure.namespaced_type.name)
 
-    # TODO(sam): add reseved keyword warnings for services and actions
+    for service in idl_content.get_elements_of_type(Service):
+        for member in service.request_message.structure.members:
+            print_warning_if_reserved_keyword(
+                member.name, 'service request',
+                service.namespaced_type.name)
+        for member in service.response_message.structure.members:
+            print_warning_if_reserved_keyword(
+                member.name, 'service response',
+                service.namespaced_type.name)
+
+    for action in idl_content.get_elements_of_type(Action):
+        for member in action.goal.structure.members:
+            print_warning_if_reserved_keyword(
+                member.name, 'action goal',
+                action.namespaced_type.name)
+        for member in action.feedback.structure.members:
+            print_warning_if_reserved_keyword(
+                member.name, 'action feedback',
+                action.namespaced_type.name)
+        for member in action.result.structure.members:
+            print_warning_if_reserved_keyword(
+                member.name, 'action result',
+                action.namespaced_type.name)
 
     for subfolder in modules.keys():
         with open(os.path.join(args['output_dir'], subfolder, '__init__.py'), 'w') as f:

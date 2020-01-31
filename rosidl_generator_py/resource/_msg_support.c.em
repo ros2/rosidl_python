@@ -187,9 +187,7 @@ full_classname = '%s.%s.%s' % ('.'.join(message.structure.namespaced_type.namesp
       }
       snprintf(full_classname_dest, sizeof(full_classname_dest), "%s.%s", module_name, class_name);
     }
-    assert(strncmp(
-        "@(full_classname)",
-        full_classname_dest, @(len(full_classname))) == 0);
+    assert(strncmp("@(full_classname)", full_classname_dest, @(len(full_classname))) == 0);
   }
   @(msg_typename) * ros_message = _ros_message;
 @[for member in message.structure.members]@

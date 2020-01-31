@@ -79,8 +79,8 @@ def generate_py(generator_arguments_file, typesupport_impls):
                 module_name = '_' + \
                     convert_camel_case_to_lower_case_underscore(idl_stem)
                 f.write(
-                    'from {package_name}.{subfolder}.{module_name} import '
-                    '{idl_stem}  # noqa: F401\n'.format_map(locals()))
+                    f'from {package_name}.{subfolder}.{module_name} import '
+                    f'{idl_stem}  # noqa: F401\n')
 
     # expand templates per available typesupport implementation
     template_dir = args['template_dir']

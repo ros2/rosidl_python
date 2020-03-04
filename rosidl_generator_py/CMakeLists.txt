@@ -17,7 +17,6 @@ if(BUILD_TESTING)
 
   find_package(rmw REQUIRED)
   find_package(rosidl_cmake REQUIRED)
-  find_package(rosidl_generator_c REQUIRED)
   find_package(rosidl_runtime_c REQUIRED)
   find_package(rosidl_runtime_cpp REQUIRED)
 

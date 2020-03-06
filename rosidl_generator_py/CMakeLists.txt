@@ -18,7 +18,6 @@ if(BUILD_TESTING)
   find_package(rmw REQUIRED)
   find_package(rosidl_cmake REQUIRED)
   find_package(rosidl_runtime_c REQUIRED)
-  find_package(rosidl_runtime_cpp REQUIRED)
 
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
@@ -30,7 +29,6 @@ if(BUILD_TESTING)
 
   include_directories(include
     ${rosidl_runtime_c_INCLUDE_DIRS}
-    ${rosidl_runtime_cpp_INCLUDE_DIRS}
   )
 
   # Trick ament_target_dependencies() into thinking this package has been found

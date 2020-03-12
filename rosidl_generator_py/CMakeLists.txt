@@ -17,7 +17,6 @@ if(BUILD_TESTING)
 
   find_package(rmw REQUIRED)
   find_package(rosidl_cmake REQUIRED)
-  find_package(rosidl_runtime_c REQUIRED)
 
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
@@ -26,10 +25,6 @@ if(BUILD_TESTING)
 
   include(cmake/register_py.cmake)
   include(cmake/rosidl_generator_py_get_typesupports.cmake)
-
-  include_directories(include
-    ${rosidl_runtime_c_INCLUDE_DIRS}
-  )
 
   # Trick ament_target_dependencies() into thinking this package has been found
   set(rosidl_generator_py_FOUND "1")

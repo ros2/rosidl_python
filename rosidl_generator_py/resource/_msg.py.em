@@ -405,13 +405,13 @@ noqa_string = ''
 if member.name in dict(inspect.getmembers(builtins)).keys():
     noqa_string = '  # noqa: A003'
 }@
-    @@property@(noqa_string)
-    def @(member.name)(self):
+    @@property
+    def @(member.name)(self):@(noqa_string)
         """Message field '@(member.name)'."""
         return self._@(member.name)
 
-    @@@(member.name).setter@(noqa_string)
-    def @(member.name)(self, value):
+    @@@(member.name).setter
+    def @(member.name)(self, value):@(noqa_string)
 @[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@
         if isinstance(value, numpy.ndarray):

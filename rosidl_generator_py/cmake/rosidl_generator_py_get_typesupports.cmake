@@ -12,19 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-macro(accumulate_typesupports)
-  set(_typesupport_impl "")
-  if(${rmw_implementation}_FOUND)
-    get_rmw_typesupport(_typesupport_impl ${rmw_implementation} LANGUAGE "C")
-    list_append_unique(_typesupport_impls ${_typesupport_impl})
-  endif()
-endmacro()
-
 macro(rosidl_generator_py_get_typesupports TYPESUPPORT_IMPLS)
   set(TYPESUPPORT_IMPLS "")
-  set(_typesupport_impls "")
-  call_for_each_rmw_implementation(accumulate_typesupports)
-  foreach(_typesupport_impl ${_typesupport_impls})
-    list_append_unique(TYPESUPPORT_IMPLS ${_typesupport_impl})
+  ament_index_get_resources(_typesupport_impls "rosidl_typesupport_c")
+  foreach(_typesupport ${_typesupport_impls})
+    find_package(${_typesupport} QUIET)
+    if(${_typesupport}_FOUND)
+      list(APPEND TYPESUPPORT_IMPLS "${_typesupport}")
+    endif()
   endforeach()
 endmacro()

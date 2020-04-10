@@ -13,12 +13,13 @@
 # limitations under the License.
 
 macro(rosidl_generator_py_get_typesupports TYPESUPPORT_IMPLS)
-  set(TYPESUPPORT_IMPLS "")
-  ament_index_get_resources(_typesupport_impls "rosidl_typesupport_c")
-  foreach(_typesupport ${_typesupport_impls})
+  set(${TYPESUPPORT_IMPLS} "")
+  ament_index_get_resources(${TYPESUPPORT_IMPLS} "rosidl_typesupport_c")
+  list(APPEND ${TYPESUPPORT_IMPLS} "rosidl_typesupport_c")
+  foreach(_typesupport ${${TYPESUPPORT_IMPLS}})
     find_package(${_typesupport} QUIET)
-    if(${_typesupport}_FOUND)
-      list(APPEND TYPESUPPORT_IMPLS "${_typesupport}")
+    if(NOT ${_typesupport}_FOUND)
+      list(REMOVE_ITEM ${TYPESUPPORT_IMPLS} "${_typesupport}")
     endif()
   endforeach()
 endmacro()

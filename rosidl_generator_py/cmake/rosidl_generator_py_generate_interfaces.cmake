@@ -14,7 +14,7 @@
 
 find_package(rmw_implementation_cmake REQUIRED)
 find_package(rmw REQUIRED)
-find_package(rosidl_generator_c REQUIRED)
+find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
 find_package(rosidl_typesupport_interface REQUIRED)
 
@@ -264,7 +264,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
     ${rosidl_generate_interfaces_TARGET} rosidl_typesupport_c)
 
   ament_target_dependencies(${_target_name}
-    "rosidl_generator_c"
+    "rosidl_runtime_c"
     "rosidl_typesupport_c"
     "rosidl_typesupport_interface"
   )
@@ -278,7 +278,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
   )
   ament_target_dependencies(${_target_name}
-    "rosidl_generator_c"
+    "rosidl_runtime_c"
     "rosidl_generator_py"
   )
 

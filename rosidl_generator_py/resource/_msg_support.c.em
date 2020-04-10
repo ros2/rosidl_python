@@ -19,9 +19,9 @@ def primitive_msg_type_to_c(type_):
     from rosidl_parser.definition import AbstractWString
     from rosidl_parser.definition import BasicType
     if isinstance(type_, AbstractString):
-        return 'rosidl_generator_c__String'
+        return 'rosidl_runtime_c__String'
     if isinstance(type_, AbstractWString):
-        return 'rosidl_generator_c__U16String'
+        return 'rosidl_runtime_c__U16String'
     assert isinstance(type_, BasicType)
     return BASIC_IDL_TYPES_TO_C[type_.typename]
 
@@ -34,7 +34,7 @@ header_files = [
     'Python.h',
     'stdbool.h',
     'numpy/ndarrayobject.h',
-    'rosidl_generator_c/visibility_control.h',
+    'rosidl_runtime_c/visibility_control.h',
     include_base + '__struct.h',
     include_base + '__functions.h',
 ]
@@ -82,18 +82,18 @@ header_files = []
 if isinstance(member.type, AbstractNestedType) and have_not_included_primitive_arrays:
     have_not_included_primitive_arrays = False
     header_files += [
-        'rosidl_generator_c/primitives_sequence.h',
-        'rosidl_generator_c/primitives_sequence_functions.h']
+        'rosidl_runtime_c/primitives_sequence.h',
+        'rosidl_runtime_c/primitives_sequence_functions.h']
 if isinstance(type_, AbstractString) and have_not_included_string:
     have_not_included_string = False
     header_files += [
-        'rosidl_generator_c/string.h',
-        'rosidl_generator_c/string_functions.h']
+        'rosidl_runtime_c/string.h',
+        'rosidl_runtime_c/string_functions.h']
 if isinstance(type_, AbstractWString) and have_not_included_wstring:
     have_not_included_wstring = False
     header_files += [
-        'rosidl_generator_c/u16string.h',
-        'rosidl_generator_c/u16string_functions.h']
+        'rosidl_runtime_c/u16string.h',
+        'rosidl_runtime_c/u16string_functions.h']
 }@
 @[if header_files]@
 @[  for header_file in header_files]@
@@ -272,21 +272,21 @@ nested_type = '__'.join(type_.namespaced_name())
       return false;
     }
 @[      if isinstance(member.type.value_type, AbstractString)]@
-    if (!rosidl_generator_c__String__Sequence__init(&(ros_message->@(member.name)), size)) {
+    if (!rosidl_runtime_c__String__Sequence__init(&(ros_message->@(member.name)), size)) {
       PyErr_SetString(PyExc_RuntimeError, "unable to create String__Sequence ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
       return false;
     }
 @[      elif isinstance(member.type.value_type, AbstractWString)]@
-    if (!rosidl_generator_c__U16String__Sequence__init(&(ros_message->@(member.name)), size)) {
+    if (!rosidl_runtime_c__U16String__Sequence__init(&(ros_message->@(member.name)), size)) {
       PyErr_SetString(PyExc_RuntimeError, "unable to create U16String__Sequence ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
       return false;
     }
 @[      else]@
-    if (!rosidl_generator_c__@(member.type.value_type.typename)__Sequence__init(&(ros_message->@(member.name)), size)) {
+    if (!rosidl_runtime_c__@(member.type.value_type.typename)__Sequence__init(&(ros_message->@(member.name)), size)) {
       PyErr_SetString(PyExc_RuntimeError, "unable to create @(member.type.value_type.typename)__Sequence ros_message");
       Py_DECREF(seq_field);
       Py_DECREF(field);
@@ -330,7 +330,7 @@ nested_type = '__'.join(type_.namespaced_name())
         Py_DECREF(field);
         return false;
       }
-      rosidl_generator_c__String__assign(&dest[i], PyBytes_AS_STRING(encoded_item));
+      rosidl_runtime_c__String__assign(&dest[i], PyBytes_AS_STRING(encoded_item));
       Py_DECREF(encoded_item);
 @[    elif isinstance(member.type.value_type, AbstractWString)]@
       assert(PyUnicode_Check(item));
@@ -351,7 +351,7 @@ nested_type = '__'.join(type_.namespaced_name())
         return false;
       }
       // use offset of 2 to skip BOM mark
-      bool succeeded = rosidl_generator_c__U16String__assignn_from_char(&dest[i], buffer + 2, length - 2);
+      bool succeeded = rosidl_runtime_c__U16String__assignn_from_char(&dest[i], buffer + 2, length - 2);
       if (!succeeded) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
@@ -416,7 +416,7 @@ nested_type = '__'.join(type_.namespaced_name())
       Py_DECREF(field);
       return false;
     }
-    rosidl_generator_c__String__assign(&ros_message->@(member.name), PyBytes_AS_STRING(encoded_field));
+    rosidl_runtime_c__String__assign(&ros_message->@(member.name), PyBytes_AS_STRING(encoded_field));
     Py_DECREF(encoded_field);
 @[  elif isinstance(member.type, AbstractWString)]@
     assert(PyUnicode_Check(field));
@@ -436,7 +436,7 @@ nested_type = '__'.join(type_.namespaced_name())
     }
     // use offset of 2 to skip BOM mark
     {
-      bool succeeded = rosidl_generator_c__U16String__assignn_from_char(&ros_message->@(member.name), buffer + 2, length - 2);
+      bool succeeded = rosidl_runtime_c__U16String__assignn_from_char(&ros_message->@(member.name), buffer + 2, length - 2);
       if (!succeeded) {
         Py_DECREF(field);
         return false;

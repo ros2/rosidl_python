@@ -26,8 +26,8 @@ def primitive_msg_type_to_c(type_):
     return BASIC_IDL_TYPES_TO_C[type_.typename]
 
 
-include_parts = [package_name] + list(interface_path.parents[0].parts) + \
-    [convert_camel_case_to_lower_case_underscore(interface_path.stem)]
+include_parts = [package_name] + list(interface_path.parents[0].parts) + [
+    'detail', convert_camel_case_to_lower_case_underscore(interface_path.stem)]
 include_base = '/'.join(include_parts)
 
 header_files = [
@@ -116,7 +116,7 @@ if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_
 // Nested array functions includes
 @[  for type_ in sorted(nested_types)]@
 @{
-nested_header = '/'.join(type_[:-1] + (convert_camel_case_to_lower_case_underscore(type_[-1]),))
+nested_header = '/'.join(type_[:-1] + ('detail', convert_camel_case_to_lower_case_underscore(type_[-1]),))
 nested_header += '__functions.h'
 }@
 @[    if nested_header in include_directives]@

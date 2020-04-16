@@ -3,7 +3,7 @@
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore
 
 include_parts = idl_type.namespaces + [
-    convert_camel_case_to_lower_case_underscore(idl_type.name)]
+    'detail', convert_camel_case_to_lower_case_underscore(idl_type.name)]
 include_base = '/'.join(include_parts)
 
 header_files = [

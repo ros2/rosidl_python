@@ -221,6 +221,11 @@ rosidl_target_interfaces(${_target_name_lib}
 
 foreach(_typesupport_impl ${_typesupport_impls})
   find_package(${_typesupport_impl} REQUIRED)
+  # a typesupport package might not be able to generated a target anymore
+  # (e.g. if an underlying vendor package isn't available in an overlay)
+  if(NOT TARGET ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl})
+    continue()
+  endif()
 
   set(_pyext_suffix "__pyext")
   set(_target_name "${PROJECT_NAME}__${_typesupport_impl}${_pyext_suffix}")

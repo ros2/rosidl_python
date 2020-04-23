@@ -173,6 +173,8 @@ endmacro()
 
 set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__python")
 add_library(${_target_name_lib} SHARED ${_generated_c_files})
+target_link_libraries(${_target_name_lib}
+  ${rosidl_generate_interfaces_TARGET}__rosidl_generator_c)
 add_dependencies(
   ${_target_name_lib}
   ${rosidl_generate_interfaces_TARGET}${_target_suffix}

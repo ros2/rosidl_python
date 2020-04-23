@@ -1,4 +1,4 @@
-@# Included from rosidl_generator_py/resource/_idl.py.em
+@# Included from rosidl_generator_py/resource/_idl_support.c.em
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 @{
 from rosidl_cmake import convert_camel_case_to_lower_case_underscore

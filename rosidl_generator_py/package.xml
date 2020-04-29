@@ -12,6 +12,7 @@
   <build_depend>rosidl_runtime_c</build_depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>rosidl_typesupport_c</buildtool_depend>
 
   <build_export_depend>rmw</build_export_depend>
 

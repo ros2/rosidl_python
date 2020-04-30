@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.1 (2020-04-29)
+------------------
+* Add test dependency on rosidl_typesupport_c_packages (`#110 <https://github.com/ros2/rosidl_python/issues/110>`_)
+* Contributors: Jacob Perron
+
 0.9.0 (2020-04-25)
 ------------------
 * Ensure the Python support target links against the C generator target (`#108 <https://github.com/ros2/rosidl_python/issues/108>`_)

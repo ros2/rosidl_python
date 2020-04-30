@@ -36,7 +36,14 @@
   <test_depend>python_cmake_module</test_depend>
   <test_depend>rmw</test_depend>
   <test_depend>rosidl_cmake</test_depend>
-  <test_depend>rosidl_default_generators</test_depend>
+
+  <!--
+  Bloom does not support group_depend so entries below duplicate the group rosidl_typesupport_c_packages.
+  -->
+  <test_depend>rosidl_typesupport_connext_c</test_depend>
+  <test_depend>rosidl_typesupport_introspection_c</test_depend>
+  <test_depend>rosidl_typesupport_fastrtps_c</test_depend>
+  <!-- end of group dependencies added for bloom -->
   <test_depend>rosidl_generator_c</test_depend>
   <test_depend>rosidl_generator_cpp</test_depend>
   <test_depend>rosidl_parser</test_depend>

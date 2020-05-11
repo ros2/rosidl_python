@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if(NOT DEFINED _ROSIDL_GENERATOR_PY_GENERATE_INTERFACES)
+  set(_ROSIDL_GENERATOR_PY_GENERATE_INTERFACES TRUE)
+else()
+  return()
+endif()
+
+# Make sure rosidl_generator_c_generate_interfaces.cmake extension point is executed first
+include("${rosidl_generator_c_DIR}/rosidl_generator_c_generate_interfaces.cmake")
+
 find_package(rmw REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)

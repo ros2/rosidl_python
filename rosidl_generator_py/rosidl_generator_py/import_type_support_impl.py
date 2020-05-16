@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import importlib
-import os
+
+from rpyutils import add_dll_directories_from_env
 
 
 class UnsupportedTypeSupport(Exception):
@@ -37,19 +38,11 @@ def import_type_support(pkg_name):
     :returns: the typesupport Python module for the specified package
     """
     module_name = '.{}_s__rosidl_typesupport_c'.format(pkg_name)
-    # New in Python 3.8: on Windows we should call 'add_dll_directory()' for directories
-    # containing DLLs we depend on.
-    # https://docs.python.org/3/whatsnew/3.8.html#bpo-36085-whatsnew
-    dll_dir_handles = []
-    if os.name == 'nt' and hasattr(os, 'add_dll_directory'):
-        path_env = os.environ['PATH'].split(';')
-        for prefix_path in path_env:
-            if os.path.exists(prefix_path):
-                dll_dir_handles.append(os.add_dll_directory(prefix_path))
     try:
-        return importlib.import_module(module_name, package=pkg_name)
+        # Since Python 3.8, on Windows we should ensure DLL directories are explicitly added
+        # to the search path.
+        # See https://docs.python.org/3/whatsnew/3.8.html#bpo-36085-whatsnew
+        with add_dll_directories_from_env('PATH'):
+            return importlib.import_module(module_name, package=pkg_name)
     except ImportError:
         raise UnsupportedTypeSupport(pkg_name)
-    finally:
-        for handle in dll_dir_handles:
-            handle.close()

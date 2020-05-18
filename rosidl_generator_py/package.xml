@@ -27,6 +27,7 @@
   <exec_depend>rosidl_generator_c</exec_depend>
   <exec_depend>rosidl_parser</exec_depend>
   <exec_depend>rosidl_runtime_c</exec_depend>
+  <exec_depend>rpyutils</exec_depend>
 
   <test_depend>ament_cmake_pytest</test_depend>
   <test_depend>ament_index_python</test_depend>

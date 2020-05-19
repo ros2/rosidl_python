@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.3 (2020-05-19)
+------------------
+* Add test_depend on rpyutils (`#115 <https://github.com/ros2/rosidl_python/issues/115>`_)
+* Contributors: Jacob Perron
+
 0.9.2 (2020-05-18)
 ------------------
 * Explicitly add DLL directories for Windows before importing (`#113 <https://github.com/ros2/rosidl_python/issues/113>`_)

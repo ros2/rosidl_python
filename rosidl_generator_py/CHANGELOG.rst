@@ -2,6 +2,12 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.2 (2020-05-18)
+------------------
+* Explicitly add DLL directories for Windows before importing (`#113 <https://github.com/ros2/rosidl_python/issues/113>`_)
+* Force extension points to be registered in order (`#112 <https://github.com/ros2/rosidl_python/issues/112>`_)
+* Contributors: Ivan Santiago Paunovic, Jacob Perron
+
 0.9.1 (2020-04-29)
 ------------------
 * Add test dependency on rosidl_typesupport_c_packages (`#110 <https://github.com/ros2/rosidl_python/issues/110>`_)

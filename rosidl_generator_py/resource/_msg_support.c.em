@@ -344,14 +344,15 @@ nested_type = '__'.join(type_.namespaced_name())
       char * buffer;
       Py_ssize_t length;
       int rc = PyBytes_AsStringAndSize(encoded_item, &buffer, &length);
-      Py_DECREF(encoded_item);
       if (rc) {
+        Py_DECREF(encoded_item);
         Py_DECREF(seq_field);
         Py_DECREF(field);
         return false;
       }
       // use offset of 2 to skip BOM mark
       bool succeeded = rosidl_runtime_c__U16String__assignn_from_char(&dest[i], buffer + 2, length - 2);
+      Py_DECREF(encoded_item);
       if (!succeeded) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
@@ -429,14 +430,15 @@ nested_type = '__'.join(type_.namespaced_name())
     char * buffer;
     Py_ssize_t length;
     int rc = PyBytes_AsStringAndSize(encoded_field, &buffer, &length);
-    Py_DECREF(encoded_field);
     if (rc) {
+      Py_DECREF(encoded_field);
       Py_DECREF(field);
       return false;
     }
     // use offset of 2 to skip BOM mark
     {
       bool succeeded = rosidl_runtime_c__U16String__assignn_from_char(&ros_message->@(member.name), buffer + 2, length - 2);
+      Py_DECREF(encoded_field);
       if (!succeeded) {
         Py_DECREF(field);
         return false;

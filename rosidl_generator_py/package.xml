@@ -9,6 +9,7 @@
   <license>Apache License 2.0</license>
   <author>Esteve Fernandez</author>
   <author>Mikael Arguedas</author>
+  <author email="dthomas@osrfoundation.org">Dirk Thomas</author>	
 
   <build_depend>rosidl_runtime_c</build_depend>
 

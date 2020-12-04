@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.2 (2020-12-04)
+------------------
+* fix too early decref of WString when converting from Python to C (`#117 <https://github.com/ros2/rosidl_python/issues/117>`_) (`#121 <https://github.com/ros2/rosidl_python/issues/121>`_)
+* Contributors: Jacob Perron
+
 0.8.1 (2019-10-23)
 ------------------
 * Enable tests for 'char' type fields (`#91 <https://github.com/ros2/rosidl_python/issues/91>`_)

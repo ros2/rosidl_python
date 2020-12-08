@@ -2,6 +2,13 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.4 (2020-12-08)
+------------------
+* Update maintainers (`#119 <https://github.com/ros2/rosidl_python/issues/119>`_)
+* Fix too early decref of WString when converting from Python to C (`#117 <https://github.com/ros2/rosidl_python/issues/117>`_)
+* Add pytest.ini so tests succeed locally. (`#116 <https://github.com/ros2/rosidl_python/issues/116>`_)
+* Contributors: Chris Lalancette, Claire Wang, Dirk Thomas
+
 0.9.3 (2020-05-19)
 ------------------
 * Add test_depend on rpyutils (`#115 <https://github.com/ros2/rosidl_python/issues/115>`_)

@@ -33,8 +33,8 @@ def main(argv=sys.argv[1:]):
         help='All the available typesupport implementations')
     args = parser.parse_args(argv)
 
-    return generate_py(args.generator_arguments_file, args.typesupport_impls.split(';'))
-
+    generate_py(args.generator_arguments_file, args.typesupport_impls.split(';'))
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main())

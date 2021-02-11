@@ -20,6 +20,10 @@ import pytest
 from rosidl_generator_py.msg import Arrays
 from rosidl_generator_py.msg import BasicTypes
 from rosidl_generator_py.msg import BoundedSequences
+from rosidl_generator_py.msg import BuiltinTypeDynamicArraysMsg
+from rosidl_generator_py.msg import BuiltinTypeSequencesIdl
+from rosidl_generator_py.msg import BuiltinTypesIdl
+from rosidl_generator_py.msg import BuiltinTypesMsg
 from rosidl_generator_py.msg import Constants
 from rosidl_generator_py.msg import Defaults
 from rosidl_generator_py.msg import Nested
@@ -916,3 +920,115 @@ def test_string_slot_types():
     assert isinstance(string_slot_types[4], Array)
     assert isinstance(string_slot_types[4].value_type, UnboundedString)
     assert string_slot_types[4].size == 3
+
+
+def test_builtin_dynarray_slot_attributes():
+    msg = BuiltinTypeDynamicArraysMsg()
+    assert hasattr(msg, 'get_fields_and_field_types')
+    assert hasattr(msg, '__slots__')
+    builtin_dynarray_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
+    builtin_dynarray_slots = getattr(msg, '__slots__')
+    assert len(builtin_dynarray_slot_types_dict) == len(builtin_dynarray_slots)
+    expected_builtin_dynarray_slot_types_dict = {
+        'boolean_unbounded_array': 'sequence<boolean>',
+        'char_unbounded_array': 'sequence<uint8>',  # Wrong: Should be int8 or char
+        'byte_unbounded_array': 'sequence<octet>',
+        'int8_unbounded_array': 'sequence<int8>',
+        'uint8_unbounded_array': 'sequence<uint8>',
+        'int16_unbounded_array': 'sequence<int16>',
+        'uint16_unbounded_array': 'sequence<uint16>',
+        'int32_unbounded_array': 'sequence<int32>',
+        'uint32_unbounded_array': 'sequence<uint32>',
+        'int64_unbounded_array': 'sequence<int64>',
+        'uint64_unbounded_array': 'sequence<uint64>',
+        'float32_unbounded_array': 'sequence<float>',
+        'float64_unbounded_array': 'sequence<double>',
+        'string_unbounded_array': 'sequence<string>',
+        'bounded_string_unbounded_array': 'sequence<string<5>>',
+        'boolean_bounded_array': 'sequence<boolean, 2>',
+        'char_bounded_array': 'sequence<uint8, 2>',  # Wrong: Should be int8 or char
+        'byte_bounded_array': 'sequence<octet, 2>',
+        'int8_bounded_array': 'sequence<int8, 2>',
+        'uint8_bounded_array': 'sequence<uint8, 2>',
+        'int16_bounded_array': 'sequence<int16, 2>',
+        'uint16_bounded_array': 'sequence<uint16, 2>',
+        'int32_bounded_array': 'sequence<int32, 2>',
+        'uint32_bounded_array': 'sequence<uint32, 2>',
+        'int64_bounded_array': 'sequence<int64, 2>',
+        'uint64_bounded_array': 'sequence<uint64, 2>',
+        'float32_bounded_array': 'sequence<float, 2>',
+        'float64_bounded_array': 'sequence<double, 2>',
+        'string_bounded_array': 'sequence<string, 2>',
+        'bounded_string_bounded_array': 'sequence<string<5>, 2>',
+    }
+
+    assert len(builtin_dynarray_slot_types_dict) == len(expected_builtin_dynarray_slot_types_dict)
+
+    for expected_field, expected_slot_type in expected_builtin_dynarray_slot_types_dict.items():
+        assert expected_field in builtin_dynarray_slot_types_dict.keys()
+        assert expected_slot_type == builtin_dynarray_slot_types_dict[expected_field]
+
+
+def test_builtin_sequence_slot_attributes():
+    msg = BuiltinTypeSequencesIdl()
+    assert hasattr(msg, 'get_fields_and_field_types')
+    assert hasattr(msg, '__slots__')
+    builtin_sequence_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
+    builtin_sequence_slots = getattr(msg, '__slots__')
+    assert len(builtin_sequence_slot_types_dict) == len(builtin_sequence_slots)
+
+
+def test_builtin_types_idl_slot_attributes():
+    msg = BuiltinTypesIdl()
+    assert hasattr(msg, 'get_fields_and_field_types')
+    assert hasattr(msg, '__slots__')
+    builtin_types_idl_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
+    builtin_types_idl_slots = getattr(msg, '__slots__')
+    assert len(builtin_types_idl_slot_types_dict) == len(builtin_types_idl_slots)
+
+
+def test_builtin_types_msg_slot_attributes():
+    msg = BuiltinTypesMsg()
+    assert hasattr(msg, 'get_fields_and_field_types')
+    assert hasattr(msg, '__slots__')
+    builtin_types_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
+    builtin_types_slots = getattr(msg, '__slots__')
+    assert len(builtin_types_slot_types_dict) == len(builtin_types_slots)
+    expected_builtin_types_slot_types_dict = {
+        'boolean_value': 'boolean',
+        'char_value': 'uint8',  # Wrong: Should be int8 or char
+        'byte_value': 'octet',
+        'int8_value': 'int8',
+        'uint8_value': 'uint8',
+        'int16_value': 'int16',
+        'uint16_value': 'uint16',
+        'int32_value': 'int32',
+        'uint32_value': 'uint32',
+        'int64_value': 'int64',
+        'uint64_value': 'uint64',
+        'float32_value': 'float',
+        'float64_value': 'double',
+        'string_value': 'string',
+        'bounded_string_value': 'string<5>',
+        'boolean_array': 'boolean[2]',
+        'char_array': 'uint8[2]',  # Wrong: Should be int8 or char
+        'byte_array': 'octet[2]',
+        'int8_array': 'int8[2]',
+        'uint8_array': 'uint8[2]',
+        'int16_array': 'int16[2]',
+        'uint16_array': 'uint16[2]',
+        'int32_array': 'int32[2]',
+        'uint32_array': 'uint32[2]',
+        'int64_array': 'int64[2]',
+        'uint64_array': 'uint64[2]',
+        'float32_array': 'float[2]',
+        'float64_array': 'double[2]',
+        'string_array': 'string[2]',
+        'bounded_string_array': 'string<5>[2]',
+    }
+
+    assert len(builtin_types_slot_types_dict) == len(expected_builtin_types_slot_types_dict)
+
+    for expected_field, expected_slot_type in expected_builtin_types_slot_types_dict.items():
+        assert expected_field in builtin_types_slot_types_dict.keys()
+        assert expected_slot_type == builtin_types_slot_types_dict[expected_field]

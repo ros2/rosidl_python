@@ -5,7 +5,6 @@
   <version>0.9.4</version>
   <description>Generate the ROS interfaces in Python.</description>
   <maintainer email="sloretz@openrobotics.org">Shane Loretz</maintainer>
-  <maintainer email="clairewang@openrobotics.org">Claire Wang</maintainer>
   <license>Apache License 2.0</license>
   <author>Esteve Fernandez</author>
   <author>Mikael Arguedas</author>

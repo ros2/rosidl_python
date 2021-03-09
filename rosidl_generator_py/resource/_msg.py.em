@@ -538,6 +538,22 @@ bound = 2**nbits
 }@
             assert value >= 0 and value < @(bound), \
                 "The '@(member.name)' field must be an unsigned integer in [0, @(bound - 1)]"
+@[    elif type_.typename in FLOATING_POINT_TYPES]@
+@[      if type_.typename == "float"]@
+@{
+name = "float"
+min = 1.175494e-38
+max = 3.402823e+38
+}@
+@[      elif type_.typename == "double"]@
+@{
+name = "double"
+min = 2.2250738585072014e-308
+max = 1.7976931348623157e+308
+}@
+@[      end if]@
+            assert value >= @(min) and value <= @(max), \
+                "The '@(member.name)' field must be a @(name) in [@(min), @(max)]"
 @[    end if]@
 @[  else]@
                 False

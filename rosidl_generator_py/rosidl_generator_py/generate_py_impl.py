@@ -58,7 +58,7 @@ def generate_py(generator_arguments_file, typesupport_impls):
         '_idl.py.em': '_%s.py',
         '_idl_support.c.em': '_%s_s.c',
     }
-    generate_files(generator_arguments_file, mapping)
+    generated_files = generate_files(generator_arguments_file, mapping)
 
     args = read_generator_arguments(generator_arguments_file)
     package_name = args['package_name']
@@ -157,8 +157,9 @@ def generate_py(generator_arguments_file, typesupport_impls):
             expand_template(
                 template_file, data, generated_file,
                 minimum_timestamp=latest_target_timestamp)
+            generated_files.append(generated_file)
 
-    return 0
+    return generated_files
 
 
 def value_to_py(type_, value, array_as_tuple=False):

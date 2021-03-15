@@ -111,6 +111,14 @@ def test_basic_types():
             setattr(msg, 'uint%d_value' % i, -1)
         with pytest.raises(AssertionError):
             setattr(msg, 'int%d_value' % i, 2**i)
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float32_value', -3.5e+38)
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float32_value', 3.5e+38)
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float64_value', 1.8e+308)
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float64_value', -1.8e+308)
 
 
 def test_strings():
@@ -450,6 +458,10 @@ def test_arrays():
         setattr(msg, 'uint64_values', [2**64, 1, 2])
     with pytest.raises(AssertionError):
         setattr(msg, 'uint64_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float32_values', [-3.5e+38, 0.0, 3.5e+38])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float64_values', [-1.8e+308, 0.0, 1.8e+308])
 
 
 def test_bounded_sequences():
@@ -661,6 +673,10 @@ def test_bounded_sequences():
         setattr(msg, 'uint64_values', [2**64, 1, 2])
     with pytest.raises(AssertionError):
         setattr(msg, 'uint64_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float32_values', [-3.5e+38, 0.0, 3.5e+38])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float64_values', [-1.8e+308, 0.0, 1.8e+308])
 
 
 def test_unbounded_sequences():
@@ -800,6 +816,10 @@ def test_unbounded_sequences():
         setattr(msg, 'uint64_values', [2**64, 1, 2])
     with pytest.raises(AssertionError):
         setattr(msg, 'uint64_values', [-1, 1, 2])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float32_values', [-3.5e+38, 0.0, 3.5e+38])
+    with pytest.raises(AssertionError):
+        setattr(msg, 'float64_values', [-1.8e+308, 0.0, 1.8e+308])
 
 
 def test_slot_attributes():

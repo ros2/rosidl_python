@@ -542,17 +542,15 @@ bound = 2**nbits
 @[      if type_.typename == "float"]@
 @{
 name = "float"
-min = 1.175494e-38
-max = 3.402823e+38
+bound = 3.402823e+38
 }@
 @[      elif type_.typename == "double"]@
 @{
 name = "double"
-min = 2.2250738585072014e-308
-max = 1.7976931348623157e+308
+bound = 1.7976931348623157e+308
 }@
 @[      end if]@
-            assert value >= @(min) and value <= @(max), \
+            assert value >= -@(bound) and value <= @(bound), \
                 "The '@(member.name)' field must be a @(name) in [@(min), @(max)]"
 @[    end if]@
 @[  else]@

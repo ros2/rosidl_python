@@ -497,6 +497,22 @@ bound = 2**nbits
 @[    elif isinstance(type_, BasicType) and type_.typename == 'char']@
                  all(val >= 0 and val) < 256 for val in value)), \
 @{assert_msg_suffixes.append('and each char in [0, 255]')}@
+@[    elif isinstance(type_, BasicType) and type_.typename in FLOATING_POINT_TYPES]@
+@[      if type_.typename == "float"]@
+@{
+name = "float"
+bound = 3.402823e+38
+}@
+                 all(val >= -@(bound) and val <= @(bound) for val in value)), \
+@{assert_msg_suffixes.append('and each float in [%f, %f]' % (-bound, bound))}@
+@[      elif type_.typename == "double"]@
+@{
+name = "double"
+bound = 1.7976931348623157e+308
+}@
+                 all(val >= -@(bound) and val <= @(bound) for val in value)), \
+@{assert_msg_suffixes.append('and each double in [%f, %f]' % (-bound, bound))}@
+@[      end if]@
 @[    else]@
                  True), \
 @[    end if]@

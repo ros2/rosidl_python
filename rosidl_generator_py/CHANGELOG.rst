@@ -2,6 +2,12 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Expose Python code generation via rosidl generate CLI (`#123 <https://github.com/ros2/rosidl_python/issues/123>`_)
+* remove maintainer (`#126 <https://github.com/ros2/rosidl_python/issues/126>`_)
+* Contributors: Claire Wang, Michel Hidalgo
+
 0.9.4 (2020-12-08)
 ------------------
 * Update maintainers (`#119 <https://github.com/ros2/rosidl_python/issues/119>`_)

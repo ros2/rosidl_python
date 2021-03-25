@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.11.0 (2021-03-25)
+-------------------
 * Remove dependency from rosidl_typesupport_connext_c (`#127 <https://github.com/ros2/rosidl_python/issues/127>`_)
 * Contributors: Andrea Sorbini
 

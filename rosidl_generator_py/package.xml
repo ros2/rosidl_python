@@ -45,7 +45,6 @@
   <!--
   Bloom does not support group_depend so entries below duplicate the group rosidl_typesupport_c_packages.
   -->
-  <test_depend>rosidl_typesupport_connext_c</test_depend>
   <test_depend>rosidl_typesupport_introspection_c</test_depend>
   <test_depend>rosidl_typesupport_fastrtps_c</test_depend>
   <!-- end of group dependencies added for bloom -->

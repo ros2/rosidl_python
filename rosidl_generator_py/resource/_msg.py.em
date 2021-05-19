@@ -567,7 +567,7 @@ bound = 1.7976931348623157e+308
 }@
 @[      end if]@
             assert value >= -@(bound) and value <= @(bound), \
-                "The '@(member.name)' field must be a @(name) in [@(min), @(max)]"
+                "The '@(member.name)' field must be a @(name) in [@(-bound), @(bound)]"
 @[    end if]@
 @[  else]@
                 False

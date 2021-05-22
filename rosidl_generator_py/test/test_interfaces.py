@@ -476,17 +476,17 @@ def test_bounded_sequences():
     # defaults
     assert [] == msg.bool_values
     assert [] == msg.byte_values
-    assert array.array('B') == msg.char_values
-    assert array.array('f') == msg.float32_values
-    assert array.array('d') == msg.float64_values
-    assert array.array('b') == msg.int8_values
-    assert array.array('B') == msg.uint8_values
-    assert array.array('h') == msg.int16_values
-    assert array.array('H') == msg.uint16_values
-    assert array.array('l') == msg.int32_values
-    assert array.array('L') == msg.uint32_values
-    assert array.array('q') == msg.int64_values
-    assert array.array('Q') == msg.uint64_values
+    assert 'B' == msg.char_values.typecode
+    assert 'f' == msg.float32_values.typecode
+    assert 'd' == msg.float64_values.typecode
+    assert 'b' == msg.int8_values.typecode
+    assert 'B' == msg.uint8_values.typecode
+    assert 'h' == msg.int16_values.typecode
+    assert 'H' == msg.uint16_values.typecode
+    assert 'l' == msg.int32_values.typecode
+    assert 'L' == msg.uint32_values.typecode
+    assert 'q' == msg.int64_values.typecode
+    assert 'Q' == msg.uint64_values.typecode
 
     # valid assignment
     list_of_bool = [True, False, True]
@@ -504,69 +504,69 @@ def test_bounded_sequences():
     list_of_char = [0, 1, 255]
     short_list_of_char = [0]
     msg.char_values = list_of_char
-    assert array.array('B', list_of_char) == msg.char_values
+    assert array.array('B', list_of_char).tobytes() == msg.char_values.tobytes()
     msg.char_values = short_list_of_char
-    assert array.array('B', short_list_of_char) == msg.char_values
+    assert array.array('B', short_list_of_char).tobytes() == msg.char_values.tobytes()
     list_of_float32 = [0.1, 2.3, -3.14]
     short_list_of_float32 = [1.125]
     msg.float32_values = list_of_float32
-    assert array.array('f', list_of_float32) == msg.float32_values
+    assert array.array('f', list_of_float32).tobytes() == msg.float32_values.tobytes()
     msg.float32_values = short_list_of_float32
-    assert array.array('d', short_list_of_float32) == msg.float32_values
+    assert array.array('f', short_list_of_float32).tobytes() == msg.float32_values.tobytes()
     list_of_float64 = [0.1, 2.3, -3.14]
     short_list_of_float64 = [1.125]
     msg.float64_values = list_of_float64
-    assert array.array('d', list_of_float64) == msg.float64_values
+    assert array.array('d', list_of_float64).tobytes() == msg.float64_values.tobytes()
     msg.float64_values = short_list_of_float64
-    assert array.array('d', short_list_of_float64) == msg.float64_values
+    assert array.array('d', short_list_of_float64).tobytes() == msg.float64_values.tobytes()
     list_of_int8 = [0, -128, 127]
     short_list_of_int8 = [1]
     msg.int8_values = list_of_int8
-    assert array.array('b', list_of_int8) == msg.int8_values
+    assert array.array('b', list_of_int8).tobytes() == msg.int8_values.tobytes()
     msg.int8_values = short_list_of_int8
-    assert array.array('b', short_list_of_int8) == msg.int8_values
+    assert array.array('b', short_list_of_int8).tobytes() == msg.int8_values.tobytes()
     list_of_uint8 = [0, 1, 255]
     short_list_of_uint8 = [1]
     msg.uint8_values = list_of_uint8
-    assert array.array('B', list_of_uint8) == msg.uint8_values
+    assert array.array('B', list_of_uint8).tobytes() == msg.uint8_values.tobytes()
     msg.uint8_values = short_list_of_uint8
-    assert array.array('B', short_list_of_uint8) == msg.uint8_values
+    assert array.array('B', short_list_of_uint8).tobytes() == msg.uint8_values.tobytes()
     list_of_int16 = [0, -32768, 32767]
     short_list_of_int16 = [1]
     msg.int16_values = list_of_int16
-    assert array.array('h', list_of_int16) == msg.int16_values
+    assert array.array('h', list_of_int16).tobytes() == msg.int16_values.tobytes()
     msg.int16_values = short_list_of_int16
-    assert array.array('h', short_list_of_int16) == msg.int16_values
+    assert array.array('h', short_list_of_int16).tobytes() == msg.int16_values.tobytes()
     list_of_uint16 = [0, 1, 65535]
     short_list_of_uint16 = [1]
     msg.uint16_values = list_of_uint16
-    assert array.array('H', list_of_uint16) == msg.uint16_values
+    assert array.array('H', list_of_uint16).tobytes() == msg.uint16_values.tobytes()
     msg.uint16_values = short_list_of_uint16
-    assert array.array('H', short_list_of_uint16) == msg.uint16_values
+    assert array.array('H', short_list_of_uint16).tobytes() == msg.uint16_values.tobytes()
     list_of_int32 = [0, -2147483648, 2147483647]
     short_list_of_int32 = [1]
     msg.int32_values = list_of_int32
-    assert array.array('l', list_of_int32) == msg.int32_values
+    assert array.array('l', list_of_int32).tobytes() == msg.int32_values.tobytes()
     msg.int32_values = short_list_of_int32
-    assert array.array('l', short_list_of_int32) == msg.int32_values
+    assert array.array('l', short_list_of_int32).tobytes() == msg.int32_values.tobytes()
     list_of_uint32 = [0, 1, 4294967295]
     short_list_of_uint32 = [1]
     msg.uint32_values = list_of_uint32
-    assert array.array('L', list_of_uint32) == msg.uint32_values
+    assert array.array('L', list_of_uint32).tobytes() == msg.uint32_values.tobytes()
     msg.uint32_values = short_list_of_uint32
-    assert array.array('L', short_list_of_uint32) == msg.uint32_values
+    assert array.array('L', short_list_of_uint32).tobytes() == msg.uint32_values.tobytes()
     list_of_int64 = [0, -9223372036854775808, 9223372036854775807]
     short_list_of_int64 = [1]
     msg.int64_values = list_of_int64
-    assert array.array('q', list_of_int64) == msg.int64_values
+    assert array.array('q', list_of_int64).tobytes() == msg.int64_values.tobytes()
     msg.int64_values = short_list_of_int64
-    assert array.array('q', short_list_of_int64) == msg.int64_values
+    assert array.array('q', short_list_of_int64).tobytes() == msg.int64_values.tobytes()
     list_of_uint64 = [0, 1, 18446744073709551615]
     short_list_of_uint64 = [1]
     msg.uint64_values = list_of_uint64
-    assert array.array('Q', list_of_uint64) == msg.uint64_values
+    assert array.array('Q', list_of_uint64).tobytes() == msg.uint64_values.tobytes()
     msg.uint64_values = short_list_of_uint64
-    assert array.array('Q', short_list_of_uint64) == msg.uint64_values
+    assert array.array('Q', short_list_of_uint64).tobytes() == msg.uint64_values.tobytes()
 
     # too many in sequence
     with pytest.raises(AssertionError):
@@ -686,17 +686,17 @@ def test_unbounded_sequences():
     # defaults
     assert [] == msg.bool_values
     assert [] == msg.byte_values
-    assert array.array('B') == msg.char_values
-    assert array.array('f') == msg.float32_values
-    assert array.array('d') == msg.float64_values
-    assert array.array('b') == msg.int8_values
-    assert array.array('B') == msg.uint8_values
-    assert array.array('h') == msg.int16_values
-    assert array.array('H') == msg.uint16_values
-    assert array.array('l') == msg.int32_values
-    assert array.array('L') == msg.uint32_values
-    assert array.array('q') == msg.int64_values
-    assert array.array('Q') == msg.uint64_values
+    assert 'B' == msg.char_values.typecode
+    assert 'f' == msg.float32_values.typecode
+    assert 'd' == msg.float64_values.typecode
+    assert 'b' == msg.int8_values.typecode
+    assert 'B' == msg.uint8_values.typecode
+    assert 'h' == msg.int16_values.typecode
+    assert 'H' == msg.uint16_values.typecode
+    assert 'l' == msg.int32_values.typecode
+    assert 'L' == msg.uint32_values.typecode
+    assert 'q' == msg.int64_values.typecode
+    assert 'Q' == msg.uint64_values.typecode
 
     # assignment
     list_of_bool = [True, False, True]
@@ -707,37 +707,37 @@ def test_unbounded_sequences():
     assert list_of_byte == msg.byte_values
     list_of_char = [0, 1, 255]
     msg.char_values = list_of_char
-    assert array.array('B', list_of_char) == msg.char_values
+    assert array.array('B', list_of_char).tobytes() == msg.char_values.tobytes()
     list_of_float32 = [0.1, 2.3, -3.14]
     msg.float32_values = list_of_float32
-    assert array.array('f', list_of_float32) == msg.float32_values
+    assert array.array('f', list_of_float32).tobytes() == msg.float32_values.tobytes()
     list_of_float64 = [0.1, 2.3, -3.14]
     msg.float64_values = list_of_float64
-    assert array.array('d', list_of_float64) == msg.float64_values
+    assert array.array('d', list_of_float64).tobytes() == msg.float64_values.tobytes()
     list_of_int8 = [0, -128, 127]
     msg.int8_values = list_of_int8
-    assert array.array('b', list_of_int8) == msg.int8_values
+    assert array.array('b', list_of_int8).tobytes() == msg.int8_values.tobytes()
     list_of_uint8 = [0, 1, 255]
     msg.uint8_values = list_of_uint8
-    assert array.array('B', list_of_uint8) == msg.uint8_values
+    assert array.array('B', list_of_uint8).tobytes() == msg.uint8_values.tobytes()
     list_of_int16 = [0, -32768, 32767]
     msg.int16_values = list_of_int16
-    assert array.array('h', list_of_int16) == msg.int16_values
+    assert array.array('h', list_of_int16).tobytes() == msg.int16_values.tobytes()
     list_of_uint16 = [0, 1, 65535]
     msg.uint16_values = list_of_uint16
-    assert array.array('H', list_of_uint16) == msg.uint16_values
+    assert array.array('H', list_of_uint16).tobytes() == msg.uint16_values.tobytes()
     list_of_int32 = [0, -2147483648, 2147483647]
     msg.int32_values = list_of_int32
-    assert array.array('l', list_of_int32) == msg.int32_values
+    assert array.array('l', list_of_int32).tobytes() == msg.int32_values.tobytes()
     list_of_uint32 = [0, 1, 4294967295]
     msg.uint32_values = list_of_uint32
-    assert array.array('L', list_of_uint32) == msg.uint32_values
+    assert array.array('L', list_of_uint32).tobytes() == msg.uint32_values.tobytes()
     list_of_int64 = [0, -9223372036854775808, 9223372036854775807]
     msg.int64_values = list_of_int64
-    assert array.array('q', list_of_int64) == msg.int64_values
+    assert array.array('q', list_of_int64).tobytes() == msg.int64_values.tobytes()
     list_of_uint64 = [0, 1, 18446744073709551615]
     msg.uint64_values = list_of_uint64
-    assert array.array('Q', list_of_uint64) == msg.uint64_values
+    assert array.array('Q', list_of_uint64).tobytes() == msg.uint64_values.tobytes()
 
     # invalid type
     with pytest.raises(AssertionError):

@@ -46,8 +46,8 @@ SPECIAL_NESTED_BASIC_TYPES = {
     'uint8': {'dtype': 'numpy.uint8', 'type_code': 'B'},
     'int16': {'dtype': 'numpy.int16', 'type_code': 'h'},
     'uint16': {'dtype': 'numpy.uint16', 'type_code': 'H'},
-    'int32': {'dtype': 'numpy.int32', 'type_code': 'i'},
-    'uint32': {'dtype': 'numpy.uint32', 'type_code': 'I'},
+    'int32': {'dtype': 'numpy.int32', 'type_code': 'l'},
+    'uint32': {'dtype': 'numpy.uint32', 'type_code': 'L'},
     'int64': {'dtype': 'numpy.int64', 'type_code': 'q'},
     'uint64': {'dtype': 'numpy.uint64', 'type_code': 'Q'},
 }

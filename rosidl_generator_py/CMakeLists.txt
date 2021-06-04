@@ -73,6 +73,8 @@ if(BUILD_TESTING)
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
     )
   endif()
+
+  ament_add_pytest_test(test_cli_extension test/test_cli_extension.py)
 endif()
 
 ament_package(

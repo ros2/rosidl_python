@@ -23,6 +23,6 @@ def test_cli_extension_for_smoke(tmp_path):
     generate(
         package_name='rosidl_generator_py',
         interface_files=[PACKAGE_DIR + ':msg/StringArrays.msg'],
-        types=['py'],
+        types=['py[typesupport_implementations:[rosidl_typesupport_c]]'],
         output_path=tmp_path
     )

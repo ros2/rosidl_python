@@ -254,7 +254,6 @@ nested_type = '__'.join(type_.namespaced_name())
       Py_buffer view;
       int rc = PyObject_GetBuffer(field, &view, PyBUF_SIMPLE);
       if (rc < 0) {
-        PyErr_SetString(PyExc_RuntimeError, "unable to get buffer");
         Py_DECREF(field);
         return false;
       }
@@ -268,7 +267,6 @@ nested_type = '__'.join(type_.namespaced_name())
       @primitive_msg_type_to_c(member.type.value_type) * dest = ros_message->@(member.name).data;
       rc = PyBuffer_ToContiguous(dest, &view, view.len, 'C');
       if (rc < 0) {
-        PyErr_SetString(PyExc_RuntimeError, "unable to copy buffer");
         PyBuffer_Release(&view);
         Py_DECREF(field);
         return false;

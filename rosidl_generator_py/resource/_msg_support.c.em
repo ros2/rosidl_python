@@ -248,156 +248,185 @@ nested_type = '__'.join(type_.namespaced_name())
     }
 @[    end if]@
 @[  elif isinstance(member.type, AbstractNestedType)]@
-@[    if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-    // TODO(dirk-thomas) use a better way to check the type before casting
-    assert(field->ob_type != NULL);
-    assert(field->ob_type->tp_name != NULL);
-    assert(strcmp(field->ob_type->tp_name, "numpy.ndarray") == 0);
-    PyArrayObject * seq_field = (PyArrayObject *)field;
-    Py_INCREF(seq_field);
-    assert(PyArray_NDIM(seq_field) == 1);
-    assert(PyArray_TYPE(seq_field) == @(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'NPY_').upper()));
+@[    if isinstance(member.type, AbstractSequence) and isinstance(member.type.value_type, BasicType)]@
+    if (PyObject_CheckBuffer(field)) {
+      // Optimization for converting arrays of primitives
+      Py_buffer view;
+      int rc = PyObject_GetBuffer(field, &view, PyBUF_SIMPLE);
+      if (rc < 0) {
+        Py_DECREF(field);
+        return false;
+      }
+      Py_ssize_t size = view.len / sizeof(@primitive_msg_type_to_c(member.type.value_type));
+      if (!rosidl_runtime_c__@(member.type.value_type.typename)__Sequence__init(&(ros_message->@(member.name)), size)) {
+        PyErr_SetString(PyExc_RuntimeError, "unable to create @(member.type.value_type.typename)__Sequence ros_message");
+        PyBuffer_Release(&view);
+        Py_DECREF(field);
+        return false;
+      }
+      @primitive_msg_type_to_c(member.type.value_type) * dest = ros_message->@(member.name).data;
+      rc = PyBuffer_ToContiguous(dest, &view, view.len, 'C');
+      if (rc < 0) {
+        PyBuffer_Release(&view);
+        Py_DECREF(field);
+        return false;
+      }
+      PyBuffer_Release(&view);
+    } else {
 @[    else]@
-    PyObject * seq_field = PySequence_Fast(field, "expected a sequence in '@(member.name)'");
-    if (!seq_field) {
-      Py_DECREF(field);
-      return false;
-    }
+    {
+@[    end if]@
+@[    if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
+      // TODO(dirk-thomas) use a better way to check the type before casting
+      assert(field->ob_type != NULL);
+      assert(field->ob_type->tp_name != NULL);
+      assert(strcmp(field->ob_type->tp_name, "numpy.ndarray") == 0);
+      PyArrayObject * seq_field = (PyArrayObject *)field;
+      Py_INCREF(seq_field);
+      assert(PyArray_NDIM(seq_field) == 1);
+      assert(PyArray_TYPE(seq_field) == @(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'NPY_').upper()));
+@[    else]@
+      PyObject * seq_field = PySequence_Fast(field, "expected a sequence in '@(member.name)'");
+      if (!seq_field) {
+        Py_DECREF(field);
+        return false;
+      }
 @[    end if]@
 @[    if isinstance(member.type, AbstractSequence)]@
-    Py_ssize_t size = PySequence_Size(field);
-    if (-1 == size) {
-      Py_DECREF(seq_field);
-      Py_DECREF(field);
-      return false;
-    }
-@[      if isinstance(member.type.value_type, AbstractString)]@
-    if (!rosidl_runtime_c__String__Sequence__init(&(ros_message->@(member.name)), size)) {
-      PyErr_SetString(PyExc_RuntimeError, "unable to create String__Sequence ros_message");
-      Py_DECREF(seq_field);
-      Py_DECREF(field);
-      return false;
-    }
-@[      elif isinstance(member.type.value_type, AbstractWString)]@
-    if (!rosidl_runtime_c__U16String__Sequence__init(&(ros_message->@(member.name)), size)) {
-      PyErr_SetString(PyExc_RuntimeError, "unable to create U16String__Sequence ros_message");
-      Py_DECREF(seq_field);
-      Py_DECREF(field);
-      return false;
-    }
-@[      else]@
-    if (!rosidl_runtime_c__@(member.type.value_type.typename)__Sequence__init(&(ros_message->@(member.name)), size)) {
-      PyErr_SetString(PyExc_RuntimeError, "unable to create @(member.type.value_type.typename)__Sequence ros_message");
-      Py_DECREF(seq_field);
-      Py_DECREF(field);
-      return false;
-    }
-@[      end if]@
-    @primitive_msg_type_to_c(member.type.value_type) * dest = ros_message->@(member.name).data;
-@[    else]@
-    Py_ssize_t size = @(member.type.size);
-    @primitive_msg_type_to_c(member.type.value_type) * dest = ros_message->@(member.name);
-@[    end if]@
-    for (Py_ssize_t i = 0; i < size; ++i) {
-@[    if not isinstance(member.type, Array) or not isinstance(member.type.value_type, BasicType) or member.type.value_type.typename not in SPECIAL_NESTED_BASIC_TYPES]@
-      PyObject * item = PySequence_Fast_GET_ITEM(seq_field, i);
-      if (!item) {
+      Py_ssize_t size = PySequence_Size(field);
+      if (-1 == size) {
         Py_DECREF(seq_field);
         Py_DECREF(field);
         return false;
       }
+@[      if isinstance(member.type.value_type, AbstractString)]@
+      if (!rosidl_runtime_c__String__Sequence__init(&(ros_message->@(member.name)), size)) {
+        PyErr_SetString(PyExc_RuntimeError, "unable to create String__Sequence ros_message");
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+@[      elif isinstance(member.type.value_type, AbstractWString)]@
+      if (!rosidl_runtime_c__U16String__Sequence__init(&(ros_message->@(member.name)), size)) {
+        PyErr_SetString(PyExc_RuntimeError, "unable to create U16String__Sequence ros_message");
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+@[      else]@
+      if (!rosidl_runtime_c__@(member.type.value_type.typename)__Sequence__init(&(ros_message->@(member.name)), size)) {
+        PyErr_SetString(PyExc_RuntimeError, "unable to create @(member.type.value_type.typename)__Sequence ros_message");
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
+@[      end if]@
+      @primitive_msg_type_to_c(member.type.value_type) * dest = ros_message->@(member.name).data;
+@[    else]@
+      Py_ssize_t size = @(member.type.size);
+      @primitive_msg_type_to_c(member.type.value_type) * dest = ros_message->@(member.name);
+@[    end if]@
+      for (Py_ssize_t i = 0; i < size; ++i) {
+@[    if not isinstance(member.type, Array) or not isinstance(member.type.value_type, BasicType) or member.type.value_type.typename not in SPECIAL_NESTED_BASIC_TYPES]@
+        PyObject * item = PySequence_Fast_GET_ITEM(seq_field, i);
+        if (!item) {
+          Py_DECREF(seq_field);
+          Py_DECREF(field);
+          return false;
+        }
 @[    end if]@
 @[    if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-      @primitive_msg_type_to_c(member.type.value_type) tmp = *(@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_')) *)PyArray_GETPTR1(seq_field, i);
+        @primitive_msg_type_to_c(member.type.value_type) tmp = *(@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_')) *)PyArray_GETPTR1(seq_field, i);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'char']@
-      assert(PyUnicode_Check(item));
-      PyObject * encoded_item = PyUnicode_AsUTF8String(item);
-      if (!encoded_item) {
-        Py_DECREF(seq_field);
-        Py_DECREF(field);
-        return false;
-      }
-      @primitive_msg_type_to_c(member.type.value_type) tmp = PyBytes_AS_STRING(encoded_item)[0];
-      Py_DECREF(encoded_item);
-@[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'octet']@
-      assert(PyBytes_Check(item));
-      @primitive_msg_type_to_c(member.type.value_type) tmp = PyBytes_AS_STRING(item)[0];
-@[    elif isinstance(member.type.value_type, AbstractString)]@
-      assert(PyUnicode_Check(item));
-      PyObject * encoded_item = PyUnicode_AsUTF8String(item);
-      if (!encoded_item) {
-        Py_DECREF(seq_field);
-        Py_DECREF(field);
-        return false;
-      }
-      rosidl_runtime_c__String__assign(&dest[i], PyBytes_AS_STRING(encoded_item));
-      Py_DECREF(encoded_item);
-@[    elif isinstance(member.type.value_type, AbstractWString)]@
-      assert(PyUnicode_Check(item));
-      // the returned string starts with a BOM mark and uses native byte order
-      PyObject * encoded_item = PyUnicode_AsUTF16String(item);
-      if (!encoded_item) {
-        Py_DECREF(seq_field);
-        Py_DECREF(field);
-        return false;
-      }
-      char * buffer;
-      Py_ssize_t length;
-      int rc = PyBytes_AsStringAndSize(encoded_item, &buffer, &length);
-      if (rc) {
+        assert(PyUnicode_Check(item));
+        PyObject * encoded_item = PyUnicode_AsUTF8String(item);
+        if (!encoded_item) {
+          Py_DECREF(seq_field);
+          Py_DECREF(field);
+          return false;
+        }
+        @primitive_msg_type_to_c(member.type.value_type) tmp = PyBytes_AS_STRING(encoded_item)[0];
         Py_DECREF(encoded_item);
-        Py_DECREF(seq_field);
-        Py_DECREF(field);
-        return false;
-      }
-      // use offset of 2 to skip BOM mark
-      bool succeeded = rosidl_runtime_c__U16String__assignn_from_char(&dest[i], buffer + 2, length - 2);
-      Py_DECREF(encoded_item);
-      if (!succeeded) {
-        Py_DECREF(seq_field);
-        Py_DECREF(field);
-        return false;
-      }
+@[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'octet']@
+        assert(PyBytes_Check(item));
+        @primitive_msg_type_to_c(member.type.value_type) tmp = PyBytes_AS_STRING(item)[0];
+@[    elif isinstance(member.type.value_type, AbstractString)]@
+        assert(PyUnicode_Check(item));
+        PyObject * encoded_item = PyUnicode_AsUTF8String(item);
+        if (!encoded_item) {
+          Py_DECREF(seq_field);
+          Py_DECREF(field);
+          return false;
+        }
+        rosidl_runtime_c__String__assign(&dest[i], PyBytes_AS_STRING(encoded_item));
+        Py_DECREF(encoded_item);
+@[    elif isinstance(member.type.value_type, AbstractWString)]@
+        assert(PyUnicode_Check(item));
+        // the returned string starts with a BOM mark and uses native byte order
+        PyObject * encoded_item = PyUnicode_AsUTF16String(item);
+        if (!encoded_item) {
+          Py_DECREF(seq_field);
+          Py_DECREF(field);
+          return false;
+        }
+        char * buffer;
+        Py_ssize_t length;
+        int rc = PyBytes_AsStringAndSize(encoded_item, &buffer, &length);
+        if (rc) {
+          Py_DECREF(encoded_item);
+          Py_DECREF(seq_field);
+          Py_DECREF(field);
+          return false;
+        }
+        // use offset of 2 to skip BOM mark
+        bool succeeded = rosidl_runtime_c__U16String__assignn_from_char(&dest[i], buffer + 2, length - 2);
+        Py_DECREF(encoded_item);
+        if (!succeeded) {
+          Py_DECREF(seq_field);
+          Py_DECREF(field);
+          return false;
+        }
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'boolean']@
-      assert(PyBool_Check(item));
-      @primitive_msg_type_to_c(member.type.value_type) tmp = (item == Py_True);
+        assert(PyBool_Check(item));
+        @primitive_msg_type_to_c(member.type.value_type) tmp = (item == Py_True);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in ('float', 'double')]@
-      assert(PyFloat_Check(item));
+        assert(PyFloat_Check(item));
 @[      if member.type.value_type.typename == 'float']@
-      @primitive_msg_type_to_c(member.type.value_type) tmp = (float)PyFloat_AS_DOUBLE(item);
+        @primitive_msg_type_to_c(member.type.value_type) tmp = (float)PyFloat_AS_DOUBLE(item);
 @[      else]@
-      @primitive_msg_type_to_c(member.type.value_type) tmp = PyFloat_AS_DOUBLE(item);
+        @primitive_msg_type_to_c(member.type.value_type) tmp = PyFloat_AS_DOUBLE(item);
 @[      end if]@
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in (
-        'int8',
-        'int16',
-        'int32',
-    )]@
-      assert(PyLong_Check(item));
-      @primitive_msg_type_to_c(member.type.value_type) tmp = (@(primitive_msg_type_to_c(member.type.value_type)))PyLong_AsLong(item);
+          'int8',
+          'int16',
+          'int32',
+      )]@
+        assert(PyLong_Check(item));
+        @primitive_msg_type_to_c(member.type.value_type) tmp = (@(primitive_msg_type_to_c(member.type.value_type)))PyLong_AsLong(item);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in (
-        'uint8',
-        'uint16',
-        'uint32',
-    )]@
-      assert(PyLong_Check(item));
+          'uint8',
+          'uint16',
+          'uint32',
+      )]@
+        assert(PyLong_Check(item));
 @[      if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'uint32']@
-      @primitive_msg_type_to_c(member.type.value_type) tmp = PyLong_AsUnsignedLong(item);
+        @primitive_msg_type_to_c(member.type.value_type) tmp = PyLong_AsUnsignedLong(item);
 @[      else]@
-      @primitive_msg_type_to_c(member.type.value_type) tmp = (@(primitive_msg_type_to_c(member.type.value_type)))PyLong_AsUnsignedLong(item);
+        @primitive_msg_type_to_c(member.type.value_type) tmp = (@(primitive_msg_type_to_c(member.type.value_type)))PyLong_AsUnsignedLong(item);
 @[      end if]
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'int64']@
-      assert(PyLong_Check(item));
-      @primitive_msg_type_to_c(member.type.value_type) tmp = PyLong_AsLongLong(item);
+        assert(PyLong_Check(item));
+        @primitive_msg_type_to_c(member.type.value_type) tmp = PyLong_AsLongLong(item);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'uint64']@
-      assert(PyLong_Check(item));
-      @primitive_msg_type_to_c(member.type.value_type) tmp = PyLong_AsUnsignedLongLong(item);
+        assert(PyLong_Check(item));
+        @primitive_msg_type_to_c(member.type.value_type) tmp = PyLong_AsUnsignedLongLong(item);
 @[    end if]@
 @[    if isinstance(member.type.value_type, BasicType)]@
-      memcpy(&dest[i], &tmp, sizeof(@primitive_msg_type_to_c(member.type.value_type)));
+        memcpy(&dest[i], &tmp, sizeof(@primitive_msg_type_to_c(member.type.value_type)));
 @[    end if]@
+      }
+      Py_DECREF(seq_field);
     }
-    Py_DECREF(seq_field);
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'char']@
     assert(PyUnicode_Check(field));
     PyObject * encoded_field = PyUnicode_AsUTF8String(field);

@@ -2,6 +2,13 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.12.0 (2021-06-11)
+-------------------
+* Added optimization for copying arrays using buffer protocol (`#129 <https://github.com/ros2/rosidl_python/issues/129>`_)
+* Add smoke test for CLI extension (`#132 <https://github.com/ros2/rosidl_python/issues/132>`_)
+* Install generated Python interfaces in a Python package (`#131 <https://github.com/ros2/rosidl_python/issues/131>`_)
+* Contributors: Michel Hidalgo, ksuszka
+
 0.11.0 (2021-03-25)
 -------------------
 * Remove dependency from rosidl_typesupport_connext_c (`#127 <https://github.com/ros2/rosidl_python/issues/127>`_)

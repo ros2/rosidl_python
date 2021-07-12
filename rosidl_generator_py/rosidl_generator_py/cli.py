@@ -26,8 +26,8 @@ from rosidl_generator_py import generate_py
 
 class GeneratePython(GenerateCommandExtension):
 
-    def __init__(self, name, *, typesupport_implementations=None, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, name, *, typesupport_implementations=None):
+        super().__init__(name)
         if typesupport_implementations is None:
             typesupport_implementations = ['rosidl_typesupport_c']
             typesupport_implementations.extend(

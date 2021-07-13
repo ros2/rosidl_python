@@ -76,11 +76,11 @@ if(BUILD_TESTING)
       APPEND_LIBRARY_DIRS "${_append_library_dirs}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
     )
-  endif()
 
-  ament_add_pytest_test(test_cli_extension test/test_cli_extension.py
-    PYTHON_EXECUTABLE "${BUILDTYPE_PYTHON_EXECUTABLE}"
-  )
+    ament_add_pytest_test(test_cli_extension test/test_cli_extension.py
+      PYTHON_EXECUTABLE "${BUILDTYPE_PYTHON_EXECUTABLE}"
+    )
+  endif()
 endif()
 
 ament_package(

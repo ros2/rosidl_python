@@ -2,6 +2,13 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Support available typesupport specification in CLI extension (`#133 <https://github.com/ros2/rosidl_python/issues/133>`_)
+* Use python_d for test_cli_extension in Debug mode (`#136 <https://github.com/ros2/rosidl_python/issues/136>`_)
+* Add missing float/double bounds check (`#128 <https://github.com/ros2/rosidl_python/issues/128>`_)
+* Contributors: Michel Hidalgo, Seulbae Kim, Shane Loretz
+
 0.12.0 (2021-06-11)
 -------------------
 * Added optimization for copying arrays using buffer protocol (`#129 <https://github.com/ros2/rosidl_python/issues/129>`_)

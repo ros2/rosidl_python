@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.13.0 (2021-07-16)
+-------------------
 * Support available typesupport specification in CLI extension (`#133 <https://github.com/ros2/rosidl_python/issues/133>`_)
 * Use python_d for test_cli_extension in Debug mode (`#136 <https://github.com/ros2/rosidl_python/issues/136>`_)
 * Add missing float/double bounds check (`#128 <https://github.com/ros2/rosidl_python/issues/128>`_)

@@ -17,7 +17,7 @@ find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
 find_package(rosidl_typesupport_interface REQUIRED)
 
-find_package(PythonInterp 3.5 REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Interpreter NumPy)
 
 find_package(python_cmake_module REQUIRED)
 find_package(PythonExtra MODULE REQUIRED)
@@ -126,10 +126,8 @@ endif()
 
 set(_target_suffix "__py")
 
+set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 set(_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
-if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_DEBUG})
-endif()
 
 # move custom command into a subdirectory to avoid multiple invocations on Windows
 set(_subdir "${CMAKE_CURRENT_BINARY_DIR}/${rosidl_generate_interfaces_TARGET}${_target_suffix}")
@@ -180,31 +178,9 @@ target_include_directories(${_target_name_lib}
   ${PythonExtra_INCLUDE_DIRS}
 )
 
-# Check if numpy is in the include path
-find_file(_numpy_h numpy/numpyconfig.h
-  PATHS ${PythonExtra_INCLUDE_DIRS}
-)
 
-if(APPLE OR WIN32 OR NOT _numpy_h)
-  # add include directory for numpy headers
-  set(_python_code
-    "import numpy"
-    "print(numpy.get_include())"
-  )
-  execute_process(
-    COMMAND "${PYTHON_EXECUTABLE}" "-c" "${_python_code}"
-    OUTPUT_VARIABLE _output
-    RESULT_VARIABLE _result
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if(NOT _result EQUAL 0)
-    message(FATAL_ERROR
-      "execute_process(${PYTHON_EXECUTABLE} -c '${_python_code}') returned "
-      "error code ${_result}")
-  endif()
-  message(STATUS "Using numpy include directory: ${_output}")
-  target_include_directories(${_target_name_lib} PUBLIC "${_output}")
-endif()
+message(STATUS "Using numpy include directory: ${Python3_NumPy_INCLUDE_DIRS}")
+target_include_directories(${_target_name_lib} PUBLIC "${Python3_NumPy_INCLUDE_DIRS}")
 
 rosidl_target_interfaces(${_target_name_lib}
   ${rosidl_generate_interfaces_TARGET} rosidl_typesupport_c)

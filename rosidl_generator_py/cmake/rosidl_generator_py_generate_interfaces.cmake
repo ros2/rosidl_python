@@ -169,10 +169,17 @@ add_dependencies(
   ${rosidl_generate_interfaces_TARGET}__rosidl_typesupport_c
 )
 
-target_link_libraries(
-  ${_target_name_lib}
-  ${PythonExtra_LIBRARIES}
-)
+
+if(NOT APPLE)
+  target_link_libraries(
+    ${_target_name_lib}
+    ${PythonExtra_LIBRARIES}
+  )
+else()
+  set_target_properties(${_target_name_lib} PROPERTIES
+                        LINK_FLAGS "-undefined dynamic_lookup")
+endif()
+
 target_include_directories(${_target_name_lib}
   PUBLIC
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c

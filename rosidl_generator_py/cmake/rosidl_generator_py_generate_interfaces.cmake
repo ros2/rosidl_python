@@ -206,8 +206,8 @@ if(APPLE OR WIN32 OR NOT _numpy_h)
   target_include_directories(${_target_name_lib} PUBLIC "${_output}")
 endif()
 
-rosidl_target_interfaces(${_target_name_lib}
-  ${rosidl_generate_interfaces_TARGET} rosidl_typesupport_c)
+rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
+target_link_libraries(${_target_name_lib} ${c_typesupport_target})
 
 foreach(_typesupport_impl ${_typesupport_impls})
   find_package(${_typesupport_impl} REQUIRED)
@@ -254,8 +254,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
     ${PythonExtra_INCLUDE_DIRS}
   )
 
-  rosidl_target_interfaces(${_target_name}
-    ${rosidl_generate_interfaces_TARGET} rosidl_typesupport_c)
+  target_link_libraries(${_target_name} ${c_typesupport_target})
 
   ament_target_dependencies(${_target_name}
     "rosidl_runtime_c"

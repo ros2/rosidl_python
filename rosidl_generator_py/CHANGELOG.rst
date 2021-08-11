@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.14.0 (2021-08-11)
+-------------------
 * Use rosidl_get_typesupport_target() (`#139 <https://github.com/ros2/rosidl_python/issues/139>`_)
 * Contributors: Shane Loretz
 

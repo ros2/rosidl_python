@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.1 (2021-10-08)
+-------------------
+* Added optimization for copying arrays of simple types from python to C using buffer protocol (`#129 <https://github.com/ros2/rosidl_python/issues/129>`_) (`#145 <https://github.com/ros2/rosidl_python/issues/145>`_)
+* Contributors: ksuszka
+
 0.11.0 (2021-03-25)
 -------------------
 * Remove dependency from rosidl_typesupport_connext_c (`#127 <https://github.com/ros2/rosidl_python/issues/127>`_)

@@ -4,6 +4,7 @@
   <name>rosidl_generator_py</name>
   <version>0.14.0</version>
   <description>Generate the ROS interfaces in Python.</description>
+  <maintainer email="michel@ekumenlabs.com">Michel Hidalgo</maintainer>
   <maintainer email="sloretz@openrobotics.org">Shane Loretz</maintainer>
   <license>Apache License 2.0</license>
   <author>Esteve Fernandez</author>

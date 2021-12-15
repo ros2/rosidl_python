@@ -36,6 +36,9 @@ if message.structure.members:
     imports.setdefault(
         'import rosidl_parser.definition', [])  # used for SLOT_TYPES
 for member in message.structure.members:
+    if member.name != EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME:
+        imports.setdefault(
+            'import builtins', [])  # used for @builtins.property
     if (
         isinstance(member.type, AbstractNestedType) and
         isinstance(member.type.value_type, BasicType) and
@@ -405,7 +408,7 @@ noqa_string = ''
 if member.name in dict(inspect.getmembers(builtins)).keys():
     noqa_string = '  # noqa: A003'
 }@
-    @@property@(noqa_string)
+    @@builtins.property@(noqa_string)
     def @(member.name)(self):@(noqa_string)
         """Message field '@(member.name)'."""
         return self._@(member.name)

@@ -57,6 +57,7 @@ if(BUILD_TESTING)
       ${test_interface_files_MSG_FILES}
       # Cases not covered by test_interface_files
       msg/StringArrays.msg
+      msg/Property.msg
       ADD_LINTER_TESTS
       SKIP_INSTALL
     )
@@ -79,6 +80,13 @@ if(BUILD_TESTING)
 
     ament_add_pytest_test(test_cli_extension test/test_cli_extension.py
       PYTHON_EXECUTABLE "${BUILDTYPE_PYTHON_EXECUTABLE}"
+    )
+
+    ament_add_pytest_test(test_property_py test/test_property.py
+      PYTHON_EXECUTABLE "${BUILDTYPE_PYTHON_EXECUTABLE}"
+      APPEND_ENV "PYTHONPATH=${pythonpath}"
+      APPEND_LIBRARY_DIRS "${_append_library_dirs}"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
     )
   endif()
 endif()

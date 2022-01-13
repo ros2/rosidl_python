@@ -2,6 +2,13 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.14.1 (2022-01-13)
+-------------------
+* Fix rosidl_generator_py assuming incorect library names (`#149 <https://github.com/ros2/rosidl_python/issues/149>`_)
+* Fix for msg file containing a property field that is not at the end (`#151 <https://github.com/ros2/rosidl_python/issues/151>`_)
+* Update package maintainers (`#147 <https://github.com/ros2/rosidl_python/issues/147>`_)
+* Contributors: Chen Lihui, Michel Hidalgo, Shane Loretz
+
 0.14.0 (2021-08-11)
 -------------------
 * Use rosidl_get_typesupport_target() (`#139 <https://github.com/ros2/rosidl_python/issues/139>`_)

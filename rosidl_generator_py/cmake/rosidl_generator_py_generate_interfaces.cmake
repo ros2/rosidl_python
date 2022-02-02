@@ -17,7 +17,7 @@ find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
 find_package(rosidl_typesupport_interface REQUIRED)
 
-find_package(PythonInterp 3.5 REQUIRED)
+find_package(PythonInterp 3.6 REQUIRED)
 
 find_package(python_cmake_module REQUIRED)
 find_package(PythonExtra MODULE REQUIRED)

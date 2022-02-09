@@ -56,10 +56,7 @@ if(BUILD_TESTING)
     rosidl_generate_interfaces(${PROJECT_NAME}_custom
       ${test_interface_files_MSG_FILES}
       # Cases not covered by test_interface_files
-      msg/BuiltinTypeDynamicArraysMsg.msg
       msg/BuiltinTypeSequencesIdl.idl
-      msg/BuiltinTypesIdl.idl
-      msg/BuiltinTypesMsg.msg
       msg/StringArrays.msg
       msg/Property.msg
       ADD_LINTER_TESTS

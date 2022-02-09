@@ -2,50 +2,7 @@ module rosidl_generator_py {
     module msg {
         struct BuiltinTypeSequencesIdl {
             // Unbounded sequences
-            sequence<boolean> boolean_sequence_unbounded;
             sequence<char> char_sequence_unbounded;
-            sequence<octet> octet_sequence_unbounded;
-            sequence<short> short_sequence_unbounded;
-            sequence<unsigned short> unsigned_short_sequence_unbounded;
-            sequence<long> long_sequence_unbounded;
-            sequence<unsigned long> unsigned_long_sequence_unbounded;
-            sequence<long long> long_long_sequence_unbounded;
-            sequence<unsigned long long> unsigned_long_long_sequence_unbounded;
-            sequence<float> float_sequence_unbounded;
-            sequence<double> double_sequence_unbounded;
-            sequence<int8> int8_sequence_unbounded;
-            sequence<uint8> uint8_sequence_unbounded;
-            sequence<int16> int16_sequence_unbounded;
-            sequence<uint16> uint16_sequence_unbounded;
-            sequence<int32> int32_sequence_unbounded;
-            sequence<uint32> uint32_sequence_unbounded;
-            sequence<int64> int64_sequence_unbounded;
-            sequence<uint64> uint64_sequence_unbounded;
-            sequence<string> string_sequence_unbounded;
-            sequence<string<5>> bounded_string_sequence_unbounded;
-
-            // Bounded sequences
-            sequence<boolean,2> boolean_sequence_bounded;
-            sequence<char,2> char_sequence_bounded;
-            sequence<octet,2> octet_sequence_bounded;
-            sequence<short,2> short_sequence_bounded;
-            sequence<unsigned short,2> unsigned_short_sequence_bounded;
-            sequence<long,2> long_sequence_bounded;
-            sequence<unsigned long,2> unsigned_long_sequence_bounded;
-            sequence<long long,2> long_long_sequence_bounded;
-            sequence<unsigned long long,2> unsigned_long_long_sequence_bounded;
-            sequence<float,2> float_sequence_bounded;
-            sequence<double,2> double_sequence_bounded;
-            sequence<int8,2> int8_sequence_bounded;
-            sequence<uint8,2> uint8_sequence_bounded;
-            sequence<int16,2> int16_sequence_bounded;
-            sequence<uint16,2> uint16_sequence_bounded;
-            sequence<int32,2> int32_sequence_bounded;
-            sequence<uint32,2> uint32_sequence_bounded;
-            sequence<int64,2> int64_sequence_bounded;
-            sequence<uint64,2> uint64_sequence_bounded;
-            sequence<string,2> string_sequence_bounded;
-            sequence<string<5>,2> bounded_string_sequence_bounded;
         };
     };
 };

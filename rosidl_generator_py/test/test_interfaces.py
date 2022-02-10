@@ -20,6 +20,7 @@ import pytest
 from rosidl_generator_py.msg import Arrays
 from rosidl_generator_py.msg import BasicTypes
 from rosidl_generator_py.msg import BoundedSequences
+from rosidl_generator_py.msg import BuiltinTypeSequencesIdl
 from rosidl_generator_py.msg import Constants
 from rosidl_generator_py.msg import Defaults
 from rosidl_generator_py.msg import Nested
@@ -916,3 +917,12 @@ def test_string_slot_types():
     assert isinstance(string_slot_types[4], Array)
     assert isinstance(string_slot_types[4].value_type, UnboundedString)
     assert string_slot_types[4].size == 3
+
+
+def test_builtin_sequence_slot_attributes():
+    msg = BuiltinTypeSequencesIdl()
+    assert hasattr(msg, 'get_fields_and_field_types')
+    assert hasattr(msg, '__slots__')
+    builtin_sequence_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
+    builtin_sequence_slots = getattr(msg, '__slots__')
+    assert len(builtin_sequence_slot_types_dict) == len(builtin_sequence_slots)

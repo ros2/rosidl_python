@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.14.2 (2022-03-01)
+-------------------
 * Removes erroneous unmatched closing parenthesis (`#125 <https://github.com/ros2/rosidl_python/issues/125>`_)
 * require Python 3.6 as we use format strings in various places (`#152 <https://github.com/ros2/rosidl_python/issues/152>`_)
 * Contributors: Charles Cross, William Woodall

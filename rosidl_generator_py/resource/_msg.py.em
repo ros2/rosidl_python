@@ -495,7 +495,7 @@ bound = 2**nbits
                  all(val >= 0 and val < @(bound) for val in value)), \
 @{assert_msg_suffixes.append('and each unsigned integer in [0, %d]' % (bound - 1))}@
 @[    elif isinstance(type_, BasicType) and type_.typename == 'char']@
-                 all(val >= 0 and val) < 256 for val in value)), \
+                 all(ord(val) >= 0 and ord(val) < 256 for val in value)), \
 @{assert_msg_suffixes.append('and each char in [0, 255]')}@
 @[    else]@
                  True), \

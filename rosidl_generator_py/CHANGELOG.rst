@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removes erroneous unmatched closing parenthesis (`#125 <https://github.com/ros2/rosidl_python/issues/125>`_) (`#159 <https://github.com/ros2/rosidl_python/issues/159>`_)
+* Contributors: mergify[bot]
+
 0.11.1 (2021-10-08)
 -------------------
 * Added optimization for copying arrays of simple types from python to C using buffer protocol (`#129 <https://github.com/ros2/rosidl_python/issues/129>`_) (`#145 <https://github.com/ros2/rosidl_python/issues/145>`_)

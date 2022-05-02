@@ -21,6 +21,7 @@ find_package(PythonInterp 3.6 REQUIRED)
 
 find_package(python_cmake_module REQUIRED)
 find_package(PythonExtra MODULE REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Development)
 
 # Get a list of typesupport implementations from valid rmw implementations.
 rosidl_generator_py_get_typesupports(_typesupport_impls)
@@ -184,7 +185,7 @@ target_include_directories(${_target_name_lib}
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 find_package(NumpyHeaders REQUIRED)
 list(POP_BACK CMAKE_MODULE_PATH)
-target_link_libraries(${_target_name_lib} NumpyHeaders::NumpyHeaders PythonExtra::PythonExtra)
+target_link_libraries(${_target_name_lib} NumpyHeaders::NumpyHeaders Python3::Module)
 
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
 target_link_libraries(${_target_name_lib} ${c_typesupport_target})
@@ -223,15 +224,14 @@ foreach(_typesupport_impl ${_typesupport_impls})
   target_link_libraries(
     ${_target_name}
     ${_target_name_lib}
-    ${PythonExtra_LIBRARIES}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
+    Python3::Module
   )
 
   target_include_directories(${_target_name}
     PUBLIC
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
-    ${PythonExtra_INCLUDE_DIRS}
   )
 
   target_link_libraries(${_target_name} ${c_typesupport_target})

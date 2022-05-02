@@ -166,15 +166,12 @@ set(rosidl_generator_py_suffix "__rosidl_generator_py")
 set(_target_name_lib "${rosidl_generate_interfaces_TARGET}${rosidl_generator_py_suffix}")
 add_library(${_target_name_lib} SHARED ${_generated_c_files})
 target_link_libraries(${_target_name_lib}
+  PRIVATE
   ${rosidl_generate_interfaces_TARGET}__rosidl_generator_c)
 add_dependencies(
   ${_target_name_lib}
   ${rosidl_generate_interfaces_TARGET}${_target_suffix}
   ${rosidl_generate_interfaces_TARGET}__rosidl_typesupport_c
-)
-
-target_link_libraries(
-  ${_target_name_lib}
 )
 target_include_directories(${_target_name_lib}
   PRIVATE
@@ -185,10 +182,10 @@ target_include_directories(${_target_name_lib}
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 find_package(NumpyHeaders REQUIRED)
 list(POP_BACK CMAKE_MODULE_PATH)
-target_link_libraries(${_target_name_lib} NumpyHeaders::NumpyHeaders Python3::Module)
+target_link_libraries(${_target_name_lib} PRIVATE NumpyHeaders::NumpyHeaders Python3::Module)
 
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
-target_link_libraries(${_target_name_lib} ${c_typesupport_target})
+target_link_libraries(${_target_name_lib} PRIVATE ${c_typesupport_target})
 
 foreach(_typesupport_impl ${_typesupport_impls})
   find_package(${_typesupport_impl} REQUIRED)
@@ -223,6 +220,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   endif()
   target_link_libraries(
     ${_target_name}
+    PRIVATE
     ${_target_name_lib}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
     Python3::Module
@@ -234,15 +232,16 @@ foreach(_typesupport_impl ${_typesupport_impls})
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
   )
 
-  target_link_libraries(${_target_name} ${c_typesupport_target})
+  target_link_libraries(${_target_name} PRIVATE ${c_typesupport_target})
 
   ament_target_dependencies(${_target_name}
+    PUBLIC
     "rosidl_runtime_c"
     "rosidl_typesupport_c"
     "rosidl_typesupport_interface"
   )
   foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-    ament_target_dependencies(${_target_name}
+    ament_target_dependencies(${_target_name} PUBLIC
       ${_pkg_name}
     )
   endforeach()
@@ -250,7 +249,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   add_dependencies(${_target_name}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
   )
-  ament_target_dependencies(${_target_name}
+  ament_target_dependencies(${_target_name} PUBLIC
     "rosidl_runtime_c"
     "rosidl_generator_py"
   )
@@ -265,7 +264,7 @@ set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
 
 # Depend on rosidl_generator_py generated targets from our dependencies
 foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-  target_link_libraries(${_target_name_lib} ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
+  target_link_libraries(${_target_name_lib} PRIVATE ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
 endforeach()
 
 set_lib_properties("")
@@ -285,7 +284,6 @@ if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   # Export this target so downstream interface packages can depend on it
   rosidl_export_typesupport_targets("${rosidl_generator_py_suffix}" "${_target_name_lib}")
   ament_export_targets(export_${_target_name_lib})
-  ament_export_dependencies(rosidl_generator_py)
 endif()
 
 if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)

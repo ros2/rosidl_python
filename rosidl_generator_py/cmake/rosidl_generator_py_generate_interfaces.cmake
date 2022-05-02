@@ -174,40 +174,17 @@ add_dependencies(
 
 target_link_libraries(
   ${_target_name_lib}
-  ${PythonExtra_LIBRARIES}
 )
 target_include_directories(${_target_name_lib}
   PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
-  ${PythonExtra_INCLUDE_DIRS}
 )
 
-# Check if numpy is in the include path
-find_file(_numpy_h numpy/numpyconfig.h
-  PATHS ${PythonExtra_INCLUDE_DIRS}
-)
-
-if(APPLE OR WIN32 OR NOT _numpy_h)
-  # add include directory for numpy headers
-  set(_python_code
-    "import numpy"
-    "print(numpy.get_include())"
-  )
-  execute_process(
-    COMMAND "${PYTHON_EXECUTABLE}" "-c" "${_python_code}"
-    OUTPUT_VARIABLE _output
-    RESULT_VARIABLE _result
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if(NOT _result EQUAL 0)
-    message(FATAL_ERROR
-      "execute_process(${PYTHON_EXECUTABLE} -c '${_python_code}') returned "
-      "error code ${_result}")
-  endif()
-  message(STATUS "Using numpy include directory: ${_output}")
-  target_include_directories(${_target_name_lib} PUBLIC "${_output}")
-endif()
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
+find_package(NumpyHeaders REQUIRED)
+list(POP_BACK CMAKE_MODULE_PATH)
+target_link_libraries(${_target_name_lib} NumpyHeaders::NumpyHeaders PythonExtra::PythonExtra)
 
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
 target_link_libraries(${_target_name_lib} ${c_typesupport_target})

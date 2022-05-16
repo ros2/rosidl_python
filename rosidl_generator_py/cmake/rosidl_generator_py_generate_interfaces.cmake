@@ -259,11 +259,6 @@ endforeach()
 
 set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
 
-# Depend on rosidl_generator_py generated targets from our dependencies
-foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-  target_link_libraries(${_target_name_lib} PRIVATE ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
-endforeach()
-
 set_lib_properties("")
 if(WIN32)
   set_lib_properties("_DEBUG")

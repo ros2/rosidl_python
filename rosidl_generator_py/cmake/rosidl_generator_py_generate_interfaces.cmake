@@ -259,6 +259,11 @@ endforeach()
 
 set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
 
+# Depend on rosidl_generator_py generated targets from our dependencies
+foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
+  target_link_libraries(${_target_name_lib} PRIVATE ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
+endforeach()
+
 set_lib_properties("")
 if(WIN32)
   set_lib_properties("_DEBUG")
@@ -268,9 +273,13 @@ if(WIN32)
 endif()
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   install(TARGETS ${_target_name_lib}
+    EXPORT export_${_target_name_lib}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin)
+
+  # Export this target so downstream interface packages can depend on it
+  rosidl_export_typesupport_targets("${rosidl_generator_py_suffix}" "${_target_name_lib}")
 endif()
 
 if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)

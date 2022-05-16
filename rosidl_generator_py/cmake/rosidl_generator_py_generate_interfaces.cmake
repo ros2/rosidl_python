@@ -273,14 +273,9 @@ if(WIN32)
 endif()
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   install(TARGETS ${_target_name_lib}
-    EXPORT export_${_target_name_lib}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin)
-
-  # Export this target so downstream interface packages can depend on it
-  rosidl_export_typesupport_targets("${rosidl_generator_py_suffix}" "${_target_name_lib}")
-  ament_export_targets(export_${_target_name_lib})
 endif()
 
 if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)

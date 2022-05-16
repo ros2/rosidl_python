@@ -21,6 +21,11 @@ find_package(PythonInterp 3.6 REQUIRED)
 
 find_package(python_cmake_module REQUIRED)
 find_package(PythonExtra MODULE REQUIRED)
+set(_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
+if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_DEBUG})
+endif()
+
 find_package(Python3 REQUIRED COMPONENTS Development NumPy)
 
 # Get a list of typesupport implementations from valid rmw implementations.
@@ -126,11 +131,6 @@ if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
 endif()
 
 set(_target_suffix "__py")
-
-set(_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
-if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_DEBUG})
-endif()
 
 # move custom command into a subdirectory to avoid multiple invocations on Windows
 set(_subdir "${CMAKE_CURRENT_BINARY_DIR}/${rosidl_generate_interfaces_TARGET}${_target_suffix}")
@@ -257,6 +257,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   endif()
 endforeach()
 
+#restore PYTHON_EXECUTABLE value
 set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
 
 # Depend on rosidl_generator_py generated targets from our dependencies

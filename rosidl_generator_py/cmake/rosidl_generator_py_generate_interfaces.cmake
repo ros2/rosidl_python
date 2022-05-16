@@ -18,9 +18,14 @@ find_package(rosidl_typesupport_c REQUIRED)
 find_package(rosidl_typesupport_interface REQUIRED)
 
 find_package(PythonInterp 3.6 REQUIRED)
-
 find_package(python_cmake_module REQUIRED)
-find_package(PythonExtra MODULE REQUIRED)
+find_package(PythonExtra REQUIRED)
+set(_Python3_EXECUTABLE ${Python3_EXECUTABLE})
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+  # Force FindPython3 to use the debug interpreter where ROS 2 expects it
+  set(Python3_EXECUTABLE "${PYTHON_EXECUTABLE_DEBUG}")
+endif()
 find_package(Python3 REQUIRED COMPONENTS Development NumPy)
 
 # Get a list of typesupport implementations from valid rmw implementations.
@@ -126,11 +131,6 @@ if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
 endif()
 
 set(_target_suffix "__py")
-
-set(_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
-if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_DEBUG})
-endif()
 
 # move custom command into a subdirectory to avoid multiple invocations on Windows
 set(_subdir "${CMAKE_CURRENT_BINARY_DIR}/${rosidl_generate_interfaces_TARGET}${_target_suffix}")
@@ -254,7 +254,8 @@ foreach(_typesupport_impl ${_typesupport_impls})
   endif()
 endforeach()
 
-set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
+set(Python3_EXECUTABLE ${_Python3_EXECUTABLE})
+unset(_Python3_EXECUTABLE)
 
 # Depend on rosidl_generator_py generated targets from our dependencies
 foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})

@@ -18,9 +18,14 @@ find_package(rosidl_typesupport_c REQUIRED)
 find_package(rosidl_typesupport_interface REQUIRED)
 
 find_package(PythonInterp 3.6 REQUIRED)
-
 find_package(python_cmake_module REQUIRED)
-find_package(PythonExtra MODULE REQUIRED)
+find_package(PythonExtra REQUIRED)
+set(_Python3_EXECUTABLE ${Python3_EXECUTABLE})
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+  # Force FindPython3 to use the debug interpreter where ROS 2 expects it
+  set(Python3_EXECUTABLE "${PYTHON_EXECUTABLE_DEBUG}")
+endif()
 find_package(Python3 REQUIRED COMPONENTS Development NumPy)
 
 # Get a list of typesupport implementations from valid rmw implementations.
@@ -127,11 +132,6 @@ endif()
 
 set(_target_suffix "__py")
 
-set(_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
-if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_DEBUG})
-endif()
-
 # move custom command into a subdirectory to avoid multiple invocations on Windows
 set(_subdir "${CMAKE_CURRENT_BINARY_DIR}/${rosidl_generate_interfaces_TARGET}${_target_suffix}")
 file(MAKE_DIRECTORY "${_subdir}")
@@ -166,7 +166,6 @@ set(rosidl_generator_py_suffix "__rosidl_generator_py")
 set(_target_name_lib "${rosidl_generate_interfaces_TARGET}${rosidl_generator_py_suffix}")
 add_library(${_target_name_lib} SHARED ${_generated_c_files})
 target_link_libraries(${_target_name_lib}
-  PRIVATE
   ${rosidl_generate_interfaces_TARGET}__rosidl_generator_c)
 add_dependencies(
   ${_target_name_lib}
@@ -179,10 +178,10 @@ target_include_directories(${_target_name_lib}
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
 )
 
-target_link_libraries(${_target_name_lib} PRIVATE Python3::NumPy Python3::Module)
+target_link_libraries(${_target_name_lib} Python3::NumPy Python3::Module)
 
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
-target_link_libraries(${_target_name_lib} PRIVATE ${c_typesupport_target})
+target_link_libraries(${_target_name_lib} ${c_typesupport_target})
 
 foreach(_typesupport_impl ${_typesupport_impls})
   find_package(${_typesupport_impl} REQUIRED)
@@ -217,7 +216,6 @@ foreach(_typesupport_impl ${_typesupport_impls})
   endif()
   target_link_libraries(
     ${_target_name}
-    PRIVATE
     ${_target_name_lib}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
     Python3::Module
@@ -229,16 +227,15 @@ foreach(_typesupport_impl ${_typesupport_impls})
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
   )
 
-  target_link_libraries(${_target_name} PRIVATE ${c_typesupport_target})
+  target_link_libraries(${_target_name} ${c_typesupport_target})
 
   ament_target_dependencies(${_target_name}
-    PUBLIC
     "rosidl_runtime_c"
     "rosidl_typesupport_c"
     "rosidl_typesupport_interface"
   )
   foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-    ament_target_dependencies(${_target_name} PUBLIC
+    ament_target_dependencies(${_target_name}
       ${_pkg_name}
     )
   endforeach()
@@ -246,7 +243,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   add_dependencies(${_target_name}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
   )
-  ament_target_dependencies(${_target_name} PUBLIC
+  ament_target_dependencies(${_target_name}
     "rosidl_runtime_c"
     "rosidl_generator_py"
   )
@@ -257,11 +254,12 @@ foreach(_typesupport_impl ${_typesupport_impls})
   endif()
 endforeach()
 
-set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
+set(Python3_EXECUTABLE ${_Python3_EXECUTABLE})
+unset(_Python3_EXECUTABLE)
 
 # Depend on rosidl_generator_py generated targets from our dependencies
 foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-  target_link_libraries(${_target_name_lib} PRIVATE ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
+  target_link_libraries(${_target_name_lib} ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
 endforeach()
 
 set_lib_properties("")
@@ -281,6 +279,9 @@ if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   # Export this target so downstream interface packages can depend on it
   rosidl_export_typesupport_targets("${rosidl_generator_py_suffix}" "${_target_name_lib}")
   ament_export_targets(export_${_target_name_lib})
+
+  # This is needed as ament_export_dependencies doesn't work with cmake components.
+  list(APPEND ${PROJECT_NAME}_CONFIG_EXTRAS ${CMAKE_CURRENT_LIST_DIR}/rosidl_generator_py_generate_interfaces-extra.cmake)
 endif()
 
 if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)

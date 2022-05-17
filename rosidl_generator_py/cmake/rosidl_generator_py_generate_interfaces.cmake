@@ -21,7 +21,6 @@ find_package(PythonInterp 3.6 REQUIRED)
 
 find_package(python_cmake_module REQUIRED)
 find_package(PythonExtra MODULE REQUIRED)
-find_package(Python3 REQUIRED COMPONENTS Development NumPy)
 
 # Get a list of typesupport implementations from valid rmw implementations.
 rosidl_generator_py_get_typesupports(_typesupport_impls)
@@ -166,23 +165,52 @@ set(rosidl_generator_py_suffix "__rosidl_generator_py")
 set(_target_name_lib "${rosidl_generate_interfaces_TARGET}${rosidl_generator_py_suffix}")
 add_library(${_target_name_lib} SHARED ${_generated_c_files})
 target_link_libraries(${_target_name_lib}
-  PRIVATE
   ${rosidl_generate_interfaces_TARGET}__rosidl_generator_c)
 add_dependencies(
   ${_target_name_lib}
   ${rosidl_generate_interfaces_TARGET}${_target_suffix}
   ${rosidl_generate_interfaces_TARGET}__rosidl_typesupport_c
 )
+
+target_link_libraries(
+  ${_target_name_lib}
+  ${PythonExtra_LIBRARIES}
+)
 target_include_directories(${_target_name_lib}
   PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
+  ${PythonExtra_INCLUDE_DIRS}
 )
 
-target_link_libraries(${_target_name_lib} PRIVATE Python3::NumPy Python3::Module)
+# Check if numpy is in the include path
+find_file(_numpy_h numpy/numpyconfig.h
+  PATHS ${PythonExtra_INCLUDE_DIRS}
+)
+
+if(APPLE OR WIN32 OR NOT _numpy_h)
+  # add include directory for numpy headers
+  set(_python_code
+    "import numpy"
+    "print(numpy.get_include())"
+  )
+  execute_process(
+    COMMAND "${PYTHON_EXECUTABLE}" "-c" "${_python_code}"
+    OUTPUT_VARIABLE _output
+    RESULT_VARIABLE _result
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if(NOT _result EQUAL 0)
+    message(FATAL_ERROR
+      "execute_process(${PYTHON_EXECUTABLE} -c '${_python_code}') returned "
+      "error code ${_result}")
+  endif()
+  message(STATUS "Using numpy include directory: ${_output}")
+  target_include_directories(${_target_name_lib} PUBLIC "${_output}")
+endif()
 
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
-target_link_libraries(${_target_name_lib} PRIVATE ${c_typesupport_target})
+target_link_libraries(${_target_name_lib} ${c_typesupport_target})
 
 foreach(_typesupport_impl ${_typesupport_impls})
   find_package(${_typesupport_impl} REQUIRED)
@@ -217,28 +245,27 @@ foreach(_typesupport_impl ${_typesupport_impls})
   endif()
   target_link_libraries(
     ${_target_name}
-    PRIVATE
     ${_target_name_lib}
+    ${PythonExtra_LIBRARIES}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
-    Python3::Module
   )
 
   target_include_directories(${_target_name}
     PUBLIC
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
+    ${PythonExtra_INCLUDE_DIRS}
   )
 
-  target_link_libraries(${_target_name} PRIVATE ${c_typesupport_target})
+  target_link_libraries(${_target_name} ${c_typesupport_target})
 
   ament_target_dependencies(${_target_name}
-    PUBLIC
     "rosidl_runtime_c"
     "rosidl_typesupport_c"
     "rosidl_typesupport_interface"
   )
   foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-    ament_target_dependencies(${_target_name} PUBLIC
+    ament_target_dependencies(${_target_name}
       ${_pkg_name}
     )
   endforeach()
@@ -246,7 +273,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   add_dependencies(${_target_name}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
   )
-  ament_target_dependencies(${_target_name} PUBLIC
+  ament_target_dependencies(${_target_name}
     "rosidl_runtime_c"
     "rosidl_generator_py"
   )
@@ -261,7 +288,7 @@ set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
 
 # Depend on rosidl_generator_py generated targets from our dependencies
 foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-  target_link_libraries(${_target_name_lib} PRIVATE ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
+  target_link_libraries(${_target_name_lib} ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
 endforeach()
 
 set_lib_properties("")

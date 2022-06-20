@@ -59,6 +59,7 @@ if(BUILD_TESTING)
       msg/BuiltinTypeSequencesIdl.idl
       msg/StringArrays.msg
       msg/Property.msg
+      idl/Enums.idl
       ADD_LINTER_TESTS
       SKIP_INSTALL
     )

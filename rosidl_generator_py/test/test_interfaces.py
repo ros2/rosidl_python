@@ -17,6 +17,7 @@ import array
 import numpy
 import pytest
 
+from rosidl_generator_py.idl import Enums
 from rosidl_generator_py.msg import Arrays
 from rosidl_generator_py.msg import BasicTypes
 from rosidl_generator_py.msg import BoundedSequences
@@ -926,3 +927,28 @@ def test_builtin_sequence_slot_attributes():
     builtin_sequence_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
     builtin_sequence_slots = getattr(msg, '__slots__')
     assert len(builtin_sequence_slot_types_dict) == len(builtin_sequence_slots)
+
+
+def test_enums():
+    array_size = 3
+    expected_value = Enums.SomeEnum.ENUMERATOR2
+    expected_default_value = Enums.SomeEnum.ENUMERATOR2
+
+    msg = Enums()
+    assert isinstance(msg.enum_value, Enums.SomeEnum)
+    assert isinstance(msg.static_array_values, list)
+    assert isinstance(msg.bounded_array_values, list)
+    assert isinstance(msg.dynamic_array_values, list)
+
+    msg.enum_value = expected_value
+    for i in range(array_size):
+        msg.static_array_values[i] = expected_value
+        msg.bounded_array_values.append(expected_value)
+        msg.dynamic_array_values.append(expected_value)
+
+    assert (msg.enum_value == expected_value)
+    assert (msg.enum_default_value == expected_default_value)
+    for i in range(array_size):
+        assert (msg.static_array_values[i] == expected_value)
+        assert (msg.dynamic_array_values[i] == expected_value)
+        assert (msg.bounded_array_values[i] == expected_value)

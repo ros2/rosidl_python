@@ -18,6 +18,7 @@ from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import BOOLEAN_TYPE
 from rosidl_parser.definition import BoundedSequence
 from rosidl_parser.definition import CHARACTER_TYPES
+from rosidl_parser.definition import EnumerationType
 from rosidl_parser.definition import EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME
 from rosidl_parser.definition import FLOATING_POINT_TYPES
 from rosidl_parser.definition import INTEGER_TYPES
@@ -35,6 +36,8 @@ imports = OrderedDict()
 if message.structure.members:
     imports.setdefault(
         'import rosidl_parser.definition', [])  # used for SLOT_TYPES
+if message.enumerations:
+    imports.setdefault('from enum import IntEnum', [])
 for member in message.structure.members:
     if member.name != EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME:
         imports.setdefault(
@@ -78,6 +81,16 @@ for member in message.structure.members:
 @[    end for]@
 @[end if]@
 @#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+@[for enum in message.enumerations]@
+
+
+class @(enum.enumeration_type.name)(IntEnum):
+    """Enumeration '@(enum.enumeration_type.name)'."""
+
+@[  for i in range(len(enum.enumerators))]@
+    @(enum.enumerators[i]) = @(i)
+@[  end for]@
+@[end for]@
 
 
 class Metaclass_@(message.structure.namespaced_type.name)(type):
@@ -178,6 +191,7 @@ for member in message.structure.members:
 class @(message.structure.namespaced_type.name)(metaclass=Metaclass_@(message.structure.namespaced_type.name)):
 @[if not message.constants]@
     """Message class '@(message.structure.namespaced_type.name)'."""
+
 @[else]@
     """
     Message class '@(message.structure.namespaced_type.name)'.
@@ -187,8 +201,11 @@ class @(message.structure.namespaced_type.name)(metaclass=Metaclass_@(message.st
       @(constant_name)
 @[  end for]@
     """
-@[end if]@
 
+@[end if]@
+@[for enum in message.enumerations]@
+    @(enum.enumeration_type.name) = @(enum.enumeration_type.name)
+@[end for]@
     __slots__ = [
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
@@ -216,6 +233,8 @@ sequence<@
 @# the typename of the non-nested type or the nested basetype
 @[  if isinstance(type_, BasicType)]@
 @(type_.typename)@
+@[  elif isinstance(type_, EnumerationType)]@
+@(type_.name)@
 @[  elif isinstance(type_, AbstractGenericString)]@
 @
 @[    if isinstance(type_, AbstractWString)]@
@@ -259,6 +278,8 @@ if isinstance(type_, AbstractNestedType):
 @(type_.__class__.__module__).@(type_.__class__.__name__)(@
 @[  if isinstance(type_, BasicType)]@
 '@(type_.typename)'@
+@[  elif isinstance(type_, EnumerationType)]@
+@(type_.namespaces), '@(type_.name)'@
 @[  elif isinstance(type_, AbstractGenericString) and type_.has_maximum_size()]@
 @(type_.maximum_size)@
 @[  elif isinstance(type_, NamespacedType)]@
@@ -323,6 +344,11 @@ if isinstance(type_, AbstractNestedType):
         else:
             self.@(member.name) = numpy.array(kwargs.get('@(member.name)'), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
             assert self.@(member.name).shape == (@(member.type.size), )
+@[        elif isinstance(member.type.value_type, EnumerationType)]@
+        self.@(member.name) = kwargs.get(
+            '@(member.name)',
+            [@(get_python_type(type_))(0) for x in range(@(member.type.size))]
+        )
 @[        else]@
         self.@(member.name) = kwargs.get(
             '@(member.name)',
@@ -340,6 +366,8 @@ if isinstance(type_, AbstractNestedType):
         self.@(member.name) = kwargs.get('@(member.name)', bytes([0]))
 @[    elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
         self.@(member.name) = kwargs.get('@(member.name)', chr(0))
+@[    elif isinstance(type_, EnumerationType)]@
+        self.@(member.name) = kwargs.get('@(member.name)', @(get_python_type(type_))(0))
 @[    else]@
         self.@(member.name) = kwargs.get('@(member.name)', @(get_python_type(type_))())
 @[    end if]@
@@ -572,6 +600,9 @@ bound = 1.7976931348623157e+308
             assert value >= -@(bound) and value <= @(bound), \
                 "The '@(member.name)' field must be a @(name) in [@(-bound), @(bound)]"
 @[    end if]@
+@[  elif isinstance(type_, EnumerationType)]@
+                isinstance(value, @(get_python_type(type_))), \
+                "The '@(member.name)' field must be of type '@(get_python_type(type_))'"
 @[  else]@
                 False
 @[  end if]@

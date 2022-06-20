@@ -10,18 +10,22 @@ from rosidl_parser.definition import AbstractWString
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME
+from rosidl_parser.definition import EnumerationType
 from rosidl_parser.definition import NamespacedType
 
 
-def primitive_msg_type_to_c(type_):
+def primitive_msg_type_or_enum_to_c(type_):
     from rosidl_generator_c import BASIC_IDL_TYPES_TO_C
     from rosidl_parser.definition import AbstractString
     from rosidl_parser.definition import AbstractWString
     from rosidl_parser.definition import BasicType
+    from rosidl_parser.definition import EnumerationType
     if isinstance(type_, AbstractString):
         return 'rosidl_runtime_c__String'
     if isinstance(type_, AbstractWString):
         return 'rosidl_runtime_c__U16String'
+    if isinstance(type_, EnumerationType):
+        return '__'.join(type_.namespaced_name())
     assert isinstance(type_, BasicType)
     return BASIC_IDL_TYPES_TO_C[type_.typename]
 
@@ -257,14 +261,14 @@ nested_type = '__'.join(type_.namespaced_name())
         Py_DECREF(field);
         return false;
       }
-      Py_ssize_t size = view.len / sizeof(@primitive_msg_type_to_c(member.type.value_type));
+      Py_ssize_t size = view.len / sizeof(@primitive_msg_type_or_enum_to_c(member.type.value_type));
       if (!rosidl_runtime_c__@(member.type.value_type.typename)__Sequence__init(&(ros_message->@(member.name)), size)) {
         PyErr_SetString(PyExc_RuntimeError, "unable to create @(member.type.value_type.typename)__Sequence ros_message");
         PyBuffer_Release(&view);
         Py_DECREF(field);
         return false;
       }
-      @primitive_msg_type_to_c(member.type.value_type) * dest = ros_message->@(member.name).data;
+      @primitive_msg_type_or_enum_to_c(member.type.value_type) * dest = ros_message->@(member.name).data;
       rc = PyBuffer_ToContiguous(dest, &view, view.len, 'C');
       if (rc < 0) {
         PyBuffer_Release(&view);
@@ -313,6 +317,13 @@ nested_type = '__'.join(type_.namespaced_name())
         Py_DECREF(field);
         return false;
       }
+@[      elif isinstance(member.type.value_type, EnumerationType)]@
+      if (!@(primitive_msg_type_or_enum_to_c(member.type.value_type))__Sequence__init(&(ros_message->@(member.name)), size)) {
+        PyErr_SetString(PyExc_RuntimeError, "unable to create @(member.type.value_type.name)__Sequence ros_message");
+        Py_DECREF(seq_field);
+        Py_DECREF(field);
+        return false;
+      }
 @[      else]@
       if (!rosidl_runtime_c__@(member.type.value_type.typename)__Sequence__init(&(ros_message->@(member.name)), size)) {
         PyErr_SetString(PyExc_RuntimeError, "unable to create @(member.type.value_type.typename)__Sequence ros_message");
@@ -321,10 +332,10 @@ nested_type = '__'.join(type_.namespaced_name())
         return false;
       }
 @[      end if]@
-      @primitive_msg_type_to_c(member.type.value_type) * dest = ros_message->@(member.name).data;
+      @primitive_msg_type_or_enum_to_c(member.type.value_type) * dest = ros_message->@(member.name).data;
 @[    else]@
       Py_ssize_t size = @(member.type.size);
-      @primitive_msg_type_to_c(member.type.value_type) * dest = ros_message->@(member.name);
+      @primitive_msg_type_or_enum_to_c(member.type.value_type) * dest = ros_message->@(member.name);
 @[    end if]@
       for (Py_ssize_t i = 0; i < size; ++i) {
 @[    if not isinstance(member.type, Array) or not isinstance(member.type.value_type, BasicType) or member.type.value_type.typename not in SPECIAL_NESTED_BASIC_TYPES]@
@@ -336,7 +347,7 @@ nested_type = '__'.join(type_.namespaced_name())
         }
 @[    end if]@
 @[    if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-        @primitive_msg_type_to_c(member.type.value_type) tmp = *(@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_')) *)PyArray_GETPTR1(seq_field, i);
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = *(@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_')) *)PyArray_GETPTR1(seq_field, i);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'char']@
         assert(PyUnicode_Check(item));
         PyObject * encoded_item = PyUnicode_AsUTF8String(item);
@@ -345,11 +356,11 @@ nested_type = '__'.join(type_.namespaced_name())
           Py_DECREF(field);
           return false;
         }
-        @primitive_msg_type_to_c(member.type.value_type) tmp = PyBytes_AS_STRING(encoded_item)[0];
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = PyBytes_AS_STRING(encoded_item)[0];
         Py_DECREF(encoded_item);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'octet']@
         assert(PyBytes_Check(item));
-        @primitive_msg_type_to_c(member.type.value_type) tmp = PyBytes_AS_STRING(item)[0];
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = PyBytes_AS_STRING(item)[0];
 @[    elif isinstance(member.type.value_type, AbstractString)]@
         assert(PyUnicode_Check(item));
         PyObject * encoded_item = PyUnicode_AsUTF8String(item);
@@ -388,13 +399,13 @@ nested_type = '__'.join(type_.namespaced_name())
         }
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'boolean']@
         assert(PyBool_Check(item));
-        @primitive_msg_type_to_c(member.type.value_type) tmp = (item == Py_True);
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = (item == Py_True);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in ('float', 'double')]@
         assert(PyFloat_Check(item));
 @[      if member.type.value_type.typename == 'float']@
-        @primitive_msg_type_to_c(member.type.value_type) tmp = (float)PyFloat_AS_DOUBLE(item);
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = (float)PyFloat_AS_DOUBLE(item);
 @[      else]@
-        @primitive_msg_type_to_c(member.type.value_type) tmp = PyFloat_AS_DOUBLE(item);
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = PyFloat_AS_DOUBLE(item);
 @[      end if]@
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in (
           'int8',
@@ -402,7 +413,7 @@ nested_type = '__'.join(type_.namespaced_name())
           'int32',
       )]@
         assert(PyLong_Check(item));
-        @primitive_msg_type_to_c(member.type.value_type) tmp = (@(primitive_msg_type_to_c(member.type.value_type)))PyLong_AsLong(item);
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = (@(primitive_msg_type_or_enum_to_c(member.type.value_type)))PyLong_AsLong(item);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in (
           'uint8',
           'uint16',
@@ -410,19 +421,24 @@ nested_type = '__'.join(type_.namespaced_name())
       )]@
         assert(PyLong_Check(item));
 @[      if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'uint32']@
-        @primitive_msg_type_to_c(member.type.value_type) tmp = PyLong_AsUnsignedLong(item);
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = PyLong_AsUnsignedLong(item);
 @[      else]@
-        @primitive_msg_type_to_c(member.type.value_type) tmp = (@(primitive_msg_type_to_c(member.type.value_type)))PyLong_AsUnsignedLong(item);
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = (@(primitive_msg_type_or_enum_to_c(member.type.value_type)))PyLong_AsUnsignedLong(item);
 @[      end if]
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'int64']@
         assert(PyLong_Check(item));
-        @primitive_msg_type_to_c(member.type.value_type) tmp = PyLong_AsLongLong(item);
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = PyLong_AsLongLong(item);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'uint64']@
         assert(PyLong_Check(item));
-        @primitive_msg_type_to_c(member.type.value_type) tmp = PyLong_AsUnsignedLongLong(item);
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = PyLong_AsUnsignedLongLong(item);
+@[    elif isinstance(member.type.value_type, EnumerationType)]@
+        assert(PyLong_Check(item));
+        @primitive_msg_type_or_enum_to_c(member.type.value_type) tmp = PyLong_AsLong(item);
 @[    end if]@
 @[    if isinstance(member.type.value_type, BasicType)]@
-        memcpy(&dest[i], &tmp, sizeof(@primitive_msg_type_to_c(member.type.value_type)));
+        memcpy(&dest[i], &tmp, sizeof(@primitive_msg_type_or_enum_to_c(member.type.value_type)));
+@[    elif isinstance(member.type.value_type, EnumerationType)]@
+        memcpy(&dest[i], &tmp, sizeof(@primitive_msg_type_or_enum_to_c(member.type.value_type)));
 @[    end if]@
       }
       Py_DECREF(seq_field);
@@ -489,7 +505,7 @@ nested_type = '__'.join(type_.namespaced_name())
         'int32',
     )]@
     assert(PyLong_Check(field));
-    ros_message->@(member.name) = (@(primitive_msg_type_to_c(member.type)))PyLong_AsLong(field);
+    ros_message->@(member.name) = (@(primitive_msg_type_or_enum_to_c(member.type)))PyLong_AsLong(field);
 @[  elif isinstance(member.type, BasicType) and member.type.typename in (
         'uint8',
         'uint16',
@@ -499,7 +515,7 @@ nested_type = '__'.join(type_.namespaced_name())
 @[    if member.type.typename == 'uint32']@
     ros_message->@(member.name) = PyLong_AsUnsignedLong(field);
 @[    else]@
-    ros_message->@(member.name) = (@(primitive_msg_type_to_c(member.type)))PyLong_AsUnsignedLong(field);
+    ros_message->@(member.name) = (@(primitive_msg_type_or_enum_to_c(member.type)))PyLong_AsUnsignedLong(field);
 @[    end if]@
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'int64']@
     assert(PyLong_Check(field));
@@ -507,6 +523,9 @@ nested_type = '__'.join(type_.namespaced_name())
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'uint64']@
     assert(PyLong_Check(field));
     ros_message->@(member.name) = PyLong_AsUnsignedLongLong(field);
+@[  elif isinstance(member.type, EnumerationType)]@
+    assert(PyLong_Check(field));
+    ros_message->@(member.name) = (@(primitive_msg_type_or_enum_to_c(member.type)))PyLong_AsLong(field);
 @[  else]@
     assert(false);
 @[  end if]@
@@ -562,10 +581,10 @@ if isinstance(type_, AbstractNestedType):
     PyArrayObject * seq_field = (PyArrayObject *)field;
     assert(PyArray_NDIM(seq_field) == 1);
     assert(PyArray_TYPE(seq_field) == @(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'NPY_').upper()));
-    assert(sizeof(@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_'))) == sizeof(@primitive_msg_type_to_c(member.type.value_type)));
+    assert(sizeof(@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_'))) == sizeof(@primitive_msg_type_or_enum_to_c(member.type.value_type)));
     @(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_')) * dst = (@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_')) *)PyArray_GETPTR1(seq_field, 0);
-    @primitive_msg_type_to_c(member.type.value_type) * src = &(ros_message->@(member.name)[0]);
-    memcpy(dst, src, @(member.type.size) * sizeof(@primitive_msg_type_to_c(member.type.value_type)));
+    @primitive_msg_type_or_enum_to_c(member.type.value_type) * src = &(ros_message->@(member.name)[0]);
+    memcpy(dst, src, @(member.type.size) * sizeof(@primitive_msg_type_or_enum_to_c(member.type.value_type)));
     Py_DECREF(field);
 @[    elif isinstance(member.type, AbstractSequence)]@
     field = PyObject_GetAttrString(_pymessage, "@(member.name)");
@@ -580,7 +599,7 @@ if isinstance(type_, AbstractNestedType):
     assert(itemsize_attr != NULL);
     size_t itemsize = PyLong_AsSize_t(itemsize_attr);
     Py_DECREF(itemsize_attr);
-    if (itemsize != sizeof(@primitive_msg_type_to_c(member.type.value_type))) {
+    if (itemsize != sizeof(@primitive_msg_type_or_enum_to_c(member.type.value_type))) {
       PyErr_SetString(PyExc_RuntimeError, "itemsize doesn't match expectation");
       Py_DECREF(field);
       return NULL;
@@ -609,8 +628,8 @@ if isinstance(type_, AbstractNestedType):
       // populating the array.array using the frombytes method
       PyObject * frombytes = PyObject_GetAttrString(field, "frombytes");
       assert(frombytes != NULL);
-      @primitive_msg_type_to_c(member.type.value_type) * src = &(ros_message->@(member.name).data[0]);
-      PyObject * data = PyBytes_FromStringAndSize((const char *)src, ros_message->@(member.name).size * sizeof(@primitive_msg_type_to_c(member.type.value_type)));
+      @primitive_msg_type_or_enum_to_c(member.type.value_type) * src = &(ros_message->@(member.name).data[0]);
+      PyObject * data = PyBytes_FromStringAndSize((const char *)src, ros_message->@(member.name).size * sizeof(@primitive_msg_type_or_enum_to_c(member.type.value_type)));
       assert(data != NULL);
       PyObject * ret = PyObject_CallFunctionObjArgs(frombytes, data, NULL);
       Py_DECREF(data);
@@ -664,10 +683,10 @@ nested_type = '__'.join(type_.namespaced_name())
 @[  elif isinstance(member.type, AbstractNestedType)]@
 @[    if isinstance(member.type, AbstractSequence)]@
     size_t size = ros_message->@(member.name).size;
-    @primitive_msg_type_to_c(member.type.value_type) * src = ros_message->@(member.name).data;
+    @primitive_msg_type_or_enum_to_c(member.type.value_type) * src = ros_message->@(member.name).data;
 @[    else]@
     size_t size = @(member.type.size);
-    @primitive_msg_type_to_c(member.type.value_type) * src = ros_message->@(member.name);
+    @primitive_msg_type_or_enum_to_c(member.type.value_type) * src = ros_message->@(member.name);
 @[    end if]@
     field = PyList_New(size);
     if (!field) {
@@ -732,6 +751,15 @@ nested_type = '__'.join(type_.namespaced_name())
       int rc = PyList_SetItem(field, i, PyLong_FromUnsignedLongLong(src[i]));
       (void)rc;
       assert(rc == 0);
+@[    elif isinstance(member.type.value_type, EnumerationType)]@
+      PyObject * enum_class = PyObject_GetAttrString(_pymessage, "@(member.type.value_type.name)");
+      assert(enum_class);
+      PyObject * value = PyObject_CallFunction(enum_class, "(i)", (int32_t)src[i]);
+      assert(value);
+      Py_DECREF(enum_class);
+      int rc = PyList_SetItem(field, i, value);
+      (void)rc;
+      assert(rc == 0);
 @[    end if]@
     }
     assert(PySequence_Check(field));
@@ -783,6 +811,12 @@ nested_type = '__'.join(type_.namespaced_name())
     field = PyLong_FromLongLong(ros_message->@(member.name));
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'uint64']@
     field = PyLong_FromUnsignedLongLong(ros_message->@(member.name));
+@[  elif isinstance(member.type, EnumerationType)]@
+    PyObject * enum_class = PyObject_GetAttrString(_pymessage, "@(member.type.name)");
+    assert(enum_class);
+    field = PyObject_CallFunction(enum_class, "(i)", (int32_t)ros_message->@(member.name));
+    assert(field);
+    Py_DECREF(enum_class);
 @[  else]@
     assert(false);
 @[  end if]@

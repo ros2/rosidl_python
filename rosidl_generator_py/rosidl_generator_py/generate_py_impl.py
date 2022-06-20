@@ -30,6 +30,7 @@ from rosidl_parser.definition import Action
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import CHARACTER_TYPES
+from rosidl_parser.definition import EnumerationType
 from rosidl_parser.definition import FLOATING_POINT_TYPES
 from rosidl_parser.definition import IdlContent
 from rosidl_parser.definition import IdlLocator
@@ -166,6 +167,8 @@ def value_to_py(type_, value, array_as_tuple=False):
     assert value is not None
 
     if not isinstance(type_, AbstractNestedType):
+        if isinstance(type_, EnumerationType):
+            return '%s.%s' % (type_.name, value)
         return primitive_value_to_py(type_, value)
 
     py_values = []
@@ -257,6 +260,9 @@ def quoted_string(s):
 
 def get_python_type(type_):
     if isinstance(type_, NamespacedType):
+        return type_.name
+
+    if isinstance(type_, EnumerationType):
         return type_.name
 
     if isinstance(type_, AbstractGenericString):

@@ -37,6 +37,10 @@ class Metaclass_@(service.namespaced_type.name)(type):
         else:
             cls._TYPE_SUPPORT = module.type_support_srv__@('__'.join(service.namespaced_type.namespaces[1:]))_@(service_name)
 
+            from rcl_interfaces.msg import _service_event
+            if _service_event.Metaclass_ServiceEvent._TYPE_SUPPORT is None:
+                _service_event.Metaclass_ServiceEvent.__import_type_support__()
+
             from @('.'.join(service.namespaced_type.namespaces)) import @(module_name)
             if @(module_name).Metaclass_@(service.request_message.structure.namespaced_type.name)._TYPE_SUPPORT is None:
                 @(module_name).Metaclass_@(service.request_message.structure.namespaced_type.name).__import_type_support__()
@@ -50,3 +54,6 @@ class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_t
 
     def __init__(self):
         raise NotImplementedError('Service classes can not be instantiated')
+
+    class Impl:
+        from rcl_interfaces.msg import ServiceEvent

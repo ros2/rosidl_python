@@ -127,7 +127,7 @@ def generate_py(generator_arguments_file, typesupport_impls):
                     convert_camel_case_to_lower_case_underscore(idl_stem)
             # sorting after lower case conversion to get true order
             for module_name, idl_stem in \
-                sorted((value, key) for (key,value) in module_names.items()):
+                    sorted((value, key) for (key, value) in module_names.items()):
                 f.write(
                     f'from {package_name}.{subfolder}.{module_name} import '
                     f'{idl_stem}  # noqa: F401\n')

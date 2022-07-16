@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import array
+import math
 
 import numpy
 import pytest
@@ -120,6 +121,24 @@ def test_basic_types():
         setattr(msg, 'float64_value', 1.8e+308)
     with pytest.raises(AssertionError):
         setattr(msg, 'float64_value', -1.8e+308)
+
+    # NaN
+    setattr(msg, 'float32_value', math.nan)
+    assert math.isnan(msg.float32_value)
+    setattr(msg, 'float64_value', math.nan)
+    assert math.isnan(msg.float64_value)
+
+    # -Inf
+    setattr(msg, 'float32_value', -math.inf)
+    assert math.isinf(msg.float32_value)
+    setattr(msg, 'float64_value', -math.inf)
+    assert math.isinf(msg.float64_value)
+
+    # +Inf
+    setattr(msg, 'float32_value', math.inf)
+    assert math.isinf(msg.float32_value)
+    setattr(msg, 'float64_value', math.inf)
+    assert math.isinf(msg.float64_value)
 
 
 def test_strings():
@@ -463,6 +482,22 @@ def test_arrays():
         setattr(msg, 'float32_values', [-3.5e+38, 0.0, 3.5e+38])
     with pytest.raises(AssertionError):
         setattr(msg, 'float64_values', [-1.8e+308, 0.0, 1.8e+308])
+
+    # NaN
+    list_of_float32_with_nan = [-1.33, math.nan, 1.33]
+    setattr(msg, 'float32_values', list_of_float32_with_nan)
+    assert numpy.array_equal(list_of_float32_with_nan, msg.float32_values, equal_nan=True)
+    list_of_float64_with_nan = [-1.66, math.nan, 1.66]
+    setattr(msg, 'float64_values', list_of_float64_with_nan)
+    assert numpy.array_equal(list_of_float64_with_nan, msg.float64_values, equal_nan=True)
+
+    # Inf
+    list_of_float32_with_inf = [-math.inf, 5.5, math.inf]
+    setattr(msg, 'float32_values', list_of_float32_with_inf)
+    assert numpy.array_equal(list_of_float32_with_inf, msg.float32_values)
+    list_of_float64_with_inf = [-math.inf, 5.5, math.inf]
+    setattr(msg, 'float64_values', list_of_float64_with_inf)
+    assert numpy.array_equal(list_of_float64_with_inf, msg.float64_values)
 
 
 def test_bounded_sequences():

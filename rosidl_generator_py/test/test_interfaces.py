@@ -14,6 +14,7 @@
 
 import array
 import math
+import sys
 
 import numpy
 import pytest
@@ -113,14 +114,20 @@ def test_basic_types():
             setattr(msg, 'uint%d_value' % i, -1)
         with pytest.raises(AssertionError):
             setattr(msg, 'int%d_value' % i, 2**i)
+    float32_ieee_max_next = numpy.nextafter(3.402823466e+38, math.inf)
     with pytest.raises(AssertionError):
-        setattr(msg, 'float32_value', -3.5e+38)
+        setattr(msg, 'float32_value', -float32_ieee_max_next)
     with pytest.raises(AssertionError):
-        setattr(msg, 'float32_value', 3.5e+38)
-    with pytest.raises(AssertionError):
-        setattr(msg, 'float64_value', 1.8e+308)
-    with pytest.raises(AssertionError):
-        setattr(msg, 'float64_value', -1.8e+308)
+        setattr(msg, 'float32_value', float32_ieee_max_next)
+
+    # Only run bounds test on system with non-compliant IEEE 754 float64.
+    # Otherwise the number is implicitly converted to inf.
+    if sys.float_info.max > 1.7976931348623157e+308:
+        float64_ieee_max_next = numpy.nextafter(1.7976931348623157e+308, math.inf)
+        with pytest.raises(AssertionError):
+            setattr(msg, 'float64_value', -float64_ieee_max_next)
+        with pytest.raises(AssertionError):
+            setattr(msg, 'float64_value', float64_ieee_max_next)
 
     # NaN
     setattr(msg, 'float32_value', math.nan)
@@ -710,9 +717,13 @@ def test_bounded_sequences():
     with pytest.raises(AssertionError):
         setattr(msg, 'uint64_values', [-1, 1, 2])
     with pytest.raises(AssertionError):
-        setattr(msg, 'float32_values', [-3.5e+38, 0.0, 3.5e+38])
-    with pytest.raises(AssertionError):
-        setattr(msg, 'float64_values', [-1.8e+308, 0.0, 1.8e+308])
+        float32_ieee_max_next = numpy.nextafter(3.402823466e+38, math.inf)
+        setattr(msg, 'float32_values', [-float32_ieee_max_next, 0.0, float32_ieee_max_next])
+    if sys.float_info.max > 1.7976931348623157e+308:
+        with pytest.raises(AssertionError):
+            float64_ieee_max_next = numpy.nextafter(1.7976931348623157e+308, math.inf)
+            setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
+
 
 
 def test_unbounded_sequences():

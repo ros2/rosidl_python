@@ -510,7 +510,7 @@ bound = 2**nbits
 @[      if type_.typename == "float"]@
 @{
 name = "float"
-bound = 3.402823e+38
+bound = 3.402823466e+38
 }@
                  all(not (val < -@(bound) or val > @(bound)) or math.isinf(val) for val in value)), \
 @{assert_msg_suffixes.append('and each float in [%f, %f]' % (-bound, bound))}@
@@ -567,7 +567,7 @@ bound = 2**nbits
 @[      if type_.typename == "float"]@
 @{
 name = "float"
-bound = 3.402823e+38
+bound = 3.402823466e+38
 }@
 @[      elif type_.typename == "double"]@
 @{

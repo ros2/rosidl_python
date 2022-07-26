@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.3 (2022-07-26)
+-------------------
+* Fixing generated import order (backport `#173 <https://github.com/ros2/rosidl_python/issues/173>`_)
+* Contributors: Dharini Dutia
+
 0.11.2 (2022-04-28)
 -------------------
 * Removes erroneous unmatched closing parenthesis (`#125 <https://github.com/ros2/rosidl_python/issues/125>`_) (`#159 <https://github.com/ros2/rosidl_python/issues/159>`_)

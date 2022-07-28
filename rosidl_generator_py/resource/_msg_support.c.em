@@ -11,6 +11,8 @@ from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME
 from rosidl_parser.definition import NamespacedType
+from rosidl_parser.definition import SERVICE_RESPONSE_MESSAGE_SUFFIX
+from rosidl_parser.definition import SERVICE_REQUEST_MESSAGE_SUFFIX
 
 
 def primitive_msg_type_to_c(type_):
@@ -119,7 +121,10 @@ if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_
 nested_header = '/'.join(type_[:-1] + ('detail', convert_camel_case_to_lower_case_underscore(type_[-1]),))
 nested_header += '__functions.h'
 }@
-@[    if nested_header in include_directives]@
+@[    if type_[-1].endswith(SERVICE_REQUEST_MESSAGE_SUFFIX) or type_[-1].endswith(SERVICE_RESPONSE_MESSAGE_SUFFIX)]
+@# Service request/response messages are included in the srv__struct
+@[continue]
+@[    elif nested_header in include_directives]@
 // already included above
 // @
 @[    else]@

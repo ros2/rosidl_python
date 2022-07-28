@@ -13,6 +13,10 @@ TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
     message=service.response_message, import_statements=import_statements)
+TEMPLATE(
+    '_msg.py.em',
+    package_name=package_name, interface_path=interface_path,
+    message=service.event_message, import_statements=import_statements)
 }@
 
 
@@ -42,11 +46,14 @@ class Metaclass_@(service.namespaced_type.name)(type):
                 @(module_name).Metaclass_@(service.request_message.structure.namespaced_type.name).__import_type_support__()
             if @(module_name).Metaclass_@(service.response_message.structure.namespaced_type.name)._TYPE_SUPPORT is None:
                 @(module_name).Metaclass_@(service.response_message.structure.namespaced_type.name).__import_type_support__()
+            if @(module_name).Metaclass_@(service.event_message.structure.namespaced_type.name)._TYPE_SUPPORT is None:
+                @(module_name).Metaclass_@(service.event_message.structure.namespaced_type.name).__import_type_support__()
 
 
 class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_type.name)):
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.request_message.structure.namespaced_type.name) as Request
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.response_message.structure.namespaced_type.name) as Response
+    from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.event_message.structure.namespaced_type.name) as Event
 
     def __init__(self):
         raise NotImplementedError('Service classes can not be instantiated')

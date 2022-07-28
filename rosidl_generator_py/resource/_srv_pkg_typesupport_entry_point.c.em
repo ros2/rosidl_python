@@ -16,6 +16,15 @@ TEMPLATE(
     include_directives=include_directives,
     register_functions=register_functions)
 }@
+
+@{
+TEMPLATE(
+    '_msg_pkg_typesupport_entry_point.c.em',
+    package_name=package_name, idl_type=idl_type,
+    message=service.event_message, typesupport_impl=typesupport_impl,
+    include_directives=include_directives,
+    register_functions=register_functions)
+}@
 @
 @{
 from rosidl_pycommon import convert_camel_case_to_lower_case_underscore

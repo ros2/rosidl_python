@@ -21,7 +21,7 @@
   <buildtool_export_depend>ament_cmake</buildtool_export_depend>
   <buildtool_export_depend>ament_index_python</buildtool_export_depend>
   <buildtool_export_depend>python_cmake_module</buildtool_export_depend>
-  <buildtool_export_depend>rosidl_cmake</buildtool_export_depend>
+  <buildtool_export_depend>rosidl_cmake_core</buildtool_export_depend>
   <buildtool_export_depend>rosidl_generator_c</buildtool_export_depend>
   <buildtool_export_depend>rosidl_typesupport_c</buildtool_export_depend>
   <buildtool_export_depend>rosidl_typesupport_interface</buildtool_export_depend>
@@ -42,7 +42,7 @@
   <test_depend>python3-pytest</test_depend>
   <test_depend>python_cmake_module</test_depend>
   <test_depend>rmw</test_depend>
-  <test_depend>rosidl_cmake</test_depend>
+  <test_depend>rosidl_cmake_core</test_depend>
 
   <!--
   Bloom does not support group_depend so entries below duplicate the group rosidl_typesupport_c_packages.

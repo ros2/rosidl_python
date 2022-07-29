@@ -1,7 +1,7 @@
 @# Included from rosidl_generator_py/resource/_idl_support.c.em
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 @{
-from rosidl_cmake import convert_camel_case_to_lower_case_underscore
+from rosidl_cmake_core import convert_camel_case_to_lower_case_underscore
 from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence

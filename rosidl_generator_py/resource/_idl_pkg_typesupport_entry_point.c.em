@@ -14,7 +14,7 @@
 @# Handle messages
 @#######################################################################
 @{
-from rosidl_cmake import convert_camel_case_to_lower_case_underscore
+from rosidl_cmake_core import convert_camel_case_to_lower_case_underscore
 from rosidl_parser.definition import Message
 
 include_directives = set()

@@ -1,7 +1,7 @@
 @# Included from rosidl_generator_py/resource/_idl.py.em
 @{
 
-from rosidl_cmake import convert_camel_case_to_lower_case_underscore
+from rosidl_cmake_core import convert_camel_case_to_lower_case_underscore
 from rosidl_generator_py.generate_py_impl import constant_value_to_py
 from rosidl_generator_py.generate_py_impl import get_python_type
 from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES

@@ -488,29 +488,29 @@ def test_arrays():
     with pytest.raises(AssertionError):
         float32_ieee_max_next = numpy.nextafter(3.402823466e+38, math.inf)
         setattr(msg, 'float32_values', [-float32_ieee_max_next, 0.0, float32_ieee_max_next])
-    
+
     # If target system is IEEE 754 compliant, the next number is rounded to inf.
     # Only perform this check on non-compliant systems.
     if sys.float_info.max > 1.7976931348623157e+308:
         with pytest.raises(AssertionError):
             float64_ieee_max_next = numpy.nextafter(1.7976931348623157e+308, math.inf)
             setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
-    
+
     # NaN
-    list_of_float32_with_nan = [-1.33, math.nan, 1.33]
-    setattr(msg, 'float32_values', list_of_float32_with_nan)
-    assert numpy.array_equal(list_of_float32_with_nan, msg.float32_values, equal_nan=True)
-    list_of_float64_with_nan = [-1.66, math.nan, 1.66]
-    setattr(msg, 'float64_values', list_of_float64_with_nan)
-    assert numpy.array_equal(list_of_float64_with_nan, msg.float64_values, equal_nan=True)
+    arr_of_float32_with_nan = numpy.array([-1.33, math.nan, 1.33], dtype=numpy.float32)
+    setattr(msg, 'float32_values', arr_of_float32_with_nan)
+    assert numpy.array_equal(arr_of_float32_with_nan, msg.float32_values, equal_nan=True)
+    arr_of_float64_with_nan = numpy.array([-1.66, math.nan, 1.66], dtype=numpy.float64)
+    setattr(msg, 'float64_values', arr_of_float64_with_nan)
+    assert numpy.array_equal(arr_of_float64_with_nan, msg.float64_values, equal_nan=True)
 
     # Inf
-    list_of_float32_with_inf = [-math.inf, 5.5, math.inf]
-    setattr(msg, 'float32_values', list_of_float32_with_inf)
-    assert numpy.array_equal(list_of_float32_with_inf, msg.float32_values)
-    list_of_float64_with_inf = [-math.inf, 5.5, math.inf]
-    setattr(msg, 'float64_values', list_of_float64_with_inf)
-    assert numpy.array_equal(list_of_float64_with_inf, msg.float64_values)
+    arr_of_float32_with_inf = numpy.array([-math.inf, 5.5, math.inf], dtype=numpy.float32)
+    setattr(msg, 'float32_values', arr_of_float32_with_inf)
+    assert numpy.array_equal(arr_of_float32_with_inf, msg.float32_values)
+    arr_of_float64_with_inf = numpy.array([-math.inf, 5.5, math.inf], dtype=numpy.float64)
+    setattr(msg, 'float64_values', arr_of_float64_with_inf)
+    assert numpy.array_equal(arr_of_float64_with_inf, msg.float64_values)
 
 
 def test_bounded_sequences():
@@ -725,7 +725,7 @@ def test_bounded_sequences():
     with pytest.raises(AssertionError):
         float32_ieee_max_next = numpy.nextafter(3.402823466e+38, math.inf)
         setattr(msg, 'float32_values', [-float32_ieee_max_next, 0.0, float32_ieee_max_next])
-    
+
     # If target system is IEEE 754 compliant, the next number is rounded to inf.
     # Only perform this check on non-compliant systems.
     if sys.float_info.max > 1.7976931348623157e+308:
@@ -874,7 +874,7 @@ def test_unbounded_sequences():
     with pytest.raises(AssertionError):
         float32_ieee_max_next = numpy.nextafter(3.402823466e+38, math.inf)
         setattr(msg, 'float32_values', [-float32_ieee_max_next, 0.0, float32_ieee_max_next])
-    
+
     # If target system is IEEE 754 compliant, the next number is rounded to inf.
     # Only perform this check on non-compliant systems.
     if sys.float_info.max > 1.7976931348623157e+308:

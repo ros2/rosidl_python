@@ -18,11 +18,6 @@ import os
 import pathlib
 import sys
 
-from rosidl_cmake import convert_camel_case_to_lower_case_underscore
-from rosidl_cmake import expand_template
-from rosidl_cmake import generate_files
-from rosidl_cmake import get_newest_modification_time
-from rosidl_cmake import read_generator_arguments
 from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
@@ -38,6 +33,11 @@ from rosidl_parser.definition import Message
 from rosidl_parser.definition import NamespacedType
 from rosidl_parser.definition import Service
 from rosidl_parser.parser import parse_idl_file
+from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
+from rosidl_pycommon import expand_template
+from rosidl_pycommon import generate_files
+from rosidl_pycommon import get_newest_modification_time
+from rosidl_pycommon import read_generator_arguments
 
 SPECIAL_NESTED_BASIC_TYPES = {
     'float': {'dtype': 'numpy.float32', 'type_code': 'f'},

@@ -6,7 +6,6 @@ find_package(ament_cmake REQUIRED)
 
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(rmw)
-ament_export_dependencies(rosidl_cmake)
 
 ament_index_register_resource("rosidl_generator_packages")
 

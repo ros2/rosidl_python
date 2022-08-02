@@ -1,6 +1,6 @@
 @# Included from rosidl_generator_py/resource/_idl_pkg_typesupport_entry_point.c.em
 @{
-from rosidl_cmake import convert_camel_case_to_lower_case_underscore
+from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 
 include_parts = idl_type.namespaces + [
     'detail', convert_camel_case_to_lower_case_underscore(idl_type.name)]

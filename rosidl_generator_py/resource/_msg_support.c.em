@@ -683,7 +683,7 @@ nested_type = '__'.join(type_.namespaced_name())
       (void)rc;
       assert(rc == 0);
 @[    elif isinstance(member.type.value_type, AbstractString)]@
-      PyObject * decoded_item = PyUnicode_DecodeUTF8(src[i].data, strlen(src[i].data), "strict");
+      PyObject * decoded_item = PyUnicode_DecodeUTF8(src[i].data, strlen(src[i].data), "replace");
       if (!decoded_item) {
         return NULL;
       }
@@ -749,7 +749,7 @@ nested_type = '__'.join(type_.namespaced_name())
     field = PyUnicode_DecodeUTF8(
       ros_message->@(member.name).data,
       strlen(ros_message->@(member.name).data),
-      "strict");
+      "replace");
     if (!field) {
       return NULL;
     }

@@ -18,7 +18,7 @@ TEMPLATE(
 }@
 @
 @{
-from rosidl_cmake import convert_camel_case_to_lower_case_underscore
+from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 type_name = convert_camel_case_to_lower_case_underscore(service.namespaced_type.name)
 function_name = 'type_support'
 }@

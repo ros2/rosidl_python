@@ -1,6 +1,6 @@
 @# Included from rosidl_generator_py/resource/_idl.py.em
 @{
-from rosidl_cmake import convert_camel_case_to_lower_case_underscore
+from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 
 action_name = '_' + convert_camel_case_to_lower_case_underscore(action.namespaced_type.name)
 module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)

@@ -37,7 +37,7 @@ if message.structure.members:
         'import rosidl_parser.definition', [])  # used for SLOT_TYPES
 for member in message.structure.members:
     type_ = member.type
-    if isinstance(type_, AbstractNestedType): 
+    if isinstance(type_, AbstractNestedType):
         type_ = type_.value_type
     if member.name != EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME:
         imports.setdefault(

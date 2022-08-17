@@ -487,14 +487,20 @@ def test_arrays():
         setattr(msg, 'uint64_values', [-1, 1, 2])
     with pytest.raises(AssertionError):
         float32_ieee_max_next = numpy.nextafter(3.402823466e+38, math.inf)
-        setattr(msg, 'float32_values', [-float32_ieee_max_next, 0.0, float32_ieee_max_next])
+        setattr(msg, 'float32_values', [-float32_ieee_max_next, 0.0])
+    with pytest.raises(AssertionError):
+        float32_ieee_max_next = numpy.nextafter(3.402823466e+38, math.inf)
+        setattr(msg, 'float32_values', [0.0, float32_ieee_max_next])
 
     # If target system is IEEE 754 compliant, the next number is rounded to inf.
     # Only perform this check on non-compliant systems.
     if sys.float_info.max > 1.7976931348623157e+308:
         with pytest.raises(AssertionError):
             float64_ieee_max_next = numpy.nextafter(1.7976931348623157e+308, math.inf)
-            setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
+            setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0])
+        with pytest.raises(AssertionError):
+            float64_ieee_max_next = numpy.nextafter(1.7976931348623157e+308, math.inf)
+            setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0])
 
     # NaN
     arr_of_float32_with_nan = numpy.array([-1.33, math.nan, 1.33], dtype=numpy.float32)
@@ -724,7 +730,10 @@ def test_bounded_sequences():
         setattr(msg, 'uint64_values', [-1, 1, 2])
     with pytest.raises(AssertionError):
         float32_ieee_max_next = numpy.nextafter(3.402823466e+38, math.inf)
-        setattr(msg, 'float32_values', [-float32_ieee_max_next, 0.0, float32_ieee_max_next])
+        setattr(msg, 'float32_values', [-float32_ieee_max_next, 0.0])
+    with pytest.raises(AssertionError):
+        float32_ieee_max_next = numpy.nextafter(3.402823466e+38, math.inf)
+        setattr(msg, 'float32_values', [0.0, float32_ieee_max_next])
 
     # If target system is IEEE 754 compliant, the next number is rounded to inf.
     # Only perform this check on non-compliant systems.

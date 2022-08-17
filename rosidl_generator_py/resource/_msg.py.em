@@ -36,9 +36,15 @@ if message.structure.members:
     imports.setdefault(
         'import rosidl_parser.definition', [])  # used for SLOT_TYPES
 for member in message.structure.members:
+    type_ = member.type
+    if isinstance(type_, AbstractNestedType): 
+        type_ = type_.value_type
     if member.name != EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME:
         imports.setdefault(
             'import builtins', [])  # used for @builtins.property
+    if isinstance(type_, BasicType) and type_.typename in FLOATING_POINT_TYPES:
+        imports.setdefault(
+            'import math', [])  # used for math.isinf
     if (
         isinstance(member.type, AbstractNestedType) and
         isinstance(member.type.value_type, BasicType) and
@@ -504,16 +510,16 @@ bound = 2**nbits
 @[      if type_.typename == "float"]@
 @{
 name = "float"
-bound = 3.402823e+38
+bound = 3.402823466e+38
 }@
-                 all(val >= -@(bound) and val <= @(bound) for val in value)), \
+                 all(not (val < -@(bound) or val > @(bound)) or math.isinf(val) for val in value)), \
 @{assert_msg_suffixes.append('and each float in [%f, %f]' % (-bound, bound))}@
 @[      elif type_.typename == "double"]@
 @{
 name = "double"
 bound = 1.7976931348623157e+308
 }@
-                 all(val >= -@(bound) and val <= @(bound) for val in value)), \
+                 all(not (val < -@(bound) or val > @(bound)) or math.isinf(val) for val in value)), \
 @{assert_msg_suffixes.append('and each double in [%f, %f]' % (-bound, bound))}@
 @[      end if]@
 @[    else]@
@@ -561,7 +567,7 @@ bound = 2**nbits
 @[      if type_.typename == "float"]@
 @{
 name = "float"
-bound = 3.402823e+38
+bound = 3.402823466e+38
 }@
 @[      elif type_.typename == "double"]@
 @{
@@ -569,7 +575,7 @@ name = "double"
 bound = 1.7976931348623157e+308
 }@
 @[      end if]@
-            assert value >= -@(bound) and value <= @(bound), \
+            assert not (value < -@(bound) or value > @(bound)) or math.isinf(value), \
                 "The '@(member.name)' field must be a @(name) in [@(-bound), @(bound)]"
 @[    end if]@
 @[  else]@

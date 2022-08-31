@@ -505,12 +505,16 @@ def test_arrays():
     # NaN
     arr_of_float32_with_nan = numpy.array([-1.33, math.nan, 1.33], dtype=numpy.float32)
     setattr(msg, 'float32_values', arr_of_float32_with_nan)
-    assert numpy.asarray(arr_of_float32_with_nan[~numpy.isnan(arr_of_float32_with_nan)] == 
-            msg.float32_values[~numpy.isnan(arr_of_float32_with_nan)]).all()
+    arr_with_nan = numpy.isnan(arr_of_float32_with_nan)
+    assert numpy.shape(arr_of_float32_with_nan) == numpy.shape(msg.float32_values) and (
+            numpy.asarray(arr_of_float32_with_nan[~arr_with_nan] == 
+                msg.float32_values[~arr_with_nan]).all())
     arr_of_float64_with_nan = numpy.array([-1.66, math.nan, 1.66], dtype=numpy.float64)
     setattr(msg, 'float64_values', arr_of_float64_with_nan)
-    assert numpy.asarray(arr_of_float64_with_nan[~numpy.isnan(arr_of_float64_with_nan)] == 
-            msg.float64_values[~numpy.isnan(arr_of_float64_with_nan)]).all()
+    arr_with_nan = numpy.isnan(arr_of_float64_with_nan)
+    assert numpy.shape(arr_of_float64_with_nan) == numpy.shape(msg.float64_values) and (
+            numpy.asarray(arr_of_float64_with_nan[~arr_with_nan] == 
+                msg.float64_values[~arr_with_nan]).all())
     # Inf
     arr_of_float32_with_inf = numpy.array([-math.inf, 5.5, math.inf], dtype=numpy.float32)
     setattr(msg, 'float32_values', arr_of_float32_with_inf)

@@ -121,9 +121,13 @@ def generate_py(generator_arguments_file, typesupport_impls):
 
     for subfolder in modules.keys():
         with open(os.path.join(args['output_dir'], subfolder, '__init__.py'), 'w') as f:
-            for idl_stem in sorted(modules[subfolder]):
-                module_name = '_' + \
+            module_names = {}
+            for idl_stem in modules[subfolder]:
+                module_names[idl_stem] = '_' + \
                     convert_camel_case_to_lower_case_underscore(idl_stem)
+            # sorting after lower case conversion to get true order
+            for module_name, idl_stem in \
+                    sorted((value, key) for (key, value) in module_names.items()):
                 f.write(
                     f'from {package_name}.{subfolder}.{module_name} import '
                     f'{idl_stem}  # noqa: F401\n')

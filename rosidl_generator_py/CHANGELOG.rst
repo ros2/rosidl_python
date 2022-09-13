@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.16.0 (2022-09-13)
+-------------------
 * :man_farmer: Fix NaN values bound numpy windows version (`#182 <https://github.com/ros2/rosidl_python/issues/182>`_)
 * Allow NaN values to pass floating point bounds check. (`#167 <https://github.com/ros2/rosidl_python/issues/167>`_)
 * Replace rosidl_cmake imports with rosidl_pycommon (`#177 <https://github.com/ros2/rosidl_python/issues/177>`_)

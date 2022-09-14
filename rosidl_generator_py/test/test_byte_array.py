@@ -26,13 +26,13 @@ def test_msg_bytearray():
     assert [] == msg.data
 
     # set values
-    l1 = [1,2,3]
+    l1 = [1, 2, 3]
     msg.data = l1
     # get values
     assert bytes(l1) == msg.data
 
     # set values
-    l2 = {1,2,3}
+    l2 = {1, 2, 3}
     msg.data = l2
     # get values
     assert bytes(l2) == msg.data
@@ -56,17 +56,18 @@ def test_msg_bytearray():
     # get values
     assert l5 == msg.data
 
+
 def test_msg_bytearray_exception():
     msg = ByteArray()
 
     with pytest.raises(ValueError):
-      l = [1,2,256]
-      msg.data = l
+        l1 = [1, 2, 256]
+        msg.data = l1
 
     with pytest.raises(AssertionError):
-      l = ['a', 'b']
-      msg.data = l
+        l2 = ['a', 'b']
+        msg.data = l2
 
     with pytest.raises(AssertionError):
-      l = [1, b'2', b'3']
-      msg.data = l
+        l3 = [1, b'2', b'3']
+        msg.data = l3

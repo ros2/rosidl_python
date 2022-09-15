@@ -489,15 +489,15 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 @[      end if]@
 @[    end if]@
 @{assert_msg_suffixes.append("and each value of type '%s'" % get_python_type(type_))}@
-@[      if get_python_type(type_) == 'bytes']@
+@[    if get_python_type(type_) == 'bytes']@
 @{byte_array_detected = True}@
-@{assert_msg_suffixes.append("or type 'uint8'")}@
+@{assert_msg_suffixes.append("or type 'int' in range(0, 256)")}@
                  (isinstance(value, @(get_python_type(type_))) or
                   all(isinstance(v, @(get_python_type(type_))) for v in value) or
                   all(isinstance(v, int) for v in value)) and
-@[      else]@
+@[    else]@
                  all(isinstance(v, @(get_python_type(type_))) for v in value) and
-@[      end if]@
+@[    end if]@
 @[    if isinstance(type_, BasicType) and type_.typename in SIGNED_INTEGER_TYPES]@
 @{
 nbits = int(type_.typename[3:])

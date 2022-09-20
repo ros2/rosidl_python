@@ -30,7 +30,6 @@ from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 @# Collect necessary import statements for all members
 @{
 from collections import OrderedDict
-import numpy
 imports = OrderedDict()
 if message.structure.members:
     imports.setdefault(

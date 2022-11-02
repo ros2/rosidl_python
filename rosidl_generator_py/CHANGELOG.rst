@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove stray numpy import (`#185 <https://github.com/ros2/rosidl_python/issues/185>`_)
+* Contributors: Ben Wolsieffer
+
 0.16.0 (2022-09-13)
 -------------------
 * :man_farmer: Fix NaN values bound numpy windows version (`#182 <https://github.com/ros2/rosidl_python/issues/182>`_)

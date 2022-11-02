@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.16.1 (2022-11-02)
+-------------------
 * Remove stray numpy import (`#185 <https://github.com/ros2/rosidl_python/issues/185>`_)
 * Contributors: Ben Wolsieffer
 

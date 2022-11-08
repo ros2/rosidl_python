@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Humble: Backport NaN fixes (`#188 <https://github.com/ros2/rosidl_python/issues/188>`_)
+* Contributors: Chris Lalancette
+
 0.14.3 (2022-11-07)
 -------------------
 * Change decode error mode to replace (`#176 <https://github.com/ros2/rosidl_python/issues/176>`_) (`#179 <https://github.com/ros2/rosidl_python/issues/179>`_)

@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.14.4 (2022-11-08)
+-------------------
 * Humble: Backport NaN fixes (`#188 <https://github.com/ros2/rosidl_python/issues/188>`_)
 * Contributors: Chris Lalancette
 

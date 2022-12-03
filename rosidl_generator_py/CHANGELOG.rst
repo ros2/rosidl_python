@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.4 (2022-12-02)
+-------------------
+* Change decode error mode to replace (`#180 <https://github.com/ros2/rosidl_python/issues/180>`_)
+* Contributors: Tomoya Fujita
+
 0.11.3 (2022-07-26)
 -------------------
 * Fixing generated import order (backport `#173 <https://github.com/ros2/rosidl_python/issues/173>`_)

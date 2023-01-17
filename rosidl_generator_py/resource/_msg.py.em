@@ -491,7 +491,7 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 @{assert_msg_suffixes.append("and each value of type '%s'" % get_python_type(type_))}@
 @[    if get_python_type(type_) == 'bytes']@
 @{byte_array_detected = True}@
-@{assert_msg_suffixes.append("or type 'int' in range(0, 256)")}@
+@{assert_msg_suffixes.append("or type 'int' in range(0, 255)")}@
                  (isinstance(value, @(get_python_type(type_))) or
                   all(isinstance(v, @(get_python_type(type_))) for v in value) or
                   all(isinstance(v, int) for v in value)) and

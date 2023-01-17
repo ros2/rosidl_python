@@ -2,6 +2,26 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.16.1 (2022-11-02)
+-------------------
+* Remove stray numpy import (`#185 <https://github.com/ros2/rosidl_python/issues/185>`_)
+* Contributors: Ben Wolsieffer
+
+0.16.0 (2022-09-13)
+-------------------
+* :man_farmer: Fix NaN values bound numpy windows version (`#182 <https://github.com/ros2/rosidl_python/issues/182>`_)
+* Allow NaN values to pass floating point bounds check. (`#167 <https://github.com/ros2/rosidl_python/issues/167>`_)
+* Replace rosidl_cmake imports with rosidl_pycommon (`#177 <https://github.com/ros2/rosidl_python/issues/177>`_)
+* Change decode error mode to replace (`#176 <https://github.com/ros2/rosidl_python/issues/176>`_)
+* Merge pull request `#173 <https://github.com/ros2/rosidl_python/issues/173>`_ from ros2/quarkytale/fix_import_order
+* fix flake
+* sorting after conversion
+* Revert "Use modern cmake targets to avoid absolute paths to appear in binary archives (`#160 <https://github.com/ros2/rosidl_python/issues/160>`_)" (`#166 <https://github.com/ros2/rosidl_python/issues/166>`_)
+* Use modern cmake targets to avoid absolute paths to appear in binary archives (`#160 <https://github.com/ros2/rosidl_python/issues/160>`_)
+* michel as author
+* adding maintainer
+* Contributors: Cristóbal Arroyo, Dharini Dutia, Ivan Santiago Paunovic, Jacob Perron, Tomoya Fujita, quarkytale, Øystein Sture
+
 0.15.0 (2022-05-04)
 -------------------
 

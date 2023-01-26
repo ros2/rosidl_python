@@ -8,27 +8,27 @@ module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.s
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.goal, import_statements=import_statements)
+    message=action.goal, import_statements=import_statements, type_hash=type_hash)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.result, import_statements=import_statements)
+    message=action.result, import_statements=import_statements, type_hash=type_hash)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.feedback, import_statements=import_statements)
+    message=action.feedback, import_statements=import_statements, type_hash=type_hash)
 TEMPLATE(
     '_srv.py.em',
     package_name=package_name, interface_path=interface_path,
-    service=action.send_goal_service, import_statements=import_statements)
+    service=action.send_goal_service, import_statements=import_statements, type_hash=type_hash)
 TEMPLATE(
     '_srv.py.em',
     package_name=package_name, interface_path=interface_path,
-    service=action.get_result_service, import_statements=import_statements)
+    service=action.get_result_service, import_statements=import_statements, type_hash=type_hash)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.feedback_message, import_statements=import_statements)
+    message=action.feedback_message, import_statements=import_statements, type_hash=type_hash)
 }@
 
 

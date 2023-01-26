@@ -25,7 +25,7 @@ from rosidl_parser.definition import Message
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path, message=message,
-    import_statements=import_statements)
+    import_statements=import_statements, type_hash=type_hash)
 }@
 @[end for]@
 @
@@ -40,7 +40,7 @@ from rosidl_parser.definition import Service
 TEMPLATE(
     '_srv.py.em',
     package_name=package_name, interface_path=interface_path, service=service,
-    import_statements=import_statements)
+    import_statements=import_statements, type_hash=type_hash)
 }@
 @[end for]@
 @
@@ -55,6 +55,6 @@ from rosidl_parser.definition import Action
 TEMPLATE(
     '_action.py.em',
     package_name=package_name, interface_path=interface_path, action=action,
-    import_statements=import_statements)
+    import_statements=import_statements, type_hash=type_hash)
 }@
 @[end for]@

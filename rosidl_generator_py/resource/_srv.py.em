@@ -8,7 +8,7 @@ module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.s
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.request_message, import_statements=import_statements)
+    message=service.request_message, import_statements=import_statements, type_hash=type_hash)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
@@ -16,7 +16,7 @@ TEMPLATE(
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.event_message, import_statements=import_statements)
+    message=service.response_message, import_statements=import_statements, type_hash=type_hash)
 }@
 
 

@@ -254,6 +254,8 @@ string@
 @[end for]@
     }
 
+    TYPE_VERSION_HASH = @(type_hash)
+
     SLOT_TYPES = (
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@

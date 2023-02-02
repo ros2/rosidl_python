@@ -122,10 +122,6 @@ rosidl_write_generator_arguments(
 
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   if(${PROJECT_NAME} IN_LIST AMENT_CMAKE_PYTHON_INSTALL_INSTALLED_NAMES)
-    ament_python_install_module("${_output_path}/__init__.py"
-      DESTINATION_SUFFIX "${PROJECT_NAME}"
-    )
-
     # TODO(esteve): replace this with ament_python_install_module and allow a list
     # of modules to be passed instead of iterating over _generated_py_files
     # See https://github.com/ros2/rosidl/issues/89

@@ -133,7 +133,7 @@ for member in message.structure.members:
         type_ = type_.value_type
     if isinstance(type_, NamespacedType):
         if (
-            type_.name.endswith(SERVICE_RESPONSE_MESSAGE_SUFFIX) or 
+            type_.name.endswith(SERVICE_RESPONSE_MESSAGE_SUFFIX) or
             type_.name.endswith(SERVICE_REQUEST_MESSAGE_SUFFIX)
         ):
             continue

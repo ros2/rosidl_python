@@ -156,6 +156,42 @@ PyObject * @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_unde
 @[  end if]@
 @[end for]@
 
+@# TODO(aamaslov) duplicated struct definition here
+typedef struct
+{
+  PyObject_HEAD
+  /* Type-specific fields go here. */
+@[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+@[  if isinstance(member.type, BasicType)]@
+@[    if member.type.typename == 'float']@
+  double _@(member.name);
+@[    else]@
+  @(primitive_msg_type_to_c(member.type)) _@(member.name);
+@[    end if]@
+@[  else isinstance(member.type, AbstractGenericString)]@
+  PyObject * _@(member.name);
+@[  end if]@
+@[end for]@
+} @(message.structure.namespaced_type.name)Base;
+
+@{
+for member in message.structure.members:
+    if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES:
+        if isinstance(member.type, Array):
+            if 'numpy.ndarray' not in lazy_import_methods:
+                lazy_import_methods.add('numpy.ndarray')
+                TEMPLATE('_import_type.c.em', full_type_name='numpy.ndarray', func_name='lazy_import_ndarray')
+            dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
+            if dtype not in lazy_import_methods:
+                lazy_import_methods.add(dtype)
+                TEMPLATE('_import_type.c.em', full_type_name=dtype, func_name='lazy_import_numpy_' + member.type.value_type.typename)
+        elif isinstance(member.type, AbstractSequence) and 'array.array' not in lazy_import_methods:
+            lazy_import_methods.add('array.array')
+            TEMPLATE('_import_type.c.em', full_type_name='array.array', func_name='lazy_import_array')
+}@
 @{
 module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
 }@
@@ -522,19 +558,35 @@ nested_type = '__'.join(type_.namespaced_name())
   return true;
 }
 
+@{
+full_type_name = '.'.join(message.structure.namespaced_type.namespaces + [module_name, message.structure.namespaced_type.name])
+import_func_name = 'lazy_import_' + convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)
+TEMPLATE(
+    '_import_type.c.em',
+    full_type_name=full_type_name, func_name=import_func_name, ensure_is_type=True)
+}@
+
 ROSIDL_GENERATOR_C_EXPORT
 PyObject * @('__'.join(message.structure.namespaced_type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)]))__convert_to_py(void * raw_ros_message)
 {
   /* NOTE(esteve): Call constructor of @(message.structure.namespaced_type.name) */
-  PyObject * _pymessage = NULL;
+  @(message.structure.namespaced_type.name)Base * _pymessage = NULL;
   {
-    PyObject * pymessage_module = PyImport_ImportModule("@('.'.join(message.structure.namespaced_type.namespaces)).@(module_name)");
-    assert(pymessage_module);
-    PyObject * pymessage_class = PyObject_GetAttrString(pymessage_module, "@(message.structure.namespaced_type.name)");
-    assert(pymessage_class);
-    Py_DECREF(pymessage_module);
-    _pymessage = PyObject_CallObject(pymessage_class, NULL);
-    Py_DECREF(pymessage_class);
+    PyObject * py_type = @(import_func_name)();
+    if (!py_type) {
+      return NULL;
+    }
+
+    PyTypeObject * type = (PyTypeObject *)py_type;
+    assert(type->tp_new);
+
+    PyObject * empty_tuple = PyTuple_New(0);
+    if (!empty_tuple) {
+      return NULL;
+    }
+
+    _pymessage = (@(message.structure.namespaced_type.name)Base *)type->tp_new(type, empty_tuple, NULL);
+    Py_DECREF(empty_tuple);
     if (!_pymessage) {
       return NULL;
     }
@@ -554,15 +606,22 @@ if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 }@
   {  // @(member.name)
+@[ if not isinstance(member.type, BasicType)]@
     PyObject * field = NULL;
+@[ end if]@
 @[ if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@
-    field = PyObject_GetAttrString(_pymessage, "@(member.name)");
-    if (!field) {
+    PyObject * array_type = lazy_import_ndarray();
+    if (!array_type) {
       return NULL;
     }
-    assert(field->ob_type != NULL);
-    assert(field->ob_type->tp_name != NULL);
+    PyObject * element_type = lazy_import_numpy_@(member.type.value_type.typename)();
+    if (!element_type) {
+      return NULL;
+    }
+    PyObject * dims = Py_BuildValue("(i)", @(member.type.size));
+    field = PyObject_CallFunctionObjArgs(array_type, dims, element_type, NULL);
+    Py_DECREF(dims);
     assert(strcmp(field->ob_type->tp_name, "numpy.ndarray") == 0);
     PyArrayObject * seq_field = (PyArrayObject *)field;
     assert(PyArray_NDIM(seq_field) == 1);
@@ -571,11 +630,20 @@ if isinstance(type_, AbstractNestedType):
     @(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_')) * dst = (@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', 'npy_')) *)PyArray_GETPTR1(seq_field, 0);
     @primitive_msg_type_to_c(member.type.value_type) * src = &(ros_message->@(member.name)[0]);
     memcpy(dst, src, @(member.type.size) * sizeof(@primitive_msg_type_to_c(member.type.value_type)));
-    Py_DECREF(field);
 @[    elif isinstance(member.type, AbstractSequence)]@
-    field = PyObject_GetAttrString(_pymessage, "@(member.name)");
-    if (!field) {
-      return NULL;
+    {
+      PyObject * array_type = lazy_import_array();
+      if (!array_type) {
+        return NULL;
+      }
+      PyObject * type_code = PyUnicode_FromOrdinal('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])');
+      assert(type_code);
+
+      field = PyObject_CallFunctionObjArgs(array_type, type_code, NULL);
+      Py_DECREF(type_code);
+      if (!field) {
+        return NULL;
+      }
     }
     assert(field->ob_type != NULL);
     assert(field->ob_type->tp_name != NULL);
@@ -626,7 +694,6 @@ if isinstance(type_, AbstractNestedType):
       }
       Py_DECREF(ret);
     }
-    Py_DECREF(field);
 @[    end if]@
 @[ else]@
 @[  if isinstance(type_, NamespacedType)]@
@@ -740,16 +807,6 @@ nested_type = '__'.join(type_.namespaced_name())
 @[    end if]@
     }
     assert(PySequence_Check(field));
-@[  elif isinstance(member.type, BasicType) and member.type.typename == 'char']@
-    field = Py_BuildValue("C", ros_message->@(member.name));
-    if (!field) {
-      return NULL;
-    }
-@[  elif isinstance(member.type, BasicType) and member.type.typename == 'octet']@
-    field = PyBytes_FromStringAndSize((const char *)&ros_message->@(member.name), 1);
-    if (!field) {
-      return NULL;
-    }
 @[  elif isinstance(member.type, AbstractString)]@
     field = PyUnicode_DecodeUTF8(
       ros_message->@(member.name).data,
@@ -767,41 +824,22 @@ nested_type = '__'.join(type_.namespaced_name())
     if (!field) {
       return NULL;
     }
-@[  elif isinstance(member.type, BasicType) and member.type.typename == 'boolean']@
-@# using PyBool_FromLong allows treating the variable uniformly by calling Py_DECREF on it later
-    field = PyBool_FromLong(ros_message->@(member.name) ? 1 : 0);
-@[  elif isinstance(member.type, BasicType) and member.type.typename in ('float', 'double')]@
-    field = PyFloat_FromDouble(ros_message->@(member.name));
-@[  elif isinstance(member.type, BasicType) and member.type.typename in (
-        'int8',
-        'int16',
-        'int32',
-    )]@
-    field = PyLong_FromLong(ros_message->@(member.name));
-@[  elif isinstance(member.type, BasicType) and member.type.typename in (
-        'uint8',
-        'uint16',
-        'uint32',
-    )]@
-    field = PyLong_FromUnsignedLong(ros_message->@(member.name));
-@[  elif isinstance(member.type, BasicType) and member.type.typename == 'int64']@
-    field = PyLong_FromLongLong(ros_message->@(member.name));
-@[  elif isinstance(member.type, BasicType) and member.type.typename == 'uint64']@
-    field = PyLong_FromUnsignedLongLong(ros_message->@(member.name));
+@[  elif isinstance(member.type, BasicType)]@
+@# Basic types are copied directly
 @[  else]@
     assert(false);
 @[  end if]@
-    {
-      int rc = PyObject_SetAttrString(_pymessage, "@(member.name)", field);
-      Py_DECREF(field);
-      if (rc) {
-        return NULL;
-      }
-    }
+@[ end if]@
+@
+@[ if isinstance(member.type, BasicType)]@
+    _pymessage->_@(member.name) = ros_message->@(member.name);
+@[ else]@
+    // reference is transfered to object
+    _pymessage->_@(member.name) = field;
 @[ end if]@
   }
 @[end for]@
 
   // ownership of _pymessage is transferred to the caller
-  return _pymessage;
+  return (PyObject *)_pymessage;
 }

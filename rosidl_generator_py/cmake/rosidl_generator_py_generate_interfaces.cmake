@@ -34,6 +34,7 @@ set(_output_path
 set(_generated_extension_files "")
 set(_generated_py_files "")
 set(_generated_c_files "")
+set(_generated_c_base_files "")
 
 foreach(_typesupport_impl ${_typesupport_impls})
   set(_generated_extension_${_typesupport_impl}_files "")
@@ -49,6 +50,8 @@ foreach(_abs_idl_file ${rosidl_generate_interfaces_ABS_IDL_FILES})
   list(APPEND _generated_c_files
     "${_output_path}/${_parent_folder}/_${_module_name}_s.c")
 endforeach()
+list(APPEND _generated_c_base_files
+  "${_output_path}/_${PROJECT_NAME}_bases.c")
 
 file(MAKE_DIRECTORY "${_output_path}")
 file(WRITE "${_output_path}/__init__.py" "")
@@ -92,9 +95,11 @@ set(target_dependencies
   ${rosidl_generator_py_GENERATOR_FILES}
   "${rosidl_generator_py_TEMPLATE_DIR}/_action_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_action.py.em"
+  "${rosidl_generator_py_TEMPLATE_DIR}/_idl_pkg_bases.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl_support.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl.py.em"
+  "${rosidl_generator_py_TEMPLATE_DIR}/_msg_base.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg_support.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg.py.em"
@@ -133,7 +138,7 @@ file(WRITE "${_subdir}/CMakeLists.txt" "${_custom_command}")
 add_subdirectory("${_subdir}" ${rosidl_generate_interfaces_TARGET}${_target_suffix})
 set_property(
   SOURCE
-  ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files}
+  ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files} ${_generated_c_base_files}
   PROPERTY GENERATED 1)
 
 set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__rosidl_generator_py")
@@ -164,6 +169,29 @@ endif()
 
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
 target_link_libraries(${_target_name_lib} PRIVATE ${c_typesupport_target})
+
+
+set(_target_name_bases_lib "${rosidl_generate_interfaces_TARGET}__bases")
+add_library(${_target_name_bases_lib} SHARED ${_generated_c_base_files})
+add_dependencies(
+  ${_target_name_bases_lib}
+  ${rosidl_generate_interfaces_TARGET}${_target_suffix})
+target_link_libraries(${_target_name_bases_lib} ${PythonExtra_LIBRARIES})
+target_include_directories(${_target_name_bases_lib} PRIVATE ${PythonExtra_INCLUDE_DIRS})
+
+set_target_properties(${_target_name_bases_lib} PROPERTIES
+  COMPILE_OPTIONS "${_extension_compile_flags}"
+  PREFIX ""
+  LIBRARY_OUTPUT_DIRECTORY${_build_type} ${_output_path}
+  RUNTIME_OUTPUT_DIRECTORY${_build_type} ${_output_path}
+  OUTPUT_NAME "_${PROJECT_NAME}_bases${PythonExtra_EXTENSION_SUFFIX}"
+  SUFFIX "${PythonExtra_EXTENSION_EXTENSION}"
+)
+if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
+  install(TARGETS ${_target_name_bases_lib}
+    DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}")
+endif()
+
 
 foreach(_typesupport_impl ${_typesupport_impls})
   find_package(${_typesupport_impl} REQUIRED)

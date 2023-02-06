@@ -61,6 +61,8 @@ for member in message.structure.members:
         else:
             assert False
         member_names.append(member.name)
+imports.setdefault(
+    f'import {package_name}._{package_name}_bases as _bases', []) # used for base type
 }@
 @#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 @
@@ -102,6 +104,30 @@ class Metaclass_@(message.structure.namespaced_type.name)(type):
         '@(constant.name)': @constant_value_to_py(constant.type, constant.value),
 @[end for]@
     }
+
+    def __new__(cls, *args):
+        new_type = super().__new__(cls, *args)
+
+        # Ugly hack here.
+        # There are two purposes for __slots__ field of message class:
+        #   1) __slots__ field is used in ROS as a list of message members.
+        #      Number of ROS packages rely on its value.
+        #   2) defining __slots__ in Python class prevents adding __dict__
+        #      to class instances. This behvior is desirable.
+        # If #1 defined in message class body, then base class member descriptors are
+        # overriden and no longer can be used. On the other side, any __slots__ value
+        # should be defined to guaratee #2.
+        # So we define empty list in message class body and modify it after type object
+        # constructed. This is neither prohibited, nor encouraged by CPython documentation.
+        new_type.__slots__ += [
+@[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+            '_@(member.name)',
+@[end for]@
+        ]
+        return new_type
 
     @@classmethod
     def __import_type_support__(cls):
@@ -188,7 +214,7 @@ for member in message.structure.members:
 @[end for]@
 
 
-class @(message.structure.namespaced_type.name)(metaclass=Metaclass_@(message.structure.namespaced_type.name)):
+class @(message.structure.namespaced_type.name)(_bases.@(message.structure.namespaced_type.name)Base, metaclass=Metaclass_@(message.structure.namespaced_type.name)):
 @[if not message.constants]@
     """Message class '@(message.structure.namespaced_type.name)'."""
 @[else]@
@@ -202,15 +228,9 @@ class @(message.structure.namespaced_type.name)(metaclass=Metaclass_@(message.st
     """
 @[end if]@
 
-    __slots__ = [
-@[for member in message.structure.members]@
-@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
-@[    continue]@
-@[  end if]@
-        '_@(member.name)',
-@[end for]@
-        '_check_fields',
-    ]
+    # This field is modified after class creation.
+    # See the comment to Metaclass_@(message.structure.namespaced_type.name).__new__
+    __slots__ = []
 
     _fields_and_field_types = {
 @[for member in message.structure.members]@
@@ -433,7 +453,11 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
     @@builtins.property@(noqa_string)
     def @(member.name)(self):@(noqa_string)
         """Message field '@(member.name)'."""
+@[if isinstance(member.type, BasicType) and member.type.typename == 'octet']@
+        return bytes([self._@(member.name)])
+@[else]@
         return self._@(member.name)
+@[end if]@
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value):@(noqa_string)
@@ -603,6 +627,8 @@ bound = 1.7976931348623157e+308
 @[    elif isinstance(member.type, AbstractSequence)]@
         self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', value)
 @[    end if]@
+@[  elif isinstance(member.type, BasicType) and member.type.typename == 'octet']@
+        self._@(member.name) = value[0]
 @[  else]@
         self._@(member.name) = value
 @[  end if]@

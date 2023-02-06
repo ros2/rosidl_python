@@ -192,6 +192,18 @@ def generate_py(generator_arguments_file, typesupport_impls):
                 minimum_timestamp=latest_target_timestamp)
             generated_files.append(generated_file)
 
+    # expand base classes module template
+    template_file = os.path.join(template_dir, '_idl_pkg_bases.c.em')
+    generated_base_file = os.path.join(args['output_dir'], '_%s_bases.c' % package_name)
+    data = {
+        'package_name': args['package_name'],
+        'content': idl_content,
+    }
+    expand_template(
+        template_file, data, generated_base_file,
+        minimum_timestamp=latest_target_timestamp)
+    generated_files.append(generated_file)
+
     return generated_files
 
 

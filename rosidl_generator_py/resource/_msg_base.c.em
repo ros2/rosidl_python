@@ -130,24 +130,6 @@ static int8_t @(register_function)(PyObject * module)
     return 1;
   }
 
-@[if len(message.structure.members) != 1 or member.name != EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
-//  PyObject * slots_tuple = Py_BuildValue(@
-@#  Building string "(sss)"
-"(@("s" * len(message.structure.members)))"@
-@[  for member in message.structure.members]@
-, "_@(member.name)"@
-@[  end for]@
-);
-//  if (!slots_tuple) {
-//    return 1;
-//  }
-//  int err = PyDict_SetItemString(@(message.structure.namespaced_type.name)BaseType.tp_dict, "__slots__", slots_tuple);
-//  Py_DECREF(slots_tuple);
-//  if (err) {
-//    return 1;
-//  }
-@[end if]@
-
   Py_INCREF(&@(message.structure.namespaced_type.name)BaseType);
   if (PyModule_AddObject(module, "@(message.structure.namespaced_type.name)Base", (PyObject *) &@(message.structure.namespaced_type.name)BaseType) < 0) {
     Py_DECREF(&@(message.structure.namespaced_type.name)BaseType);

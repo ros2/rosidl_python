@@ -12,7 +12,7 @@ TEMPLATE(
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.response_message, import_statements=import_statements)
+    message=service.response_message, import_statements=import_statements, type_hash=type_hash)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,

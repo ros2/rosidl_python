@@ -106,6 +106,16 @@ offsetof(@(message.structure.namespaced_type.name)Base, _@(member.name)), 0, NUL
   {NULL}  /* Sentinel */
 };
 
+static void @(message.structure.namespaced_type.name)Base_dealloc(@(message.structure.namespaced_type.name)Base * self)
+{
+@[for member in message.structure.members]@
+@[  if not isinstance(member.type, BasicType)]@
+  Py_XDECREF(self->_@(member.name));
+@[  end if]@
+@[end for]@
+  Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
 
 static PyTypeObject @(message.structure.namespaced_type.name)BaseType = {
   PyVarObject_HEAD_INIT(NULL, 0)
@@ -115,6 +125,7 @@ static PyTypeObject @(message.structure.namespaced_type.name)BaseType = {
   .tp_itemsize = 0,
   .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
   .tp_new = PyType_GenericNew,
+  .tp_dealloc = (destructor)@(message.structure.namespaced_type.name)Base_dealloc,
   .tp_members = @(message.structure.namespaced_type.name)Base_members,
 };
 

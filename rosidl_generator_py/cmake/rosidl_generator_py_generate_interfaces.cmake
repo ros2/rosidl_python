@@ -118,6 +118,7 @@ rosidl_write_generator_arguments(
   OUTPUT_DIR "${_output_path}"
   TEMPLATE_DIR "${rosidl_generator_py_TEMPLATE_DIR}"
   TARGET_DEPENDENCIES ${target_dependencies}
+  TYPE_HASH_TUPLES "${${rosidl_generate_interfaces_TARGET}__HASH_TUPLES}"
 )
 
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)

@@ -8,15 +8,18 @@ module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.s
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.request_message, import_statements=import_statements, type_hash=type_hash)
+    message=service.request_message, import_statements=import_statements,
+    type_hash=type_hash['request_message'])
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.response_message, import_statements=import_statements, type_hash=type_hash)
+    message=service.response_message, import_statements=import_statements,
+    type_hash=type_hash['response_message'])
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.response_message, import_statements=import_statements, type_hash=type_hash)
+    message=service.event_message, import_statements=import_statements,
+    type_hash=type_hash['event_message'])
 }@
 
 
@@ -51,6 +54,8 @@ class Metaclass_@(service.namespaced_type.name)(type):
 
 
 class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_type.name)):
+    TYPE_VERSION_HASH = @(bytes.fromhex(type_hash['service']))
+
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.request_message.structure.namespaced_type.name) as Request
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.response_message.structure.namespaced_type.name) as Response
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.event_message.structure.namespaced_type.name) as Event

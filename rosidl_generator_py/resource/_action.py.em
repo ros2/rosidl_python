@@ -76,6 +76,7 @@ class Metaclass_@(action.namespaced_type.name)(type):
 
 
 class @(action.namespaced_type.name)(metaclass=Metaclass_@(action.namespaced_type.name)):
+    TYPE_VERSION_HASH = @(bytes.fromhex(type_hash['action']))
 
     # The goal message defined in the action definition.
     from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.goal.structure.namespaced_type.name) as Goal

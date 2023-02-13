@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.17.0 (2023-02-13)
+-------------------
 * Service introspection (`#178 <https://github.com/ros2/rosidl_python/issues/178>`_)
 * [rolling] Update maintainers - 2022-11-07 (`#189 <https://github.com/ros2/rosidl_python/issues/189>`_)
 * Contributors: Audrow Nash, Brian

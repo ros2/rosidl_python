@@ -254,7 +254,7 @@ string@
 @[end for]@
     }
 
-    TYPE_VERSION_HASH = @(bytes.fromhex(type_hash['message']))
+    TYPE_VERSION_HASH = @(type_hash['message'])
 
     SLOT_TYPES = (
 @[for member in message.structure.members]@

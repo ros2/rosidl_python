@@ -54,7 +54,7 @@ class Metaclass_@(service.namespaced_type.name)(type):
 
 
 class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_type.name)):
-    TYPE_VERSION_HASH = @(bytes.fromhex(type_hash['service']))
+    TYPE_VERSION_HASH = @(type_hash['service'])
 
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.request_message.structure.namespaced_type.name) as Request
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.response_message.structure.namespaced_type.name) as Response

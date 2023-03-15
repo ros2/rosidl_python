@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Change decode error mode to replace (`#176 <https://github.com/ros2/rosidl_python/issues/176>`_) (`#181 <https://github.com/ros2/rosidl_python/issues/181>`_)
+* Contributors: mergify[bot], Tomoya Fujita
+
 0.9.6 (2022-07-25)
 ------------------
 * Removes erroneous unmatched closing parenthesis (`#125 <https://github.com/ros2/rosidl_python/issues/125>`_) (`#158 <https://github.com/ros2/rosidl_python/issues/158>`_)

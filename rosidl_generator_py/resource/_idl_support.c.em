@@ -18,7 +18,6 @@
 from rosidl_parser.definition import Message
 
 include_directives = set()
-lazy_import_methods = set()
 
 }@
 @[for message in content.get_elements_of_type(Message)]@
@@ -27,8 +26,7 @@ lazy_import_methods = set()
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=message, include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    message=message, include_directives=include_directives)
 }@
 @[end for]@
 @
@@ -44,24 +42,21 @@ from rosidl_parser.definition import Service
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.request_message, include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    message=service.request_message, include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.response_message, include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    message=service.response_message, include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.event_message, include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    message=service.event_message, include_directives=include_directives)
 }@
 @[end for]@
 @
@@ -77,24 +72,21 @@ from rosidl_parser.definition import Action
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.goal, include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    message=action.goal, include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.result, include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    message=action.result, include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.feedback, include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    message=action.feedback, include_directives=include_directives)
 }@
 
 @{
@@ -102,8 +94,7 @@ TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
     message=action.send_goal_service.request_message,
-    include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    include_directives=include_directives)
 }@
 
 @{
@@ -111,8 +102,7 @@ TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
     message=action.send_goal_service.response_message,
-    include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    include_directives=include_directives)
 }@
 
 @{
@@ -120,8 +110,7 @@ TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
     message=action.send_goal_service.event_message,
-    include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    include_directives=include_directives)
 }@
 
 @{
@@ -129,8 +118,7 @@ TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
     message=action.get_result_service.request_message,
-    include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    include_directives=include_directives)
 }@
 
 @{
@@ -138,8 +126,7 @@ TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
     message=action.get_result_service.response_message,
-    include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    include_directives=include_directives)
 }@
 
 @{
@@ -147,15 +134,13 @@ TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
     message=action.get_result_service.event_message,
-    include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    include_directives=include_directives)
 }@
 
 @{
 TEMPLATE(
     '_msg_support.c.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.feedback_message, include_directives=include_directives,
-    lazy_import_methods=lazy_import_methods)
+    message=action.feedback_message, include_directives=include_directives)
 }@
 @[end for]@

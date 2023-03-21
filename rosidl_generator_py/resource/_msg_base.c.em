@@ -49,7 +49,8 @@ def primitive_msg_type_to_pymember_type(type_):
 header_files = [
     'Python.h',
     'stdbool.h',
-    'structmember.h'
+    'structmember.h',
+    './_%s_decl.h' % package_name
 ]
 }@
 @[for header_file in header_files]@
@@ -69,26 +70,6 @@ repeated_header_file = header_file in include_directives
 @[    end if]@
 @[end for]@
 
-
-typedef struct
-{
-  PyObject_HEAD
-  /* Type-specific fields go here. */
-@[for member in message.structure.members]@
-@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
-@[    continue]@
-@[  end if]@
-@[  if isinstance(member.type, BasicType)]@
-@[    if member.type.typename == 'float']@
-  double _@(member.name);
-@[    else]@
-  @(primitive_msg_type_to_c(member.type)) _@(member.name);
-@[    end if]@
-@[  else isinstance(member.type, AbstractGenericString)]@
-  PyObject * _@(member.name);
-@[  end if]@
-@[end for]@
-} @(message.structure.namespaced_type.name)Base;
 
 static struct PyMemberDef @(message.structure.namespaced_type.name)Base_members[] = {
 @[for member in message.structure.members]@

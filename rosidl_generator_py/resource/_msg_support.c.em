@@ -39,6 +39,7 @@ header_files = [
     'rosidl_runtime_c/visibility_control.h',
     include_base + '__struct.h',
     include_base + '__functions.h',
+    '../_%s_decl.h' % package_name,
 ]
 }@
 @[for header_file in header_files]@
@@ -156,49 +157,10 @@ PyObject * @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_unde
 @[  end if]@
 @[end for]@
 
-@# TODO(aamaslov) duplicated struct definition here
-typedef struct
-{
-  PyObject_HEAD
-  /* Type-specific fields go here. */
-@[for member in message.structure.members]@
-@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
-@[    continue]@
-@[  end if]@
-@[  if isinstance(member.type, BasicType)]@
-@[    if member.type.typename == 'float']@
-  double _@(member.name);
-@[    else]@
-  @(primitive_msg_type_to_c(member.type)) _@(member.name);
-@[    end if]@
-@[  else isinstance(member.type, AbstractGenericString)]@
-  PyObject * _@(member.name);
-@[  end if]@
-@[end for]@
-} @(message.structure.namespaced_type.name)Base;
-
 @{
-for member in message.structure.members:
-    if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES:
-        if isinstance(member.type, Array):
-            if 'numpy.ndarray' not in lazy_import_methods:
-                lazy_import_methods.add('numpy.ndarray')
-                TEMPLATE('_import_type.c.em', full_type_name='numpy.ndarray', func_name='lazy_import_ndarray')
-            dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
-            if dtype not in lazy_import_methods:
-                lazy_import_methods.add(dtype)
-                TEMPLATE('_import_type.c.em', full_type_name=dtype, func_name='lazy_import_numpy_' + member.type.value_type.typename)
-        elif isinstance(member.type, AbstractSequence) and 'array.array' not in lazy_import_methods:
-            lazy_import_methods.add('array.array')
-            TEMPLATE('_import_type.c.em', full_type_name='array.array', func_name='lazy_import_array')
-
 module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
-full_type_name = '.'.join(message.structure.namespaced_type.namespaces + [module_name, message.structure.namespaced_type.name])
-import_func_name = 'lazy_import_' + convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)
+import_index = '__'.join(message.structure.namespaced_type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)]).upper()
 no_fields = len(message.structure.members) == 1 and message.structure.members[0].name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME
-TEMPLATE(
-    '_import_type.c.em',
-    full_type_name=full_type_name, func_name=import_func_name, ensure_is_type=True)
 }@
 ROSIDL_GENERATOR_C_EXPORT
 bool @('__'.join(message.structure.namespaced_type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)]))__convert_from_py(PyObject * _pymsg, void * _ros_message)
@@ -208,7 +170,7 @@ full_classname = '%s.%s.%s' % ('.'.join(message.structure.namespaced_type.namesp
 }@
   // check that the passed message is of the expected Python class
   {
-    PyTypeObject * py_type = (PyTypeObject *)@(import_func_name)();
+    PyTypeObject * py_type = (PyTypeObject *)@(package_name)__lazy_import(NULL, @(import_index)__IMPORT_INDEX);
     assert(Py_TYPE(_pymsg) == py_type);
   }
   @(msg_typename) * ros_message = _ros_message;
@@ -490,12 +452,10 @@ PyObject * @('__'.join(message.structure.namespaced_type.namespaces + [convert_c
   /* NOTE(esteve): Call constructor of @(message.structure.namespaced_type.name) */
   @(message.structure.namespaced_type.name)Base * _pymessage = NULL;
   {
-    PyObject * py_type = @(import_func_name)();
-    if (!py_type) {
+    PyTypeObject * type = (PyTypeObject *)@(package_name)__lazy_import(NULL, @(import_index)__IMPORT_INDEX);
+    if (!type) {
       return NULL;
     }
-
-    PyTypeObject * type = (PyTypeObject *)py_type;
     assert(type->tp_new);
 
     PyObject * empty_tuple = PyTuple_New(0);
@@ -529,11 +489,12 @@ if isinstance(type_, AbstractNestedType):
 @[ end if]@
 @[ if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@
-    PyObject * array_type = lazy_import_ndarray();
+@{      dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']}
+    PyObject * array_type = @(package_name)__lazy_import(NULL, NUMPY__NDARRAY__IMPORT_INDEX);
     if (!array_type) {
       return NULL;
     }
-    PyObject * element_type = lazy_import_numpy_@(member.type.value_type.typename)();
+    PyObject * element_type = @(package_name)__lazy_import(NULL, @(dtype.replace('.', '__').upper())__IMPORT_INDEX);
     if (!element_type) {
       return NULL;
     }
@@ -550,7 +511,7 @@ if isinstance(type_, AbstractNestedType):
     memcpy(dst, src, @(member.type.size) * sizeof(@primitive_msg_type_to_c(member.type.value_type)));
 @[    elif isinstance(member.type, AbstractSequence)]@
     {
-      PyObject * array_type = lazy_import_array();
+      PyObject * array_type = @(package_name)__lazy_import(NULL, ARRAY__ARRAY__IMPORT_INDEX);
       if (!array_type) {
         return NULL;
       }

@@ -52,6 +52,11 @@ foreach(_abs_idl_file ${rosidl_generate_interfaces_ABS_IDL_FILES})
 endforeach()
 list(APPEND _generated_c_base_files
   "${_output_path}/_${PROJECT_NAME}_bases.c")
+if(NOT _generated_c_files STREQUAL "")
+  list(APPEND _generated_c_files
+    "${_output_path}/_${PROJECT_NAME}_decl.h"
+    "${_output_path}/_${PROJECT_NAME}_import.c")
+endif()
 
 file(MAKE_DIRECTORY "${_output_path}")
 file(WRITE "${_output_path}/__init__.py" "")
@@ -96,6 +101,8 @@ set(target_dependencies
   "${rosidl_generator_py_TEMPLATE_DIR}/_action_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_action.py.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl_pkg_bases.c.em"
+  "${rosidl_generator_py_TEMPLATE_DIR}/_idl_pkg_decl.h.em"
+  "${rosidl_generator_py_TEMPLATE_DIR}/_idl_pkg_import.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl_support.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl.py.em"

@@ -293,7 +293,7 @@ if isinstance(type_, AbstractNestedType):
     )
 
     def __init__(self, check_fields = False, **kwargs):
-        self._check_fields = check_fields or ge
+        self._check_fields = check_fields
         if self._check_fields:
             assert all('_' + key in self.__slots__ for key in kwargs.keys()), \
                 'Invalid arguments passed to constructor: %s' % \

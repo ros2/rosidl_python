@@ -87,6 +87,10 @@ for member in message.structure.members:
 @[end if]@
 @#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+from os import getenv
+
+ros_python_check_fields = getenv("ROS_PYTHON_CHECK_FIELDS")
+
 
 class Metaclass_@(message.structure.namespaced_type.name)(type):
     """Metaclass of message '@(message.structure.namespaced_type.name)'."""
@@ -290,11 +294,12 @@ if isinstance(type_, AbstractNestedType):
 @[  end if]@
 ,  # noqa: E501
 @[end for]@
+        rosidl_parser.definition.BasicType('boolean'),  # noqa: E501
     )
 
-    def __init__(self, check_fields = False, **kwargs):
+    def __init__(self, check_fields=False, **kwargs):
         self._check_fields = check_fields
-        if self._check_fields:
+        if self._check_fields or ros_python_check_fields:
             assert all('_' + key in self.__slots__ for key in kwargs.keys()), \
                 'Invalid arguments passed to constructor: %s' % \
                 ', '.join(sorted(k for k in kwargs.keys() if '_' + k not in self.__slots__))
@@ -382,7 +387,7 @@ if isinstance(type_, AbstractNestedType):
                 if len(field) == 0:
                     fieldstr = '[]'
                 else:
-                    if self._check_fields:
+                    if self._check_fields or ros_python_check_fields:
                         assert fieldstr.startswith('array(')
                     prefix = "array('X', "
                     suffix = ')'
@@ -433,7 +438,7 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value):@(noqa_string)
-        if self._check_fields:
+        if self._check_fields or ros_python_check_fields:
 @[      if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[        if isinstance(member.type, Array)]@
             if isinstance(value, numpy.ndarray):

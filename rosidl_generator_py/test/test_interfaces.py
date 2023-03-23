@@ -40,7 +40,7 @@ from rosidl_parser.definition import UnboundedString
 
 
 def test_basic_types():
-    msg = BasicTypes()
+    msg = BasicTypes(check_fields=True)
 
     # types
     assert isinstance(msg.bool_value, bool)
@@ -149,7 +149,7 @@ def test_basic_types():
 
 
 def test_strings():
-    msg = Strings()
+    msg = Strings(check_fields=True)
 
     # types
     assert isinstance(msg.string_value, str)
@@ -203,7 +203,7 @@ def test_strings():
 
 
 def test_wstrings():
-    msg = WStrings()
+    msg = WStrings(check_fields=True)
 
     # types
     assert isinstance(msg.wstring_value, str)
@@ -217,7 +217,7 @@ def test_wstrings():
 
 
 def test_arrays_of_bounded_strings():
-    msg = StringArrays()
+    msg = StringArrays(check_fields=True)
     array_valid_string_length = ['a' * 2, 'b' * 3, 'c' * 4]
     array_too_long_strings = ['a' * 2, 'b' * 3, 'c' * 6]
     assert ['', '', ''] == msg.ub_string_static_array_value
@@ -260,12 +260,12 @@ def test_arrays_of_bounded_strings():
 
 
 def test_constructor():
-    msg = Strings(string_value='foo')
+    msg = Strings(string_value='foo', check_fields=True)
 
     assert'foo' == msg.string_value
 
     with pytest.raises(AssertionError):
-        Strings(unknown_field='test')
+        Strings(unknown_field='test', check_fields=True)
 
 
 def test_constants():
@@ -289,7 +289,7 @@ def test_constants():
 
 
 def test_default_values():
-    msg = Defaults()
+    msg = Defaults(check_fields=True)
 
     assert msg.bool_value is True
     assert bytes([50]) == msg.byte_value
@@ -316,7 +316,7 @@ def test_default_values():
 
 
 def test_arrays():
-    msg = Arrays()
+    msg = Arrays(check_fields=True)
 
     # types
     assert isinstance(msg.bool_values, list)
@@ -525,7 +525,7 @@ def test_arrays():
 
 
 def test_bounded_sequences():
-    msg = BoundedSequences()
+    msg = BoundedSequences(check_fields=True)
 
     # types
     assert isinstance(msg.bool_values, list)
@@ -749,7 +749,7 @@ def test_bounded_sequences():
 
 
 def test_unbounded_sequences():
-    msg = UnboundedSequences()
+    msg = UnboundedSequences(check_fields=True)
 
     # types
     assert isinstance(msg.byte_values, list)
@@ -898,7 +898,7 @@ def test_unbounded_sequences():
 
 
 def test_slot_attributes():
-    msg = Nested()
+    msg = Nested(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')
     nested_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
@@ -906,6 +906,7 @@ def test_slot_attributes():
     assert len(nested_slot_types_dict) == len(nested_slots)
     expected_nested_slot_types_dict = {
         'basic_types_value': 'rosidl_generator_py/BasicTypes',
+        'check_fields': 'boolean',
     }
     assert len(nested_slot_types_dict) == len(expected_nested_slot_types_dict)
 
@@ -915,7 +916,7 @@ def test_slot_attributes():
 
 
 def test_string_slot_attributes():
-    msg = StringArrays()
+    msg = StringArrays(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')
     string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
@@ -933,6 +934,7 @@ def test_string_slot_attributes():
         'def_string_bounded_array_value': 'sequence<string, 10>',
         'def_various_quotes': 'sequence<string>',
         'def_various_commas': 'sequence<string>',
+        'check_fields': 'boolean',
     }
 
     assert len(string_slot_types_dict) == len(expected_string_slot_types_dict)
@@ -943,7 +945,7 @@ def test_string_slot_attributes():
 
 
 def test_modifying_slot_fields_and_types():
-    msg = StringArrays()
+    msg = StringArrays(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')
     string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
     string_slot_types_dict_len = len(string_slot_types_dict)
@@ -952,7 +954,7 @@ def test_modifying_slot_fields_and_types():
 
 
 def test_slot_types():
-    msg = Nested()
+    msg = Nested(check_fields=True)
     assert hasattr(msg, 'SLOT_TYPES')
     assert hasattr(msg, '__slots__')
     nested_slot_types = Nested.SLOT_TYPES
@@ -964,7 +966,7 @@ def test_slot_types():
 
 
 def test_string_slot_types():
-    msg = StringArrays()
+    msg = StringArrays(check_fields=True)
     assert hasattr(msg, 'SLOT_TYPES')
     assert hasattr(msg, '__slots__')
     string_slot_types = StringArrays.SLOT_TYPES
@@ -994,7 +996,7 @@ def test_string_slot_types():
 
 
 def test_builtin_sequence_slot_attributes():
-    msg = BuiltinTypeSequencesIdl()
+    msg = BuiltinTypeSequencesIdl(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')
     builtin_sequence_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()

@@ -92,7 +92,7 @@ for member in message.structure.members:
 # change during runtime so it makes sense to only look for it once.
 from os import getenv
 
-ros_python_check_fields = getenv("ROS_PYTHON_CHECK_FIELDS")
+ros_python_check_fields = getenv("ROS_PYTHON_CHECK_FIELDS", default='')
 
 
 class Metaclass_@(message.structure.namespaced_type.name)(type):
@@ -300,8 +300,11 @@ if isinstance(type_, AbstractNestedType):
         rosidl_parser.definition.BasicType('boolean'),  # noqa: E501
     )
 
-    def __init__(self, check_fields=False, **kwargs):
-        self._check_fields = check_fields or ros_python_check_fields
+    def __init__(self, **kwargs):
+        if 'check_fields' in kwargs:
+            self._check_fields = kwargs['check_fields']
+        else:
+            self._check_fields = self._check_fields = ros_python_check_fields == "1"
         if self._check_fields:
             assert all('_' + key in self.__slots__ for key in kwargs.keys()), \
                 'Invalid arguments passed to constructor: %s' % \

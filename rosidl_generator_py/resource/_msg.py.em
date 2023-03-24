@@ -87,6 +87,9 @@ for member in message.structure.members:
 @[end if]@
 @#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+# This is being done at the module level and not on the instance level to avoid looking 
+# for the same variable multiple times on each instance. This variable is not supposed to
+# change during runtime so it makes sense to only look for it once.
 from os import getenv
 
 ros_python_check_fields = getenv("ROS_PYTHON_CHECK_FIELDS")
@@ -298,8 +301,8 @@ if isinstance(type_, AbstractNestedType):
     )
 
     def __init__(self, check_fields=False, **kwargs):
-        self._check_fields = check_fields
-        if self._check_fields or ros_python_check_fields:
+        self._check_fields = check_fields or ros_python_check_fields
+        if self._check_fields:
             assert all('_' + key in self.__slots__ for key in kwargs.keys()), \
                 'Invalid arguments passed to constructor: %s' % \
                 ', '.join(sorted(k for k in kwargs.keys() if '_' + k not in self.__slots__))
@@ -387,7 +390,7 @@ if isinstance(type_, AbstractNestedType):
                 if len(field) == 0:
                     fieldstr = '[]'
                 else:
-                    if self._check_fields or ros_python_check_fields:
+                    if self._check_fields:
                         assert fieldstr.startswith('array(')
                     prefix = "array('X', "
                     suffix = ')'
@@ -438,9 +441,9 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value):@(noqa_string)
-        if self._check_fields or ros_python_check_fields:
-@[      if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-@[        if isinstance(member.type, Array)]@
+        if self._check_fields:
+@[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
+@[    if isinstance(member.type, Array)]@
             if isinstance(value, numpy.ndarray):
                 assert value.dtype == @(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']), \
                     "The '@(member.name)' numpy.ndarray() must have the dtype of '@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'])'"
@@ -448,18 +451,18 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
                     "The '@(member.name)' numpy.ndarray() must have a size of @(member.type.size)"
                 self._@(member.name) = value
                 return
-@[        elif isinstance(member.type, AbstractSequence)]@
+@[    elif isinstance(member.type, AbstractSequence)]@
             if isinstance(value, array.array):
                 assert value.typecode == '@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', \
                     "The '@(member.name)' array.array() must have the type code of '@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])'"
-@[          if isinstance(member.type, BoundedSequence)]@
+@[      if isinstance(member.type, BoundedSequence)]@
                 assert len(value) <= @(member.type.maximum_size), \
                     "The '@(member.name)' array.array() must have a size <= @(member.type.maximum_size)"
-@[          end if]@
+@[      end if]@
                 self._@(member.name) = value
                 return
-@[        end if]@
-@[      end if]@
+@[    end if]@
+@[  end if]@
 @[  if isinstance(type_, NamespacedType)]@
 @[      if (
             type_.name.endswith(ACTION_GOAL_SUFFIX) or

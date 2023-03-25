@@ -87,13 +87,6 @@ for member in message.structure.members:
 @[end if]@
 @#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-# This is being done at the module level and not on the instance level to avoid looking
-# for the same variable multiple times on each instance. This variable is not supposed to
-# change during runtime so it makes sense to only look for it once.
-from os import getenv
-
-ros_python_check_fields = getenv("ROS_PYTHON_CHECK_FIELDS", default='')
-
 
 class Metaclass_@(message.structure.namespaced_type.name)(type):
     """Metaclass of message '@(message.structure.namespaced_type.name)'."""
@@ -304,7 +297,7 @@ if isinstance(type_, AbstractNestedType):
         if 'check_fields' in kwargs:
             self._check_fields = kwargs['check_fields']
         else:
-            self._check_fields = self._check_fields = ros_python_check_fields == "1"
+            self._check_fields = ros_python_check_fields == '1'
         if self._check_fields:
             assert all('_' + key in self.__slots__ for key in kwargs.keys()), \
                 'Invalid arguments passed to constructor: %s' % \

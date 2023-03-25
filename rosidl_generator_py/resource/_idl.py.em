@@ -1,6 +1,13 @@
 # generated from rosidl_generator_py/resource/_idl.py.em
 # with input from @(package_name):@(interface_path)
 # generated code does not contain a copyright notice
+
+# This is being done at the module level and not on the instance level to avoid looking
+# for the same variable multiple times on each instance. This variable is not supposed to
+# change during runtime so it makes sense to only look for it once.
+from os import getenv
+
+ros_python_check_fields = getenv('ROS_PYTHON_CHECK_FIELDS', default='')
 @
 @#######################################################################
 @# EmPy template for generating _<idl>.py files

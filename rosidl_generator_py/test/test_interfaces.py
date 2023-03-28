@@ -902,11 +902,8 @@ def test_slot_attributes():
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')
     nested_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
-    nested_slots = getattr(msg, '__slots__')
-    assert len(nested_slot_types_dict) == len(nested_slots)
     expected_nested_slot_types_dict = {
         'basic_types_value': 'rosidl_generator_py/BasicTypes',
-        'check_fields': 'boolean',
     }
     assert len(nested_slot_types_dict) == len(expected_nested_slot_types_dict)
 
@@ -920,8 +917,6 @@ def test_string_slot_attributes():
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')
     string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
-    string_slots = getattr(msg, '__slots__')
-    assert len(string_slot_types_dict) == len(string_slots)
     expected_string_slot_types_dict = {
         'ub_string_static_array_value': 'string<5>[3]',
         'ub_string_ub_array_value': 'sequence<string<5>, 10>',
@@ -934,7 +929,6 @@ def test_string_slot_attributes():
         'def_string_bounded_array_value': 'sequence<string, 10>',
         'def_various_quotes': 'sequence<string>',
         'def_various_commas': 'sequence<string>',
-        'check_fields': 'boolean',
     }
 
     assert len(string_slot_types_dict) == len(expected_string_slot_types_dict)
@@ -1000,5 +994,8 @@ def test_builtin_sequence_slot_attributes():
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')
     builtin_sequence_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
-    builtin_sequence_slots = getattr(msg, '__slots__')
-    assert len(builtin_sequence_slot_types_dict) == len(builtin_sequence_slots)
+    expected_builtin_sequence_slot_types_dict = {
+        'char_sequence_unbounded': 'sequence<char>',
+    }
+
+    assert len(builtin_sequence_slot_types_dict) == len(expected_builtin_sequence_slot_types_dict)

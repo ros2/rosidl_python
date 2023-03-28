@@ -253,7 +253,6 @@ string@
 @[  end if]@
 ',
 @[end for]@
-        '_check_fields': 'boolean',
     }
 
     SLOT_TYPES = (

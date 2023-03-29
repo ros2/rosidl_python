@@ -371,7 +371,7 @@ if isinstance(type_, AbstractNestedType):
         typename.pop()
         typename.append(self.__class__.__name__)
         args = []
-        for s, t in self.get_fields_and_field_types.items():
+        for s, t in self.get_fields_and_field_types().items():
             field = getattr(self, s)
             fieldstr = repr(field)
             # We use Python array type for fields that can be directly stored

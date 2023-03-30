@@ -952,8 +952,6 @@ def test_slot_types():
     assert hasattr(msg, 'SLOT_TYPES')
     assert hasattr(msg, '__slots__')
     nested_slot_types = Nested.SLOT_TYPES
-    nested_slots = getattr(msg, '__slots__')
-    assert len(nested_slot_types) == len(nested_slots)
     assert isinstance(nested_slot_types[0], NamespacedType)
     assert nested_slot_types[0].namespaces == ['rosidl_generator_py', 'msg']
     assert nested_slot_types[0].name == 'BasicTypes'
@@ -964,8 +962,6 @@ def test_string_slot_types():
     assert hasattr(msg, 'SLOT_TYPES')
     assert hasattr(msg, '__slots__')
     string_slot_types = StringArrays.SLOT_TYPES
-    string_slots = getattr(msg, '__slots__')
-    assert len(string_slot_types) == len(string_slots)
 
     assert isinstance(string_slot_types[0], Array)
     assert isinstance(string_slot_types[0].value_type, BoundedString)

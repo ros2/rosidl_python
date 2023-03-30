@@ -255,6 +255,8 @@ string@
 @[end for]@
     }
 
+    # This attribute is used to store an rosidl_parser.definition variable
+    # related to the data type of each of the components the message.
     SLOT_TYPES = (
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
@@ -370,7 +372,7 @@ if isinstance(type_, AbstractNestedType):
         typename.pop()
         typename.append(self.__class__.__name__)
         args = []
-        for s, t in self.get_fields_and_field_types().items():
+        for s, t in zip(self.get_fields_and_field_types().keys, self.SLOT_TYPES):
             field = getattr(self, s)
             fieldstr = repr(field)
             # We use Python array type for fields that can be directly stored

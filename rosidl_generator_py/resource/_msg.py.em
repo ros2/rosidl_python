@@ -289,7 +289,6 @@ if isinstance(type_, AbstractNestedType):
 @[  end if]@
 ,  # noqa: E501
 @[end for]@
-        rosidl_parser.definition.BasicType('boolean'),  # noqa: E501
     )
 
     def __init__(self, **kwargs):

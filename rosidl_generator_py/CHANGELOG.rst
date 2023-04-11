@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Hides the assertions that checks the data types of the message fields. (`#194 <https://github.com/ros2/rosidl_python/issues/194>`_)
+* Contributors: Eloy Briceno
+
 0.17.0 (2023-02-13)
 -------------------
 * Service introspection (`#178 <https://github.com/ros2/rosidl_python/issues/178>`_)

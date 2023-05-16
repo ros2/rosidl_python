@@ -146,17 +146,13 @@ macro(set_properties _build_type)
   set_target_properties(${_target_name} PROPERTIES
     COMPILE_OPTIONS "${_extension_compile_flags}"
     PREFIX ""
-    LIBRARY_OUTPUT_DIRECTORY${_build_type} ${_output_path}
-    RUNTIME_OUTPUT_DIRECTORY${_build_type} ${_output_path}
     OUTPUT_NAME "${PROJECT_NAME}_s__${_typesupport_impl}${PythonExtra_EXTENSION_SUFFIX}"
     SUFFIX "${PythonExtra_EXTENSION_EXTENSION}")
 endmacro()
 
 macro(set_lib_properties _build_type)
   set_target_properties(${_target_name_lib} PROPERTIES
-    COMPILE_OPTIONS "${_extension_compile_flags}"
-    LIBRARY_OUTPUT_DIRECTORY${_build_type} ${_output_path}
-    RUNTIME_OUTPUT_DIRECTORY${_build_type} ${_output_path})
+    COMPILE_OPTIONS "${_extension_compile_flags}")
 endmacro()
 
 # Export target so downstream interface packages can link to it

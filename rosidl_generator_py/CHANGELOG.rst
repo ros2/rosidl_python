@@ -2,6 +2,25 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.20.0 (2023-08-21)
+-------------------
+* Fix: Missing dependency that causes cmake error in downstream (resolves https://github.com/ros2/rosidl_python/issues/198) (`#199 <https://github.com/ros2/rosidl_python/issues/199>`_)
+* Contributors: Isaac Saito
+
+0.19.0 (2023-04-28)
+-------------------
+
+0.18.0 (2023-04-11)
+-------------------
+* Hides the assertions that checks the data types of the message fields. (`#194 <https://github.com/ros2/rosidl_python/issues/194>`_)
+* Contributors: Eloy Briceno
+
+0.17.0 (2023-02-13)
+-------------------
+* Service introspection (`#178 <https://github.com/ros2/rosidl_python/issues/178>`_)
+* [rolling] Update maintainers - 2022-11-07 (`#189 <https://github.com/ros2/rosidl_python/issues/189>`_)
+* Contributors: Audrow Nash, Brian
+
 0.16.1 (2022-11-02)
 -------------------
 * Remove stray numpy import (`#185 <https://github.com/ros2/rosidl_python/issues/185>`_)

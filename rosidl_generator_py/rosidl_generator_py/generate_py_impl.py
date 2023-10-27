@@ -131,6 +131,35 @@ def generate_py(generator_arguments_file, typesupport_impls):
                 f.write(
                     f'from {package_name}.{subfolder}.{module_name} import '
                     f'{idl_stem}  # noqa: F401\n')
+                if subfolder == 'srv':
+                    f.write(
+                        f'from {package_name}.{subfolder}.{module_name} import '
+                        f'{idl_stem}_Event  # noqa: F401\n')
+                    f.write(
+                        f'from {package_name}.{subfolder}.{module_name} import '
+                        f'{idl_stem}_Request  # noqa: F401\n')
+                    f.write(
+                        f'from {package_name}.{subfolder}.{module_name} import '
+                        f'{idl_stem}_Response  # noqa: F401\n')
+                elif subfolder == 'action':
+                    f.write(
+                        f'from {package_name}.{subfolder}.{module_name} import '
+                        f'{idl_stem}_GetResult_Event  # noqa: F401\n')
+                    f.write(
+                        f'from {package_name}.{subfolder}.{module_name} import '
+                        f'{idl_stem}_GetResult_Request  # noqa: F401\n')
+                    f.write(
+                        f'from {package_name}.{subfolder}.{module_name} import '
+                        f'{idl_stem}_GetResult_Response  # noqa: F401\n')
+                    f.write(
+                        f'from {package_name}.{subfolder}.{module_name} import '
+                        f'{idl_stem}_SendGoal_Event  # noqa: F401\n')
+                    f.write(
+                        f'from {package_name}.{subfolder}.{module_name} import '
+                        f'{idl_stem}_SendGoal_Request  # noqa: F401\n')
+                    f.write(
+                        f'from {package_name}.{subfolder}.{module_name} import '
+                        f'{idl_stem}_SendGoal_Response  # noqa: F401\n')
 
     # expand templates per available typesupport implementation
     template_dir = args['template_dir']

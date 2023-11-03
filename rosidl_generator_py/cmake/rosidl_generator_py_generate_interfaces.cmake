@@ -136,7 +136,7 @@ set_property(
 
 set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__python")
 add_library(${_target_name_lib} SHARED ${_generated_c_files})
-target_link_libraries(${_target_name_lib}
+target_link_libraries(${_target_name_lib} PRIVATE
   ${rosidl_generate_interfaces_TARGET}__rosidl_generator_c)
 add_dependencies(
   ${_target_name_lib}
@@ -145,7 +145,7 @@ add_dependencies(
 )
 
 target_link_libraries(
-  ${_target_name_lib}
+  ${_target_name_lib} PRIVATE
   Python3::NumPy
   Python3::Python
 )
@@ -161,7 +161,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
-target_link_libraries(${_target_name_lib} ${c_typesupport_target})
+target_link_libraries(${_target_name_lib} PRIVATE ${c_typesupport_target})
 
 foreach(_typesupport_impl ${_typesupport_impls})
   find_package(${_typesupport_impl} REQUIRED)
@@ -233,7 +233,7 @@ endforeach()
 
 # Depend on rosidl_generator_py generated targets from our dependencies
 foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-  target_link_libraries(${_target_name_lib} ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
+  target_link_libraries(${_target_name_lib} PRIVATE ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
 endforeach()
 
 # target_compile_options(${_target_name_lib} PRIVATE ${_extension_compile_flags})

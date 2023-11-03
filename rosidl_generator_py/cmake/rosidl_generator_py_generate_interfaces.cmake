@@ -17,7 +17,7 @@ find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
 find_package(rosidl_typesupport_interface REQUIRED)
 
-find_package(Python3 REQUIRED Development Interpreter NumPy)
+find_package(Python3 REQUIRED COMPONENTS Development Interpreter NumPy)
 
 # Get a list of typesupport implementations from valid rmw implementations.
 rosidl_generator_py_get_typesupports(_typesupport_impls)

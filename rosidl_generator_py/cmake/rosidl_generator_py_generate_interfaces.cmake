@@ -142,23 +142,6 @@ set_property(
   ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files}
   PROPERTY GENERATED 1)
 
-macro(set_properties _build_type)
-  set_target_properties(${_target_name} PROPERTIES
-    COMPILE_OPTIONS "${_extension_compile_flags}"
-    PREFIX ""
-    LIBRARY_OUTPUT_DIRECTORY${_build_type} ${_output_path}
-    RUNTIME_OUTPUT_DIRECTORY${_build_type} ${_output_path}
-    OUTPUT_NAME "${PROJECT_NAME}_s__${_typesupport_impl}${PythonExtra_EXTENSION_SUFFIX}"
-    SUFFIX "${PythonExtra_EXTENSION_EXTENSION}")
-endmacro()
-
-macro(set_lib_properties _build_type)
-  set_target_properties(${_target_name_lib} PROPERTIES
-    COMPILE_OPTIONS "${_extension_compile_flags}"
-    LIBRARY_OUTPUT_DIRECTORY${_build_type} ${_output_path}
-    RUNTIME_OUTPUT_DIRECTORY${_build_type} ${_output_path})
-endmacro()
-
 # Export target so downstream interface packages can link to it
 set(rosidl_generator_py_suffix "__rosidl_generator_py")
 
@@ -236,13 +219,11 @@ foreach(_typesupport_impl ${_typesupport_impls})
   if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(_extension_compile_flags -Wall -Wextra)
   endif()
-  set_properties("")
-  if(WIN32)
-    set_properties("_DEBUG")
-    set_properties("_MINSIZEREL")
-    set_properties("_RELEASE")
-    set_properties("_RELWITHDEBINFO")
-  endif()
+  set_target_properties(${_target_name} PROPERTIES
+    COMPILE_OPTIONS "${_extension_compile_flags}"
+    PREFIX ""
+    OUTPUT_NAME "${PROJECT_NAME}_s__${_typesupport_impl}${PythonExtra_EXTENSION_SUFFIX}"
+    SUFFIX "${PythonExtra_EXTENSION_EXTENSION}")
   target_link_libraries(
     ${_target_name}
     ${_target_name_lib}
@@ -291,13 +272,8 @@ foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
   target_link_libraries(${_target_name_lib} ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
 endforeach()
 
-set_lib_properties("")
-if(WIN32)
-  set_lib_properties("_DEBUG")
-  set_lib_properties("_MINSIZEREL")
-  set_lib_properties("_RELEASE")
-  set_lib_properties("_RELWITHDEBINFO")
-endif()
+set_target_properties(${_target_name_lib} PROPERTIES
+  COMPILE_OPTIONS "${_extension_compile_flags}")
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   install(TARGETS ${_target_name_lib}
     EXPORT export_${_target_name_lib}

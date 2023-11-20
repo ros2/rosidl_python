@@ -20,7 +20,7 @@
 # add_subdirectory() call.
 add_custom_command(
   OUTPUT ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files}
-  COMMAND ${PYTHON_EXECUTABLE} ${rosidl_generator_py_BIN}
+  COMMAND Python3::Interpreter ${rosidl_generator_py_BIN}
   --generator-arguments-file "${generator_arguments_file}"
   --typesupport-impls "${_typesupport_impls}"
   DEPENDS ${target_dependencies} ${rosidl_generate_interfaces_TARGET}

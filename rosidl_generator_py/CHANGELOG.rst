@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Install compiled libraries only to 'lib' (`#195 <https://github.com/ros2/rosidl_python/issues/195>`_)
+* Contributors: Scott K Logan
+
 0.20.0 (2023-08-21)
 -------------------
 * Fix: Missing dependency that causes cmake error in downstream (resolves https://github.com/ros2/rosidl_python/issues/198) (`#199 <https://github.com/ros2/rosidl_python/issues/199>`_)

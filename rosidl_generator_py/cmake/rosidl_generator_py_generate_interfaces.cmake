@@ -203,35 +203,30 @@ foreach(_typesupport_impl ${_typesupport_impls})
     RUNTIME_OUTPUT_DIRECTORY ${_output_path})
 
   target_link_libraries(
-    ${_target_name} PUBLIC
+    ${_target_name} PRIVATE
     ${_target_name_lib}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
+    ${c_typesupport_target}
+    rosidl_runtime_c::rosidl_runtime_c
+    rosidl_typesupport_c::rosidl_typesupport_c
+    rosidl_typesupport_interface::rosidl_typesupport_interface
   )
 
   target_include_directories(${_target_name}
-    PUBLIC
+    PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
   )
 
-  target_link_libraries(${_target_name} PUBLIC ${c_typesupport_target})
-
-  ament_target_dependencies(${_target_name} PUBLIC
-    "rosidl_runtime_c"
-    "rosidl_typesupport_c"
-    "rosidl_typesupport_interface"
-  )
   foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-    ament_target_dependencies(${_target_name} PUBLIC
-      ${_pkg_name}
-    )
+    target_link_libraries(${_target_name} PRIVATE ${${_pkg_name}__TARGETS})
   endforeach()
 
   add_dependencies(${_target_name}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
   )
+
   ament_target_dependencies(${_target_name} PUBLIC
-    "rosidl_runtime_c"
     "rosidl_generator_py"
   )
 
@@ -248,9 +243,7 @@ foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
   target_link_libraries(${_target_name_lib} PRIVATE ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
 endforeach()
 
-# target_compile_options(${_target_name_lib} PRIVATE ${_extension_compile_flags})
-# TODO(sloretz) use target_compile_options when python extension passes -Wpedantic
-set_target_properties(${_target_name_lib} PROPERTIES COMPILE_OPTIONS "${_extension_compile_flags}")  # XXX
+set_target_properties(${_target_name_lib} PROPERTIES COMPILE_OPTIONS "${_extension_compile_flags}")
 
 set_target_properties(${_target_name_lib} PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${_output_path}

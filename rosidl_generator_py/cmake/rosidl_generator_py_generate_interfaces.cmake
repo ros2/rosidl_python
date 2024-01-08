@@ -12,24 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+find_package(python_cmake_module REQUIRED)
+find_package(PythonExtra REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
 find_package(rosidl_typesupport_interface REQUIRED)
 
-find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
-if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-  get_filename_component(_python_executable_dir "${Python3_EXECUTABLE}" DIRECTORY)
-  get_filename_component(_python_executable_name "${Python3_EXECUTABLE}" NAME_WE)
-  get_filename_component(_python_executable_ext "${Python3_EXECUTABLE}" EXT)
-  set(_python_executable_debug "${_python_executable_dir}/${_python_executable_name}_d${_python_executable_ext}")
-  if(EXISTS "${_python_executable_debug}")
-    set(Python3_EXECUTABLE "${_python_executable_debug}")
-  else()
-    message(FATAL_ERROR "${_python_executable_debug} doesn't exist")
-  endif()
-endif()
-find_package(Python3 REQUIRED COMPONENTS NumPy)
+get_target_property(Python3_EXECUTABLE PythonExtra::Interpreter LOCATION)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
 
 # Get a list of typesupport implementations from valid rmw implementations.
 rosidl_generator_py_get_typesupports(_typesupport_impls)
@@ -146,7 +137,7 @@ set_property(
   ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files}
   PROPERTY GENERATED 1)
 
-set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__python")
+set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__rosidl_generator_py")
 add_library(${_target_name_lib} SHARED ${_generated_c_files})
 target_link_libraries(${_target_name_lib} PRIVATE
   ${rosidl_generate_interfaces_TARGET}__rosidl_generator_c)

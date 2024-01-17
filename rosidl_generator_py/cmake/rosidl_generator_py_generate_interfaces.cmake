@@ -189,7 +189,7 @@ if(APPLE OR WIN32 OR NOT _numpy_h)
       "error code ${_result}")
   endif()
   message(STATUS "Using numpy include directory: ${_output}")
-  target_include_directories(${_target_name_lib} PUBLIC "${_output}")
+  target_include_directories(${_target_name_lib} PRIVATE "${_output}")
 endif()
 
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
@@ -232,7 +232,7 @@ foreach(_typesupport_impl ${_typesupport_impls})
   )
 
   target_include_directories(${_target_name}
-    PUBLIC
+    PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
     ${PythonExtra_INCLUDE_DIRS}

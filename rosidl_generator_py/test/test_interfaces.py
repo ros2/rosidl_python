@@ -46,8 +46,7 @@ def test_basic_types():
     assert isinstance(msg.bool_value, bool)
     assert isinstance(msg.byte_value, bytes)
     assert 1 == len(msg.byte_value)
-    # for legacy reasons, 'char' from a .msg interface maps to 'uint8'
-    assert isinstance(msg.char_value, int)
+    assert isinstance(msg.char_value, str)
     assert isinstance(msg.float32_value, float)
     assert isinstance(msg.float64_value, float)
     assert isinstance(msg.int8_value, int)
@@ -62,7 +61,7 @@ def test_basic_types():
     # default values
     assert msg.bool_value is False
     assert bytes([0]) == msg.byte_value
-    assert 0 == msg.char_value
+    assert '\x00' == msg.char_value
     assert 0.0 == msg.float32_value
     assert 0.0 == msg.float64_value
     assert 0 == msg.int8_value
@@ -79,8 +78,8 @@ def test_basic_types():
     assert msg.bool_value is True
     msg.byte_value = b'2'
     assert bytes([50]) == msg.byte_value
-    msg.char_value = 42
-    assert 42 == msg.char_value
+    msg.char_value = 'a'
+    assert 'a' == msg.char_value
     msg.float32_value = 1.125
     assert 1.125 == msg.float32_value
     msg.float64_value = 1.125
@@ -262,7 +261,7 @@ def test_arrays_of_bounded_strings():
 def test_constructor():
     msg = Strings(string_value='foo', check_fields=True)
 
-    assert'foo' == msg.string_value
+    assert 'foo' == msg.string_value
 
     with pytest.raises(AssertionError):
         Strings(unknown_field='test', check_fields=True)
@@ -271,7 +270,7 @@ def test_constructor():
 def test_constants():
     assert Constants.BOOL_CONST is True
     assert bytes([50]) == Constants.BYTE_CONST
-    assert 100 == Constants.CHAR_CONST
+    assert 'd' == Constants.CHAR_CONST
     assert 1.125 == Constants.FLOAT32_CONST
     assert 1.125 == Constants.FLOAT64_CONST
     assert -50 == Constants.INT8_CONST
@@ -293,7 +292,7 @@ def test_default_values():
 
     assert msg.bool_value is True
     assert bytes([50]) == msg.byte_value
-    assert 100 == msg.char_value
+    assert 'd' == msg.char_value
     assert 1.125 == msg.float32_value
     assert 1.125 == msg.float64_value
     assert -50 == msg.int8_value
@@ -321,8 +320,7 @@ def test_arrays():
     # types
     assert isinstance(msg.bool_values, list)
     assert isinstance(msg.byte_values, list)
-    # for legacy reasons, 'char' from a .msg interface maps to 'uint8'
-    assert isinstance(msg.char_values, numpy.ndarray)
+    assert isinstance(msg.char_values, list)
     assert isinstance(msg.float32_values, numpy.ndarray)
     assert isinstance(msg.float64_values, numpy.ndarray)
     assert isinstance(msg.int8_values, numpy.ndarray)
@@ -358,9 +356,9 @@ def test_arrays():
     list_of_byte = [b'a', b'b', b'c']
     msg.byte_values = list_of_byte
     assert list_of_byte == msg.byte_values
-    list_of_char = [0, 1, 255]
+    list_of_char = ['a', 'b', 'c']
     msg.char_values = list_of_char
-    assert numpy.array_equal(list_of_char, msg.char_values)
+    assert list_of_char == msg.char_values
     list_of_float32 = [0.0, -1.125, 1.125]
     msg.float32_values = list_of_float32
     assert numpy.allclose(list_of_float32, msg.float32_values)
@@ -450,9 +448,7 @@ def test_arrays():
 
     # out of range
     with pytest.raises(AssertionError):
-        setattr(msg, 'char_values', [2**8, 1, 2])
-    with pytest.raises(AssertionError):
-        setattr(msg, 'char_values', [-1, 1, 2])
+        setattr(msg, 'char_values', [chr(2**8), chr(1), chr(2)])
     with pytest.raises(AssertionError):
         setattr(msg, 'int8_values', [2**8, 1, 2])
     with pytest.raises(AssertionError):
@@ -531,7 +527,7 @@ def test_bounded_sequences():
     assert isinstance(msg.bool_values, list)
     assert isinstance(msg.byte_values, list)
     # for legacy reasons, 'char' from a .msg interface maps to 'uint8'
-    assert isinstance(msg.char_values, array.array)
+    assert isinstance(msg.char_values, list)
     assert isinstance(msg.float32_values, array.array)
     assert isinstance(msg.float64_values, array.array)
     assert isinstance(msg.int8_values, array.array)
@@ -548,7 +544,7 @@ def test_bounded_sequences():
     # defaults
     assert [] == msg.bool_values
     assert [] == msg.byte_values
-    assert array.array('B') == msg.char_values
+    assert [] == msg.char_values
     assert array.array('f') == msg.float32_values
     assert array.array('d') == msg.float64_values
     assert array.array('b') == msg.int8_values
@@ -573,12 +569,12 @@ def test_bounded_sequences():
     assert list_of_byte == msg.byte_values
     msg.byte_values = short_list_of_byte
     assert short_list_of_byte == msg.byte_values
-    list_of_char = [0, 1, 255]
-    short_list_of_char = [0]
+    list_of_char = [chr(0), chr(1), chr(255)]
+    short_list_of_char = [chr(0)]
     msg.char_values = list_of_char
-    assert array.array('B', list_of_char) == msg.char_values
+    assert list_of_char == msg.char_values
     msg.char_values = short_list_of_char
-    assert array.array('B', short_list_of_char) == msg.char_values
+    assert short_list_of_char == msg.char_values
     list_of_float32 = [0.1, 2.3, -3.14]
     short_list_of_float32 = [1.125]
     msg.float32_values = list_of_float32
@@ -646,7 +642,7 @@ def test_bounded_sequences():
     with pytest.raises(AssertionError):
         msg.byte_values = [b'a', b'b', b'c', b'd']
     with pytest.raises(AssertionError):
-        msg.char_values = [1, 2, 3, 4]
+        msg.char_values = ['a', 'b', 'c', 'd']
     with pytest.raises(AssertionError):
         msg.float32_values = [1.0, 2.0, 3.0, 4.0]
     with pytest.raises(AssertionError):
@@ -754,7 +750,7 @@ def test_unbounded_sequences():
     # types
     assert isinstance(msg.byte_values, list)
     # for legacy reasons, 'char' from a .msg interface maps to 'uint8'
-    assert isinstance(msg.char_values, array.array)
+    assert isinstance(msg.char_values, list)
     assert isinstance(msg.float32_values, array.array)
     assert isinstance(msg.float64_values, array.array)
     assert isinstance(msg.int8_values, array.array)
@@ -771,7 +767,7 @@ def test_unbounded_sequences():
     # defaults
     assert [] == msg.bool_values
     assert [] == msg.byte_values
-    assert array.array('B') == msg.char_values
+    assert [] == msg.char_values
     assert array.array('f') == msg.float32_values
     assert array.array('d') == msg.float64_values
     assert array.array('b') == msg.int8_values
@@ -790,9 +786,9 @@ def test_unbounded_sequences():
     list_of_byte = [b'a', b'b', b'c']
     msg.byte_values = list_of_byte
     assert list_of_byte == msg.byte_values
-    list_of_char = [0, 1, 255]
+    list_of_char = ['a', 'b', 'c']
     msg.char_values = list_of_char
-    assert array.array('B', list_of_char) == msg.char_values
+    assert list_of_char == msg.char_values
     list_of_float32 = [0.1, 2.3, -3.14]
     msg.float32_values = list_of_float32
     assert array.array('f', list_of_float32) == msg.float32_values

@@ -72,10 +72,10 @@ foreach(_generated_py_file ${_generated_py_files})
 endforeach()
 
 if(NOT _generated_c_files STREQUAL "")
-    foreach(_typesupport_impl ${_typesupport_impls})
-      list(APPEND _generated_extension_${_typesupport_impl}_files "${_output_path}/_${PROJECT_NAME}_s.ep.${_typesupport_impl}.c")
-      list(APPEND _generated_extension_files "${_generated_extension_${_typesupport_impl}_files}")
-    endforeach()
+  foreach(_typesupport_impl ${_typesupport_impls})
+    list(APPEND _generated_extension_${_typesupport_impl}_files "${_output_path}/_${PROJECT_NAME}_s.ep.${_typesupport_impl}.c")
+    list(APPEND _generated_extension_files "${_generated_extension_${_typesupport_impl}_files}")
+  endforeach()
 endif()
 set(_dependency_files "")
 set(_dependencies "")
@@ -185,9 +185,10 @@ foreach(_typesupport_impl ${_typesupport_impls})
     ${rosidl_generate_interfaces_TARGET}__rosidl_typesupport_c
   )
 
+  set_target_properties(${_target_name} PROPERTIES DEBUG_POSTFIX "${PythonExtra_POSTFIX}")
   # target_compile_options(${_target_name} PRIVATE ${_extension_compile_flags})
   # TODO(sloretz) use target_compile_options when python extension passes -Wpedantic
-  set_target_properties(${_target_name} PROPERTIES COMPILE_OPTIONS "${_extension_compile_flags}")  # XXX
+  set_target_properties(${_target_name} PROPERTIES COMPILE_OPTIONS "${_extension_compile_flags}")
 
   set_target_properties(${_target_name} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${_output_path}

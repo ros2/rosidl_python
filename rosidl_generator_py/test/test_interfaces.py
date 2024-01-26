@@ -262,7 +262,7 @@ def test_arrays_of_bounded_strings():
 def test_constructor():
     msg = Strings(string_value='foo', check_fields=True)
 
-    assert'foo' == msg.string_value
+    assert 'foo' == msg.string_value
 
     with pytest.raises(AssertionError):
         Strings(unknown_field='test', check_fields=True)

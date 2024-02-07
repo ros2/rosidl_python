@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add in a missing space. (`#203 <https://github.com/ros2/rosidl_python/issues/203>`_)
+* Contributors: Chris Lalancette
+
 0.21.0 (2023-12-26)
 -------------------
 * Install compiled libraries only to 'lib' (`#195 <https://github.com/ros2/rosidl_python/issues/195>`_)

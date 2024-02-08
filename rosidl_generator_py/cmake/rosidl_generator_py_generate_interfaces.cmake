@@ -19,7 +19,6 @@ find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
 find_package(rosidl_typesupport_interface REQUIRED)
 
-get_target_property(Python3_EXECUTABLE PythonExtra::Interpreter LOCATION)
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
 
 # Get a list of typesupport implementations from valid rmw implementations.

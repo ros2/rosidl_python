@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(python_cmake_module REQUIRED)
-find_package(PythonExtra REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
@@ -184,7 +182,9 @@ foreach(_typesupport_impl ${_typesupport_impls})
     ${rosidl_generate_interfaces_TARGET}__rosidl_typesupport_c
   )
 
-  set_target_properties(${_target_name} PROPERTIES DEBUG_POSTFIX "${PythonExtra_POSTFIX}")
+  if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_target_properties(${_target_name} PROPERTIES DEBUG_POSTFIX "_d")
+  endif()
   # target_compile_options(${_target_name} PRIVATE ${_extension_compile_flags})
   # TODO(sloretz) use target_compile_options when python extension passes -Wpedantic
   set_target_properties(${_target_name} PROPERTIES COMPILE_OPTIONS "${_extension_compile_flags}")

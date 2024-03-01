@@ -130,36 +130,36 @@ def generate_py(generator_arguments_file, typesupport_impls):
                     sorted((value, key) for (key, value) in module_names.items()):
                 f.write(
                     f'from {package_name}.{subfolder}.{module_name} import '
-                    f'{idl_stem}  # noqa: F401\n')
+                    f'{idl_stem} as {idl_stem}  # noqa: F401\n')
                 if subfolder == 'srv':
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_Event  # noqa: F401\n')
+                        f'{idl_stem}_Event as {idl_stem}_Event  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_Request  # noqa: F401\n')
+                        f'{idl_stem}_Request as {idl_stem}_Request  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_Response  # noqa: F401\n')
+                        f'{idl_stem}_Response as {idl_stem}_Response  # noqa: F401\n')
                 elif subfolder == 'action':
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_GetResult_Event  # noqa: F401\n')
+                        f'{idl_stem}_GetResult_Event as {idl_stem}_GetResult_Event  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_GetResult_Request  # noqa: F401\n')
+                        f'{idl_stem}_GetResult_Request as {idl_stem}_GetResult_Request  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_GetResult_Response  # noqa: F401\n')
+                        f'{idl_stem}_GetResult_Response as {idl_stem}_GetResult_Response  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_SendGoal_Event  # noqa: F401\n')
+                        f'{idl_stem}_SendGoal_Event as {idl_stem}_SendGoal_Event  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_SendGoal_Request  # noqa: F401\n')
+                        f'{idl_stem}_SendGoal_Request as {idl_stem}_SendGoal_Request  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_SendGoal_Response  # noqa: F401\n')
+                        f'{idl_stem}_SendGoal_Response as {idl_stem}_SendGoal_Response  # noqa: F401\n')
 
     # expand templates per available typesupport implementation
     template_dir = args['template_dir']
@@ -191,6 +191,11 @@ def generate_py(generator_arguments_file, typesupport_impls):
                 template_file, data, generated_file,
                 minimum_timestamp=latest_target_timestamp)
             generated_files.append(generated_file)
+
+    # Generate py.typed to mark the generate files as having type support as according 
+    # to PEP561.
+    with open(os.path.join(args['output_dir'], "py.typed"), 'w', encoding='utf-8'):
+        pass
 
     return generated_files
 

@@ -145,15 +145,15 @@ def generate_py(generator_arguments_file, typesupport_impls):
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
                         f'{idl_stem}_GetResult_Event as {idl_stem}_GetResult_Event'
-                          '  # noqa: F401\n')
+                        '  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
                         f'{idl_stem}_GetResult_Request as {idl_stem}_GetResult_Request'
-                          'W  # noqa: F401\n')
+                        '  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
                         f'{idl_stem}_GetResult_Response as {idl_stem}_GetResult_Response'
-                          '  # noqa: F401\n')
+                        '  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
                         f'{idl_stem}_SendGoal_Event as {idl_stem}_SendGoal_Event'
@@ -161,11 +161,11 @@ def generate_py(generator_arguments_file, typesupport_impls):
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
                         f'{idl_stem}_SendGoal_Request as {idl_stem}_SendGoal_Request'
-                          '  # noqa: F401\n')
+                        '  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
                         f'{idl_stem}_SendGoal_Response as {idl_stem}_SendGoal_Response'
-                          '  # noqa: F401\n')
+                        '  # noqa: F401\n')
 
     # expand templates per available typesupport implementation
     template_dir = args['template_dir']
@@ -198,9 +198,8 @@ def generate_py(generator_arguments_file, typesupport_impls):
                 minimum_timestamp=latest_target_timestamp)
             generated_files.append(generated_file)
 
-    # Generate py.typed to mark the generate files as having type support as according 
-    # to PEP561.
-    with open(os.path.join(args['output_dir'], "py.typed"), 'w', encoding='utf-8'):
+    # Generate py.typed to mark the generate files as having type support as according to PEP561.
+    with open(os.path.join(args['output_dir'], 'py.typed'), 'w', encoding='utf-8'):
         pass
 
     return generated_files

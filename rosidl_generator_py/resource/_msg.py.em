@@ -29,6 +29,30 @@ from rosidl_parser.definition import SIGNED_INTEGER_TYPES
 from rosidl_parser.definition import UnboundedSequence
 from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 }@
+@{
+import_type_checking = False
+for member in message.structure.members:
+    if isinstance(member.type, AbstractNestedType):
+        import_type_checking = True
+        break
+    elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
+        import_type_checking = True
+        break
+    elif isinstance(member.type, BasicType) and member.type.typename == 'char':
+        import_type_checking = True
+        break
+    elif isinstance(member.type, BasicType) and member.type.typename == 'octet':
+        import_type_checking = True
+        break
+
+    if isinstance(member.type, NamespacedType):
+        import_type_checking = True
+        break
+}@
+@[if import_type_checking]@
+
+from typing import TYPE_CHECKING  # noqa: E402, I100
+@[end if]@
 @#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 @# Collect necessary import statements for all members
 @{
@@ -449,20 +473,20 @@ if isinstance(member.type, AbstractNestedType):
     type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
                        f'Set[{python_type}], UserList[{python_type}]]')
 
-    type_imports = 'from typing import Union\n        from collections.abc import Sequence, Set\n        from collections import UserList\n'
+    type_imports = 'from typing import Union  # noqa: F811\n        from collections.abc import Sequence, Set  # noqa: F811\n        from collections import UserList  # noqa: F811\n'
 elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
     type_annotation = 'Union[str, UserString]'
-    type_imports = 'from typing import Union\n        from collections import UserString\n'
+    type_imports = 'from typing import Union  # noqa: F811\n        from collections import UserString  # noqa: F811\n'
 elif isinstance(type_, BasicType) and type_.typename == 'char':
     type_annotation = 'Union[str, UserString]'
-    type_imports = 'from typing import Union\n        from collections import UserString\n'
+    type_imports = 'from typing import Union  # noqa: F811\n        from collections import UserString  # noqa: F811\n'
 elif isinstance(type_, BasicType) and type_.typename == 'octet':
     type_annotation = 'Union[bytes, ByteString]'
-    type_imports = 'from typing import Union\n        from collections.abc import ByteString\n'
+    type_imports = 'from typing import Union  # noqa: F811\n        from collections.abc import ByteString  # noqa: F811\n'
 else:
     type_annotation = python_type
 
-if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence):
+if isinstance(type_, NamespacedType):
 
     if type_imports != '':
         type_imports = f'{type_imports}        '
@@ -470,9 +494,9 @@ if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSeq
     joined_type_namespaces = '.'.join(type_.namespaces)
     if(type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) or type_.name.endswith(ACTION_FEEDBACK_SUFFIX)):
         type_name_rsplit = type_.name.rsplit('_', 1)
-        type_imports = f'{type_imports}from {joined_type_namespaces}._{convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])} import {type_.name}\n'
+        type_imports = f'{type_imports}from {joined_type_namespaces}._{convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])} import {type_.name}  # noqa: F811\n'
     else:
-        type_imports = f'{type_imports}from {joined_type_namespaces} import {type_.name}\n'
+        type_imports = f'{type_imports}from {joined_type_namespaces} import {type_.name}  # noqa: F811\n'
 
 if type_imports == '':
     type_imports = None

@@ -92,5 +92,5 @@ class @(action.namespaced_type.name)(metaclass=Metaclass_@(action.namespaced_typ
         # The generic message for get the status of a goal.
         from action_msgs.msg._goal_status_array import GoalStatusArray as GoalStatusMessage
 
-    def __init__(self):
+    def __init__(self) -> None:
         raise NotImplementedError('Action classes can not be instantiated')

@@ -317,7 +317,7 @@ if isinstance(type_, AbstractNestedType):
 @[end for]@
     )
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Dict[str, object]) -> None:
         if 'check_fields' in kwargs:
             self._check_fields = kwargs['check_fields']
         else:

@@ -293,7 +293,25 @@ if isinstance(type_, AbstractNestedType):
 @[end for]@
     )
 
-    def __init__(self, **kwargs):
+@[for member in message.structure.members]@
+@{
+type_ = member.type
+if isinstance(type_, AbstractNestedType):
+    type_ = type_.value_type
+}@
+@[  if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence)]@
+@[    if (
+      type_.name.endswith(ACTION_GOAL_SUFFIX) or
+      type_.name.endswith(ACTION_RESULT_SUFFIX) or
+      type_.name.endswith(ACTION_FEEDBACK_SUFFIX))]@
+    from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
+@[    else]@
+    from @('.'.join(type_.namespaces)) import @(type_.name)
+@[    end if]@
+@[  end if]@
+@[end for]@
+
+    def __init__(self, **kwargs) -> None:
         if 'check_fields' in kwargs:
             self._check_fields = kwargs['check_fields']
         else:
@@ -367,7 +385,7 @@ if isinstance(type_, AbstractNestedType):
 @[  end if]@
 @[end for]@
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         typename = self.__class__.__module__.split('.')
         typename.pop()
         typename.append(self.__class__.__name__)
@@ -394,7 +412,7 @@ if isinstance(type_, AbstractNestedType):
             args.append(s + '=' + fieldstr)
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
 @[for member in message.structure.members]@
@@ -410,8 +428,10 @@ if isinstance(type_, AbstractNestedType):
 @[end for]@
         return True
 
+    from typing import Dict
+
     @@classmethod
-    def get_fields_and_field_types(cls):
+    def get_fields_and_field_types(cls) -> Dict[str, str]:
         from copy import copy
         return copy(cls._fields_and_field_types)
 @[for member in message.structure.members]@
@@ -429,14 +449,49 @@ import builtins
 noqa_string = ''
 if member.name in dict(inspect.getmembers(builtins)).keys():
     noqa_string = '  # noqa: A003'
+
+import numpy
+from rosidl_generator_py.generate_py_impl import get_python_type
+
+python_type = get_python_type(type_)
+
+type_annotation = ''
+type_imports = None
+
+if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES:
+    if isinstance(member.type, Array):
+        type_annotation = f'numpy.ndarray[{python_type}], '
+    elif isinstance(member.type, AbstractSequence):
+        type_annotation = f'array.array[{python_type}], '
+
+if isinstance(member.type, AbstractNestedType):
+    type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
+                       f'Set[{python_type}], UserList[{python_type}]]')
+
+    type_imports = 'from typing import Union\n    from collections.abc import Sequence, Set\n    from collections import UserList\n'
+elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
+    type_annotation = 'Union[str, UserString]'
+    type_imports = 'from typing import Union\n    from collections import UserString'
+elif isinstance(type_, BasicType) and type_.typename == 'char':
+    type_annotation = 'Union[str, UserString]'
+    type_imports = 'from typing import Union\n    from collections import UserString'
+elif isinstance(type_, BasicType) and type_.typename == 'octet':
+    type_annotation = 'Union[bytes, ByteString]'
+    type_imports = 'from typing import Union\n    from collections.abc import ByteString'
+else:
+    type_annotation = python_type
+
 }@
+@[  if type_imports]@
+    @(type_imports)
+@[  end if]@
     @@builtins.property@(noqa_string)
-    def @(member.name)(self):@(noqa_string)
+    def @(member.name)(self) -> @(type_annotation):@(noqa_string)
         """Message field '@(member.name)'."""
         return self._@(member.name)
 
     @@@(member.name).setter@(noqa_string)
-    def @(member.name)(self, value):@(noqa_string)
+    def @(member.name)(self, value: @(type_annotation)) -> None:@(noqa_string)
         if self._check_fields:
 @[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@

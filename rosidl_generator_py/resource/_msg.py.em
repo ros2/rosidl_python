@@ -481,6 +481,9 @@ elif isinstance(type_, BasicType) and type_.typename == 'octet':
 else:
     type_annotation = python_type
 
+
+type_annotation = f'\'{type_annotation}\''
+
 }@
 @[  if type_imports]@
     @(type_imports)

@@ -293,24 +293,6 @@ if isinstance(type_, AbstractNestedType):
 @[end for]@
     )
 
-@[for member in message.structure.members]@
-@{
-type_ = member.type
-if isinstance(type_, AbstractNestedType):
-    type_ = type_.value_type
-}@
-@[  if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence)]@
-@[    if (
-      type_.name.endswith(ACTION_GOAL_SUFFIX) or
-      type_.name.endswith(ACTION_RESULT_SUFFIX) or
-      type_.name.endswith(ACTION_FEEDBACK_SUFFIX))]@
-    from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
-@[    else]@
-    from @('.'.join(type_.namespaces)) import @(type_.name)
-@[    end if]@
-@[  end if]@
-@[end for]@
-
     def __init__(self, **kwargs) -> None:
         if 'check_fields' in kwargs:
             self._check_fields = kwargs['check_fields']
@@ -428,8 +410,6 @@ if isinstance(type_, AbstractNestedType):
 @[end for]@
         return True
 
-    from typing import Dict
-
     @@classmethod
     def get_fields_and_field_types(cls) -> Dict[str, str]:
         from copy import copy
@@ -456,7 +436,8 @@ from rosidl_generator_py.generate_py_impl import get_python_type
 python_type = get_python_type(type_)
 
 type_annotation = ''
-type_imports = None
+type_imports = ''
+
 
 if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES:
     if isinstance(member.type, Array):
@@ -468,25 +449,40 @@ if isinstance(member.type, AbstractNestedType):
     type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
                        f'Set[{python_type}], UserList[{python_type}]]')
 
-    type_imports = 'from typing import Union\n    from collections.abc import Sequence, Set\n    from collections import UserList\n'
+    type_imports = 'from typing import Union\n        from collections.abc import Sequence, Set\n        from collections import UserList\n'
 elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
     type_annotation = 'Union[str, UserString]'
-    type_imports = 'from typing import Union\n    from collections import UserString'
+    type_imports = 'from typing import Union\n        from collections import UserString\n'
 elif isinstance(type_, BasicType) and type_.typename == 'char':
     type_annotation = 'Union[str, UserString]'
-    type_imports = 'from typing import Union\n    from collections import UserString'
+    type_imports = 'from typing import Union\n        from collections import UserString\n'
 elif isinstance(type_, BasicType) and type_.typename == 'octet':
     type_annotation = 'Union[bytes, ByteString]'
-    type_imports = 'from typing import Union\n    from collections.abc import ByteString'
+    type_imports = 'from typing import Union\n        from collections.abc import ByteString\n'
 else:
     type_annotation = python_type
 
+if type_imports != '':
+    type_imports = f'{type_imports}        '
+
+if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence):
+    joined_type_namespaces = '.'.join(type_.namespaces)
+    if(type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) or type_.name.endswith(ACTION_FEEDBACK_SUFFIX)):
+        type_name_rsplit = type_.name.rsplit('_', 1)
+        type_imports = f'{type_imports}from {joined_type_namespaces}._{convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])} import {type_.name}\n'
+    else:
+        type_imports = f'{type_imports}from {joined_type_namespaces} import {type_.name}\n'
+
+if type_imports == '':
+    type_imports = None
 
 type_annotation = f'\'{type_annotation}\''
 
 }@
 @[  if type_imports]@
-    @(type_imports)
+    # Done to avoid circular imports for type checking.
+    if TYPE_CHECKING:
+        @(type_imports)
 @[  end if]@
     @@builtins.property@(noqa_string)
     def @(member.name)(self) -> @(type_annotation):@(noqa_string)

@@ -55,5 +55,5 @@ class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_t
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.response_message.structure.namespaced_type.name) as Response
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.event_message.structure.namespaced_type.name) as Event
 
-    def __init__(self):
+    def __init__(self) -> None:
         raise NotImplementedError('Service classes can not be instantiated')

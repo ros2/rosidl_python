@@ -462,10 +462,11 @@ elif isinstance(type_, BasicType) and type_.typename == 'octet':
 else:
     type_annotation = python_type
 
-if type_imports != '':
-    type_imports = f'{type_imports}        '
-
 if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence):
+
+    if type_imports != '':
+        type_imports = f'{type_imports}        '
+
     joined_type_namespaces = '.'.join(type_.namespaces)
     if(type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) or type_.name.endswith(ACTION_FEEDBACK_SUFFIX)):
         type_name_rsplit = type_.name.rsplit('_', 1)

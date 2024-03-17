@@ -31,27 +31,74 @@ from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 }@
 @{
 import_type_checking = False
-for member in message.structure.members:
-    if isinstance(member.type, AbstractNestedType):
-        import_type_checking = True
-        break
-    elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
-        import_type_checking = True
-        break
-    elif isinstance(member.type, BasicType) and member.type.typename == 'char':
-        import_type_checking = True
-        break
-    elif isinstance(member.type, BasicType) and member.type.typename == 'octet':
-        import_type_checking = True
-        break
+type_annotations = {}
+type_imports = set()
 
-    if isinstance(member.type, NamespacedType):
-        import_type_checking = True
-        break
+for member in message.structure.members:
+    type_ = member.type
+
+    if isinstance(type_, AbstractNestedType):
+        type_ = type_.value_type
+
+    python_type = get_python_type(type_)
+
+    type_annotation = ''
+
+    if isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
+        if isinstance(member.type, Array):
+            type_annotation = f'numpy.ndarray[{python_type}], '
+        elif isinstance(member.type, AbstractSequence):
+            type_annotation = f'array.array[{python_type}], '
+
+    if isinstance(member.type, AbstractNestedType):
+        type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
+                        f'Set[{python_type}], UserList[{python_type}]]')
+
+        type_imports.add('from typing import Union')
+        type_imports.add('from collections.abc import Sequence')
+        type_imports.add('from collections.abc import Set')
+        type_imports.add('from collections import UserList')
+    elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
+        type_annotation = 'Union[str, UserString]'
+
+        type_imports.add('from typing import Union')
+        type_imports.add('from collections import UserString')
+    elif isinstance(type_, BasicType) and type_.typename == 'char':
+        type_annotation = 'Union[str, UserString]'
+        
+        type_imports.add('from typing import Union')
+        type_imports.add('from collections import UserString')
+    elif isinstance(type_, BasicType) and type_.typename == 'octet':
+        type_annotation = 'Union[bytes, ByteString]'
+
+        type_imports.add('from typing import Union')
+        type_imports.add('from collections.abc import ByteString')
+    else:
+        type_annotation = python_type
+
+    if isinstance(type_, NamespacedType):
+
+        joined_type_namespaces = '.'.join(type_.namespaces)
+        if(type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) or type_.name.endswith(ACTION_FEEDBACK_SUFFIX)):
+            type_name_rsplit = type_.name.rsplit('_', 1)
+            type_imports.add(f'from {joined_type_namespaces}._{convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])} import {type_.name}')
+        else:
+            type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
+
+
+    type_annotations[member.name] = f'\'{type_annotation}\''
+
+if len(type_imports) > 0:
+    import_type_checking = True
 }@
 @[if import_type_checking]@
 
 from typing import TYPE_CHECKING  # noqa: E402, I100
+
+if TYPE_CHECKING:
+@[   for type_import in type_imports]@
+    @(type_import)
+@[   end for]
 @[end if]@
 @#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 @# Collect necessary import statements for all members
@@ -90,8 +137,6 @@ for member in message.structure.members:
 @
 @#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 @[if imports]@
-
-
 # Import statements for member types
 @[    for import_statement, member_names in sorted(imports.items())]@
 
@@ -316,16 +361,30 @@ if isinstance(type_, AbstractNestedType):
 ,  # noqa: E501
 @[end for]@
     )
+@{
+# Taken from flake8-builtins
+# https://github.com/gforcada/flake8-builtins/blob/689ad01c03cb52ae73be23d19706e6a4a491f4e9/flake8_builtins.py
+import inspect
+import builtins
+BUILTINS = [
+    a[0]
+    for a in inspect.getmembers(builtins)
+]
+}@
 
-    def __init__(self, **kwargs: Dict[str, object]) -> None:
-        if 'check_fields' in kwargs:
-            self._check_fields = kwargs['check_fields']
+    def __init__(self,
+@[for member in message.structure.members]@
+@[    if member.name in BUILTINS]@
+                 @(member.name): Optional[@(type_annotations[member.name])] = None,  # noqa: E501, A002
+@[    else]@
+                 @(member.name): Optional[@(type_annotations[member.name])] = None,  # noqa: E501
+@[    end if]@
+@[end for]@
+                 check_fields: Optional[bool] = None) -> None:
+        if check_fields is not None:
+            self._check_fields = check_fields
         else:
             self._check_fields = ros_python_check_fields == '1'
-        if self._check_fields:
-            assert all('_' + key in self.__slots__ for key in kwargs.keys()), \
-                'Invalid arguments passed to constructor: %s' % \
-                ', '.join(sorted(k for k in kwargs.keys() if '_' + k not in self.__slots__))
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@
@@ -335,9 +394,13 @@ type_ = member.type
 if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 }@
+@[  if not (not member.has_annotation('default') and isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES)]@
+        if @(member.name):
+            self.@(member.name) = @(member.name)
+        else:
+@[  end if]@
 @[  if member.has_annotation('default')]@
-        self.@(member.name) = kwargs.get(
-            '@(member.name)', @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT)
+            self.@(member.name) = @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT
 @[  else]@
 @[    if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence)]@
 @[      if (
@@ -345,48 +408,39 @@ if isinstance(type_, AbstractNestedType):
             type_.name.endswith(ACTION_RESULT_SUFFIX) or
             type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
         )]@
-        from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
+            from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
 @[      else]@
-        from @('.'.join(type_.namespaces)) import @(type_.name)
+            from @('.'.join(type_.namespaces)) import @(type_.name)
 @[      end if]@
 @[    end if]@
 @[    if isinstance(member.type, Array)]@
 @[      if isinstance(type_, BasicType) and type_.typename == 'octet']@
-        self.@(member.name) = kwargs.get(
-            '@(member.name)',
-            [bytes([0]) for x in range(@(member.type.size))]
-        )
+            self.@(member.name) = [bytes([0]) for x in range(@(member.type.size))]
 @[      elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
-        self.@(member.name) = kwargs.get(
-            '@(member.name)',
-            [chr(0) for x in range(@(member.type.size))]
-        )
+            self.@(member.name) = [chr(0) for x in range(@(member.type.size))]
 @[      else]@
 @[        if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-        if '@(member.name)' not in kwargs:
+        if @(member.name) is None:
             self.@(member.name) = numpy.zeros(@(member.type.size), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
         else:
-            self.@(member.name) = numpy.array(kwargs.get('@(member.name)'), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
+            self.@(member.name) = numpy.array(@(member.name), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
             assert self.@(member.name).shape == (@(member.type.size), )
 @[        else]@
-        self.@(member.name) = kwargs.get(
-            '@(member.name)',
-            [@(get_python_type(type_))() for x in range(@(member.type.size))]
-        )
+            self.@(member.name) = [@(get_python_type(type_))() for x in range(@(member.type.size))]
 @[        end if]@
 @[      end if]@
 @[    elif isinstance(member.type, AbstractSequence)]@
 @[      if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-        self.@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', kwargs.get('@(member.name)', []))
+            self.@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', [])
 @[      else]@
-        self.@(member.name) = kwargs.get('@(member.name)', [])
+            self.@(member.name) = []
 @[      end if]@
 @[    elif isinstance(type_, BasicType) and type_.typename == 'octet']@
-        self.@(member.name) = kwargs.get('@(member.name)', bytes([0]))
+            self.@(member.name) = bytes([0])
 @[    elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
-        self.@(member.name) = kwargs.get('@(member.name)', chr(0))
+            self.@(member.name) = chr(0)
 @[    else]@
-        self.@(member.name) = kwargs.get('@(member.name)', @(get_python_type(type_))())
+            self.@(member.name) = @(get_python_type(type_))()
 @[    end if]@
 @[  end if]@
 @[end for]@
@@ -454,68 +508,14 @@ noqa_string = ''
 if member.name in dict(inspect.getmembers(builtins)).keys():
     noqa_string = '  # noqa: A003'
 
-import numpy
-from rosidl_generator_py.generate_py_impl import get_python_type
-
-python_type = get_python_type(type_)
-
-type_annotation = ''
-type_imports = ''
-
-
-if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES:
-    if isinstance(member.type, Array):
-        type_annotation = f'numpy.ndarray[{python_type}], '
-    elif isinstance(member.type, AbstractSequence):
-        type_annotation = f'array.array[{python_type}], '
-
-if isinstance(member.type, AbstractNestedType):
-    type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
-                       f'Set[{python_type}], UserList[{python_type}]]')
-
-    type_imports = 'from typing import Union  # noqa: F811\n        from collections.abc import Sequence, Set  # noqa: F811\n        from collections import UserList  # noqa: F811\n'
-elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
-    type_annotation = 'Union[str, UserString]'
-    type_imports = 'from typing import Union  # noqa: F811\n        from collections import UserString  # noqa: F811\n'
-elif isinstance(type_, BasicType) and type_.typename == 'char':
-    type_annotation = 'Union[str, UserString]'
-    type_imports = 'from typing import Union  # noqa: F811\n        from collections import UserString  # noqa: F811\n'
-elif isinstance(type_, BasicType) and type_.typename == 'octet':
-    type_annotation = 'Union[bytes, ByteString]'
-    type_imports = 'from typing import Union  # noqa: F811\n        from collections.abc import ByteString  # noqa: F811\n'
-else:
-    type_annotation = python_type
-
-if isinstance(type_, NamespacedType):
-
-    if type_imports != '':
-        type_imports = f'{type_imports}        '
-
-    joined_type_namespaces = '.'.join(type_.namespaces)
-    if(type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) or type_.name.endswith(ACTION_FEEDBACK_SUFFIX)):
-        type_name_rsplit = type_.name.rsplit('_', 1)
-        type_imports = f'{type_imports}from {joined_type_namespaces}._{convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])} import {type_.name}  # noqa: F811\n'
-    else:
-        type_imports = f'{type_imports}from {joined_type_namespaces} import {type_.name}  # noqa: F811\n'
-
-if type_imports == '':
-    type_imports = None
-
-type_annotation = f'\'{type_annotation}\''
-
 }@
-@[  if type_imports]@
-    # Done to avoid circular imports for type checking.
-    if TYPE_CHECKING:
-        @(type_imports)
-@[  end if]@
     @@builtins.property@(noqa_string)
-    def @(member.name)(self) -> @(type_annotation):@(noqa_string)
+    def @(member.name)(self) -> @(type_annotations[member.name]):@(noqa_string)
         """Message field '@(member.name)'."""
         return self._@(member.name)
 
     @@@(member.name).setter@(noqa_string)
-    def @(member.name)(self, value: @(type_annotation)) -> None:@(noqa_string)
+    def @(member.name)(self, value: @(type_annotations[member.name])) -> None:@(noqa_string)
         if self._check_fields:
 @[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@

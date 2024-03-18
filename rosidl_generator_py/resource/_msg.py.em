@@ -90,18 +90,15 @@ for member in message.structure.members:
 
     type_annotations[member.name] = f'\'{type_annotation}\''
 
-if len(type_imports) > 0:
-    import_type_checking = True
+type_imports.add('from typing import Literal')
 }@
-@[if import_type_checking]@
 
 from typing import TYPE_CHECKING  # noqa: E402, I100
 
 if TYPE_CHECKING:
-@[   for type_import in type_imports]@
+@[for type_import in type_imports]@
     @(type_import)
-@[   end for]
-@[end if]@
+@[end for]
 @#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 @# Collect necessary import statements for all members
 @{
@@ -227,7 +224,7 @@ for member in message.structure.members:
 @[end for]@
 
     @@classmethod
-    def __prepare__(cls, name, bases, **kwargs):
+    def __prepare__(cls, name: 'Literal["@(message.structure.namespaced_type.name)"]', bases: Tuple[()], **kwargs: Any):
         # list constant names here so that they appear in the help text of
         # the message class under "Data and other attributes defined here:"
         # as well as populate each message instance

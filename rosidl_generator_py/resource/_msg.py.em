@@ -46,7 +46,9 @@ for member in message.structure.members:
 
     if isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
         if isinstance(member.type, Array):
-            type_annotation = f'numpy.ndarray[{python_type}], '
+            dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
+            type_annotation = f'NDArray[{dtype}], '
+            type_imports.add('from numpy.typing import NDArray')
         elif isinstance(member.type, AbstractSequence):
             type_annotation = f'array.array[{python_type}], '
 

@@ -374,6 +374,9 @@ BUILTINS = [
 
     def __init__(self,
 @[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
 @[    if member.name in BUILTINS]@
                  @(member.name): Optional[@(type_annotations[member.name])] = None,  # noqa: E501, A002
 @[    else]@

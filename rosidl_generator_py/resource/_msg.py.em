@@ -449,7 +449,7 @@ string@
 
     # This attribute is used to store an rosidl_parser.definition variable
     # related to the data type of each of the components the message.
-    SLOT_TYPES = (
+    SLOT_TYPES: Tuple[rosidl_parser.definition.AbstractType, ...] = (
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@

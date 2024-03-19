@@ -50,7 +50,9 @@ for member in message.structure.members:
             type_annotation = f'NDArray[{dtype}], '
             type_imports.add('from numpy.typing import NDArray')
         elif isinstance(member.type, AbstractSequence):
-            type_annotation = f'array.array[{python_type}], '
+            # Uses MutableSequence because array does not support subscripting
+            type_annotation = f'MutableSequence[{python_type}], '
+            type_imports.add('from collections.abc import MutableSequence')
 
     if isinstance(member.type, AbstractNestedType):
         type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
@@ -88,7 +90,7 @@ for member in message.structure.members:
             type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
 
 
-    type_annotations[member.name] = type_annotation
+    type_annotations[member.name] = f'\'{type_annotation}\''
 
 type_imports.add('from typing import Literal')
 
@@ -111,7 +113,9 @@ def get_type_annotation_constant_default(constant, value, type_imports) -> str:
             type_annotation = f'NDArray[{dtype}]'
             type_imports.add('from numpy.typing import NDArray')
         elif isinstance(constant.type, AbstractSequence):
-            type_annotation = f'array.array[{python_type}]'
+            # Uses MutableSequence because array does not support subscripting
+            type_annotation = f'MutableSequence[{python_type}]'
+            type_imports.add('from collections.abc import MutableSequence')
     elif isinstance(constant.type, AbstractNestedType):
         type_imports.add('from typing import List')
         type_annotation = f'List[{python_type}]'
@@ -121,22 +125,22 @@ def get_type_annotation_constant_default(constant, value, type_imports) -> str:
         type_annotation = 'float'
     else:
         if isinstance(value, str):
-            value = value.replace("\"", "\\\"")
-            value = value.replace("\'", "\\\'")
-            if '\'' in value:
-                value = f'\"{value}\"'
-            else:
-                value = f'\'{value}\''
+            # Literal type annotations cannot handle strings with ' or " until python3.7
+            # Using from __future__ import annotations or Just importing Literal in python3.8
+            if '\'' in value or '\"' in value:
+                return 'str'
 
-            type_annotation = f'Literal[{value}]'
+            type_annotation = f'Literal[\"{value}\"]'
         elif isinstance(value, float):
             type_annotation = 'float'
         elif type_.typename == 'octet':
-            const_value = constant_value_to_py(type_, value)
-            type_annotation = f'Literal[{const_value}]'
+            # Literal type annotations cannot handle bytes with ' or " until python3.7
+            # Using from __future__ import annotations or Just importing Literal in python3.8
+            type_annotation = 'bytes'
         else:
             type_annotation = f'Literal[{value}]'
 
+    type_annotation = f'\'{type_annotation}\''
     return type_annotation
 
 custom_type_annotations = {}
@@ -244,11 +248,11 @@ for member in message.structure.members:
 class Metaclass_@(message.structure.namespaced_type.name)(type):
     """Metaclass of message '@(message.structure.namespaced_type.name)'."""
 
-    _CREATE_ROS_MESSAGE: Optional[PyCapsule] = None
-    _CONVERT_FROM_PY: Optional[PyCapsule] = None
-    _CONVERT_TO_PY: Optional[PyCapsule] = None
-    _DESTROY_ROS_MESSAGE: Optional[PyCapsule] = None
-    _TYPE_SUPPORT: Optional[PyCapsule] = None
+    _CREATE_ROS_MESSAGE: Optional['PyCapsule'] = None
+    _CONVERT_FROM_PY: Optional['PyCapsule'] = None
+    _CONVERT_TO_PY: Optional['PyCapsule'] = None
+    _DESTROY_ROS_MESSAGE: Optional['PyCapsule'] = None
+    _TYPE_SUPPORT: Optional['PyCapsule'] = None
 
     class @(message.structure.namespaced_type.name)Constants(TypedDict):
 @[if not custom_type_annotations]@

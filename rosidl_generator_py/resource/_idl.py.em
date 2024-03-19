@@ -5,8 +5,6 @@
 # This is being done at the module level and not on the instance level to avoid looking
 # for the same variable multiple times on each instance. This variable is not supposed to
 # change during runtime so it makes sense to only look for it once.
-from __future__ import annotations
-
 from os import getenv
 import sys
 from typing import Any, Callable, Dict, Optional, Tuple, TypedDict

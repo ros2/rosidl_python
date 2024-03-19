@@ -168,10 +168,12 @@ suffix = '__'.join(message.structure.namespaced_type.namespaces[1:]) + '__' + co
 }@
 if TYPE_CHECKING:
     from ctypes import Structure
+
     class PyCapsule(Structure):
         pass  # don't need to define the full structure
 
     from typing import Protocol
+
     class TypeSupportProtocol(Protocol):
         create_ros_message_msg__@(suffix): PyCapsule
         convert_from_py_msg__@(suffix): PyCapsule

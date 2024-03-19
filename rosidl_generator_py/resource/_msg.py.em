@@ -88,12 +88,70 @@ for member in message.structure.members:
             type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
 
 
-    type_annotations[member.name] = f'\'{type_annotation}\''
+    type_annotations[member.name] = type_annotation
 
 type_imports.add('from typing import Literal')
+
+constant_type_annotations = {}
+
+for member in message.structure.members:
+
+    if member.has_annotation('default'):
+        constant = member
+        type_ = constant.type
+
+        if isinstance(type_, AbstractNestedType):
+            type_ = type_.value_type
+
+        python_type = get_python_type(type_)
+
+        type_annotation = ''
+
+        if isinstance(constant.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
+            if isinstance(constant.type, Array):
+                dtype = SPECIAL_NESTED_BASIC_TYPES[constant.type.value_type.typename]['dtype']
+                type_annotation = f'NDArray[{dtype}]'
+                type_imports.add('from numpy.typing import NDArray')
+            elif isinstance(constant.type, AbstractSequence):
+                type_annotation = f'array.array[{python_type}]'
+        elif isinstance(constant.type, AbstractNestedType):
+            type_imports.add('from typing import List')
+            type_annotation = f'List[{python_type}]'
+        elif isinstance(type_, NamespacedType):
+            type_annotation = python_type
+        elif isinstance(type_, float):
+            type_annotation = 'float'
+        else:
+            value = constant.get_annotation_value('default')['value']
+            if isinstance(value, str):
+                value = value.replace("\"", "\\\"")
+                value = value.replace("\'", "\\\'")
+                if '\'' in value:
+                    value = f'\"{value}\"'
+                else:
+                    value = f'\'{value}\''
+
+                type_annotation = f'Literal[{value}]'
+            elif isinstance(value, float):
+                type_annotation = 'float'
+            elif type_.typename == 'octet':
+                const_value = constant_value_to_py(type_, value)
+                type_annotation = f'Literal[{const_value}]'
+            else:
+                type_annotation = f'Literal[{value}]'
+
+        constant_type_annotations[constant.name] = type_annotation
 }@
 
 from typing import TYPE_CHECKING  # noqa: E402, I100
+import sys  # noqa: E402, I100
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    # Definition taking from typing_extension.
+    def override(func: Callable[..., Any]) -> Callable[..., Any]:
+        return func
 
 if TYPE_CHECKING:
 @[for type_import in type_imports]@
@@ -165,6 +223,15 @@ class Metaclass_@(message.structure.namespaced_type.name)(type):
     _DESTROY_ROS_MESSAGE = None
     _TYPE_SUPPORT = None
 
+    class @(message.structure.namespaced_type.name)Constants(TypedDict):
+@[if not constant_type_annotations]@
+        pass
+@[else]@
+@[    for name, type in constant_type_annotations.items()]@
+        @(name.upper())__DEFAULT: @(type)
+@[     end for]@
+@[end if]@
+
     __constants = {
 @[for constant in message.constants]@
         '@(constant.name)': @constant_value_to_py(constant.type, constant.value),
@@ -223,8 +290,9 @@ for member in message.structure.members:
                 @(typename[-1]).__class__.__import_type_support__()
 @[end for]@
 
+    @@override
     @@classmethod
-    def __prepare__(cls, name: 'Literal["@(message.structure.namespaced_type.name)"]', bases: Tuple[()], **kwargs: Any):
+    def __prepare__(cls, name: 'Literal["@(message.structure.namespaced_type.name)"]', bases: Tuple[()], **kwargs: Any) -> @(message.structure.namespaced_type.name)Constants:
         # list constant names here so that they appear in the help text of
         # the message class under "Data and other attributes defined here:"
         # as well as populate each message instance
@@ -249,7 +317,7 @@ for member in message.structure.members:
 @[  if member.has_annotation('default')]@
 
     @@property
-    def @(member.name.upper())__DEFAULT(cls):
+    def @(member.name.upper())__DEFAULT(cls) -> @(constant_type_annotations[member.name]):
         """Return default value for message field '@(member.name)'."""
         return @(value_to_py(member.type, member.get_annotation_value('default')['value']))
 @[  end if]@

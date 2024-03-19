@@ -92,9 +92,10 @@ for member in message.structure.members:
 
 type_imports.add('from typing import Literal')
 
-custom_type_annotations = {}
+def get_type_annotation_constant_default(constant, value, type_imports) -> str:
+    from rosidl_parser.definition import AbstractNestedType, BasicType, NamespacedType, AbstractSequence, Array
+    from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES, get_python_type, constant_value_to_py
 
-for constant in message.constants:
     type_ = constant.type
 
     if isinstance(type_, AbstractNestedType):
@@ -119,7 +120,6 @@ for constant in message.constants:
     elif isinstance(type_, float):
         type_annotation = 'float'
     else:
-        value = constant.value
         if isinstance(value, str):
             value = value.replace("\"", "\\\"")
             value = value.replace("\'", "\\\'")
@@ -137,61 +137,24 @@ for constant in message.constants:
         else:
             type_annotation = f'Literal[{value}]'
 
-    custom_type_annotations[constant.name] = type_annotation
+    return type_annotation
+
+custom_type_annotations = {}
+
+for constant in message.constants:
+    value = constant.value
+    custom_type_annotations[constant.name] = get_type_annotation_constant_default(constant, value, type_imports)
 
 default_type_annotations = {}
 
 for member in message.structure.members:
-
     if member.has_annotation('default'):
         constant = member
-        type_ = constant.type
-
-        if isinstance(type_, AbstractNestedType):
-            type_ = type_.value_type
-
-        python_type = get_python_type(type_)
-
-        type_annotation = ''
-
-        if isinstance(constant.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
-            if isinstance(constant.type, Array):
-                dtype = SPECIAL_NESTED_BASIC_TYPES[constant.type.value_type.typename]['dtype']
-                type_annotation = f'NDArray[{dtype}]'
-                type_imports.add('from numpy.typing import NDArray')
-            elif isinstance(constant.type, AbstractSequence):
-                type_annotation = f'array.array[{python_type}]'
-        elif isinstance(constant.type, AbstractNestedType):
-            type_imports.add('from typing import List')
-            type_annotation = f'List[{python_type}]'
-        elif isinstance(type_, NamespacedType):
-            type_annotation = python_type
-        elif isinstance(type_, float):
-            type_annotation = 'float'
-        else:
-            value = constant.get_annotation_value('default')['value']
-            if isinstance(value, str):
-                value = value.replace("\"", "\\\"")
-                value = value.replace("\'", "\\\'")
-                if '\'' in value:
-                    value = f'\"{value}\"'
-                else:
-                    value = f'\'{value}\''
-
-                type_annotation = f'Literal[{value}]'
-            elif isinstance(value, float):
-                type_annotation = 'float'
-            elif type_.typename == 'octet':
-                const_value = constant_value_to_py(type_, value)
-                type_annotation = f'Literal[{const_value}]'
-            else:
-                type_annotation = f'Literal[{value}]'
-
-        default_type_annotations[constant.name] = type_annotation
+        value = constant.get_annotation_value('default')['value']
+        default_type_annotations[constant.name] = get_type_annotation_constant_default(constant, value, type_imports)
 }@
 
 from typing import TYPE_CHECKING  # noqa: E402, I100
-import sys  # noqa: E402, I100
 
 if sys.version_info >= (3, 12):
     from typing import override

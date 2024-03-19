@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 from os import getenv
+import sys
 from typing import Any, Callable, Dict, Optional, Tuple, TypedDict
 
 ros_python_check_fields = getenv('ROS_PYTHON_CHECK_FIELDS', default='')

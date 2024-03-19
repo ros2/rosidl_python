@@ -342,8 +342,8 @@ for member in message.structure.members:
 @[for typename in sorted(importable_typesupports)]@
 
             from @('.'.join(typename[:-2])) import @(typename[-2])
-            if @(typename[-1]).__class__._TYPE_SUPPORT is None:
-                @(typename[-1]).__class__.__import_type_support__()
+            if @(typename[-1])._TYPE_SUPPORT is None:
+                @(typename[-1]).__import_type_support__()
 @[end for]@
 
     @@override
@@ -404,7 +404,7 @@ class @(message.structure.namespaced_type.name)(metaclass=Metaclass_@(message.st
         '_check_fields',
     ]
 
-    _fields_and_field_types = {
+    _fields_and_field_types: Dict[str, str] = {
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@

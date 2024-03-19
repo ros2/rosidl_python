@@ -508,13 +508,8 @@ type_ = member.type
 if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 }@
-@[  if not (not member.has_annotation('default') and isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES)]@
-        if @(member.name):
-            self.@(member.name) = @(member.name)
-        else:
-@[  end if]@
 @[  if member.has_annotation('default')]@
-            self.@(member.name) = @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT
+        self.@(member.name) = @(member.name) or @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT
 @[  else]@
 @[    if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence)]@
 @[      if (
@@ -522,16 +517,16 @@ if isinstance(type_, AbstractNestedType):
             type_.name.endswith(ACTION_RESULT_SUFFIX) or
             type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
         )]@
-            from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
+        from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
 @[      else]@
-            from @('.'.join(type_.namespaces)) import @(type_.name)
+        from @('.'.join(type_.namespaces)) import @(type_.name)
 @[      end if]@
 @[    end if]@
 @[    if isinstance(member.type, Array)]@
 @[      if isinstance(type_, BasicType) and type_.typename == 'octet']@
-            self.@(member.name) = [bytes([0]) for x in range(@(member.type.size))]
+        self.@(member.name) = @(member.name) or [bytes([0]) for x in range(@(member.type.size))]
 @[      elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
-            self.@(member.name) = [chr(0) for x in range(@(member.type.size))]
+        self.@(member.name) = @(member.name) or [chr(0) for x in range(@(member.type.size))]
 @[      else]@
 @[        if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
         if @(member.name) is None:
@@ -540,21 +535,21 @@ if isinstance(type_, AbstractNestedType):
             self.@(member.name) = numpy.array(@(member.name), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
             assert self.@(member.name).shape == (@(member.type.size), )
 @[        else]@
-            self.@(member.name) = [@(get_python_type(type_))() for x in range(@(member.type.size))]
+        self.@(member.name) = @(member.name) or [@(get_python_type(type_))() for x in range(@(member.type.size))]
 @[        end if]@
 @[      end if]@
 @[    elif isinstance(member.type, AbstractSequence)]@
 @[      if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-            self.@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', [])
+        self.@(member.name) = @(member.name) or array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', [])
 @[      else]@
-            self.@(member.name) = []
+        self.@(member.name) = @(member.name) or []
 @[      end if]@
 @[    elif isinstance(type_, BasicType) and type_.typename == 'octet']@
-            self.@(member.name) = bytes([0])
+        self.@(member.name) = @(member.name) or bytes([0])
 @[    elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
-            self.@(member.name) = chr(0)
+        self.@(member.name) = @(member.name) or chr(0)
 @[    else]@
-            self.@(member.name) = @(get_python_type(type_))()
+        self.@(member.name) = @(member.name) or @(get_python_type(type_))()
 @[    end if]@
 @[  end if]@
 @[end for]@

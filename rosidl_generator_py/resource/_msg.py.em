@@ -167,8 +167,6 @@ for member in message.structure.members:
         default_type_annotations[constant.name] = get_type_annotation_constant_default(constant, value, type_imports)
 }@
 
-from typing import TYPE_CHECKING  # noqa: E402, I100
-
 if sys.version_info >= (3, 12):
     from typing import override
 else:

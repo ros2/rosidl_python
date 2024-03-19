@@ -92,7 +92,54 @@ for member in message.structure.members:
 
 type_imports.add('from typing import Literal')
 
-constant_type_annotations = {}
+custom_type_annotations = {}
+
+for constant in message.constants:
+    type_ = constant.type
+
+    if isinstance(type_, AbstractNestedType):
+        type_ = type_.value_type
+
+    python_type = get_python_type(type_)
+
+    type_annotation = ''
+
+    if isinstance(constant.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
+        if isinstance(constant.type, Array):
+            dtype = SPECIAL_NESTED_BASIC_TYPES[constant.type.value_type.typename]['dtype']
+            type_annotation = f'NDArray[{dtype}]'
+            type_imports.add('from numpy.typing import NDArray')
+        elif isinstance(constant.type, AbstractSequence):
+            type_annotation = f'array.array[{python_type}]'
+    elif isinstance(constant.type, AbstractNestedType):
+        type_imports.add('from typing import List')
+        type_annotation = f'List[{python_type}]'
+    elif isinstance(type_, NamespacedType):
+        type_annotation = python_type
+    elif isinstance(type_, float):
+        type_annotation = 'float'
+    else:
+        value = constant.value
+        if isinstance(value, str):
+            value = value.replace("\"", "\\\"")
+            value = value.replace("\'", "\\\'")
+            if '\'' in value:
+                value = f'\"{value}\"'
+            else:
+                value = f'\'{value}\''
+
+            type_annotation = f'Literal[{value}]'
+        elif isinstance(value, float):
+            type_annotation = 'float'
+        elif type_.typename == 'octet':
+            const_value = constant_value_to_py(type_, value)
+            type_annotation = f'Literal[{const_value}]'
+        else:
+            type_annotation = f'Literal[{value}]'
+
+    custom_type_annotations[constant.name] = type_annotation
+
+default_type_annotations = {}
 
 for member in message.structure.members:
 
@@ -140,7 +187,7 @@ for member in message.structure.members:
             else:
                 type_annotation = f'Literal[{value}]'
 
-        constant_type_annotations[constant.name] = type_annotation
+        default_type_annotations[constant.name] = type_annotation
 }@
 
 from typing import TYPE_CHECKING  # noqa: E402, I100
@@ -224,19 +271,28 @@ class Metaclass_@(message.structure.namespaced_type.name)(type):
     _TYPE_SUPPORT = None
 
     class @(message.structure.namespaced_type.name)Constants(TypedDict):
-@[if not constant_type_annotations]@
+@[if not custom_type_annotations]@
         pass
 @[else]@
-@[    for name, type in constant_type_annotations.items()]@
-        @(name.upper())__DEFAULT: @(type)
+@[for constant in message.constants]@
+        @(constant.name): @(custom_type_annotations[constant.name])
 @[     end for]@
 @[end if]@
 
-    __constants = {
+    __constants: @(message.structure.namespaced_type.name)Constants = {
 @[for constant in message.constants]@
         '@(constant.name)': @constant_value_to_py(constant.type, constant.value),
 @[end for]@
     }
+
+    class @(message.structure.namespaced_type.name)Default(@(message.structure.namespaced_type.name)Constants):
+@[if not default_type_annotations]@
+        pass
+@[else]@
+@[    for name, type in default_type_annotations.items()]@
+        @(name.upper())__DEFAULT: @(type)
+@[     end for]@
+@[end if]@
 
     @@classmethod
     def __import_type_support__(cls) -> None:
@@ -292,7 +348,7 @@ for member in message.structure.members:
 
     @@override
     @@classmethod
-    def __prepare__(cls, name: 'Literal["@(message.structure.namespaced_type.name)"]', bases: Tuple[()], **kwargs: Any) -> @(message.structure.namespaced_type.name)Constants:
+    def __prepare__(cls, name: 'Literal["@(message.structure.namespaced_type.name)"]', bases: Tuple[()], **kwargs: Any) -> @(message.structure.namespaced_type.name)Default:
         # list constant names here so that they appear in the help text of
         # the message class under "Data and other attributes defined here:"
         # as well as populate each message instance
@@ -309,7 +365,7 @@ for member in message.structure.members:
 @[for constant in message.constants]@
 
     @@property
-    def @(constant.name)(self):
+    def @(constant.name)(self) -> @(custom_type_annotations[constant.name]):
         """Message constant '@(constant.name)'."""
         return Metaclass_@(message.structure.namespaced_type.name).__constants['@(constant.name)']
 @[end for]@
@@ -317,7 +373,7 @@ for member in message.structure.members:
 @[  if member.has_annotation('default')]@
 
     @@property
-    def @(member.name.upper())__DEFAULT(cls) -> @(constant_type_annotations[member.name]):
+    def @(member.name.upper())__DEFAULT(cls) -> @(default_type_annotations[member.name]):
         """Return default value for message field '@(member.name)'."""
         return @(value_to_py(member.type, member.get_annotation_value('default')['value']))
 @[  end if]@

@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.21.2 (2024-03-27)
+-------------------
 * Prototype code for seeing if FindPython3 is usable for rosidl_python (`#140 <https://github.com/ros2/rosidl_python/issues/140>`_)
 * Contributors: Shane Loretz
 

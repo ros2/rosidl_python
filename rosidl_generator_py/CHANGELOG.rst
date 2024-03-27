@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Prototype code for seeing if FindPython3 is usable for rosidl_python (`#140 <https://github.com/ros2/rosidl_python/issues/140>`_)
+* Contributors: Shane Loretz
+
 0.21.1 (2024-02-07)
 -------------------
 * Add in a missing space. (`#203 <https://github.com/ros2/rosidl_python/issues/203>`_)

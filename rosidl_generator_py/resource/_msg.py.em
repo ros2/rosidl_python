@@ -189,18 +189,68 @@ for member in message.structure.members:
 
 
 class @(message.structure.namespaced_type.name)(metaclass=Metaclass_@(message.structure.namespaced_type.name)):
-@[if not message.constants]@
-    """Message class '@(message.structure.namespaced_type.name)'."""
-@[else]@
     """
     Message class '@(message.structure.namespaced_type.name)'.
+@[if len(message.structure.get_comment_lines()) > 0]@
+
+@[  for comment in message.structure.get_comment_lines()]@
+@(("    " + comment).rstrip(' ') + "\n")@
+@[  end for]@
+@[end if]@
+
+@[if message.constants]@
 
     Constants:
 @[  for constant_name in [c.name for c in message.constants]]@
       @(constant_name)
 @[  end for]@
-    """
 @[end if]@
+@[if message.structure.members]@
+
+    Fields:
+@[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+@{
+type_ = member.type
+if isinstance(type_, AbstractNestedType):
+    type_ = type_.value_type
+}@
+        @(member.name) (@
+@# the prefix for nested types
+@[  if isinstance(member.type, AbstractSequence)]@
+sequence<@
+@[  end if]@
+@# the typename of the non-nested type or the nested basetype
+@[  if isinstance(type_, BasicType)]@
+@(type_.typename)@
+@[  elif isinstance(type_, AbstractGenericString)]@
+@
+@[    if isinstance(type_, AbstractWString)]@
+w@
+@[    end if]@
+string@
+@[    if type_.has_maximum_size()]@
+<@(type_.maximum_size)>@
+@[    end if]@
+@[  elif isinstance(type_, NamespacedType)]@
+@('/'.join([type_.namespaces[0], type_.name]))@
+@[  end if]@
+@# the suffix for nested types
+@[  if isinstance(member.type, AbstractSequence)]@
+@[    if isinstance(member.type, BoundedSequence)]@
+, @(member.type.maximum_size)@
+@[    end if]@
+>@
+@[  elif isinstance(member.type, Array)]@
+[@(member.type.size)]@
+@[  end if]@
+)@(" ".join([':'] + member.get_comment_lines()).strip(' '))@
+
+@[end for]@
+@[end if]@
+    """
 
     __slots__ = [
 @[for member in message.structure.members]@

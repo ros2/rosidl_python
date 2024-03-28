@@ -83,8 +83,12 @@ def test_basic_types():
     assert 42 == msg.char_value
     msg.float32_value = 1.125
     assert 1.125 == msg.float32_value
+    msg.float32_value = math.nan
+    assert math.isnan(msg.float32_value)
     msg.float64_value = 1.125
     assert 1.125 == msg.float64_value
+    msg.float64_value = math.nan
+    assert math.isnan(msg.float64_value)
     msg.int8_value = -50
     assert -50 == msg.int8_value
     msg.uint8_value = 200
@@ -130,22 +134,29 @@ def test_basic_types():
             setattr(msg, 'float64_value', float64_ieee_max_next)
 
     # NaN
+    # Test IEEE-754 message equality when values are NaN.
     setattr(msg, 'float32_value', math.nan)
     assert math.isnan(msg.float32_value)
+    assert msg == msg
     setattr(msg, 'float64_value', math.nan)
     assert math.isnan(msg.float64_value)
+    assert msg == msg
 
     # -Inf
     setattr(msg, 'float32_value', -math.inf)
     assert math.isinf(msg.float32_value)
+    assert msg == msg
     setattr(msg, 'float64_value', -math.inf)
     assert math.isinf(msg.float64_value)
+    assert msg == msg
 
     # +Inf
     setattr(msg, 'float32_value', math.inf)
     assert math.isinf(msg.float32_value)
+    assert msg == msg
     setattr(msg, 'float64_value', math.inf)
     assert math.isinf(msg.float64_value)
+    assert msg == msg
 
 
 def test_strings():

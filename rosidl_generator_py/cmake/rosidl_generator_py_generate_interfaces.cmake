@@ -236,10 +236,6 @@ endforeach()
 
 set_target_properties(${_target_name_lib} PROPERTIES COMPILE_OPTIONS "${_extension_compile_flags}")
 
-set_target_properties(${_target_name_lib} PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${_output_path}
-  RUNTIME_OUTPUT_DIRECTORY ${_output_path})
-
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   install(TARGETS ${_target_name_lib}
     EXPORT export_${_target_name_lib}

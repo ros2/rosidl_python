@@ -2,6 +2,14 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.22.0 (2024-04-16)
+-------------------
+* Revert install of .so files into python path (`#211 <https://github.com/ros2/rosidl_python/issues/211>`_)
+  There seems that some regression might have happened after `#195 <https://github.com/ros2/rosidl_python/issues/195>`_.
+  When removing those 2 lines, we avoid to install the .so files
+  in lib *and* python path.
+* Contributors: Matthias Schoepfer
+
 0.21.2 (2024-03-27)
 -------------------
 * Prototype code for seeing if FindPython3 is usable for rosidl_python (`#140 <https://github.com/ros2/rosidl_python/issues/140>`_)

@@ -2,6 +2,9 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.22.0 (2024-04-16)
 -------------------
 * Revert install of .so files into python path (`#211 <https://github.com/ros2/rosidl_python/issues/211>`_)

@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.23.1 (2024-06-17)
+-------------------
 * Add rosidl_generator_py to the rosidl_runtime_packages group (`#212 <https://github.com/ros2/rosidl_python/issues/212>`_)
 * Contributors: Scott K Logan
 

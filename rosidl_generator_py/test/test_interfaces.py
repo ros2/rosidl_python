@@ -264,7 +264,7 @@ def test_constructor():
 
     assert 'foo' == msg.string_value
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         Strings(unknown_field='test', check_fields=True)
 
 

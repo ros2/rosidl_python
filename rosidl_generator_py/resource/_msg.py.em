@@ -230,7 +230,7 @@ class @(message.structure.namespaced_type.name)(_bases.@(message.structure.names
 
     # This field is modified after class creation.
     # See the comment to Metaclass_@(message.structure.namespaced_type.name).__new__
-    __slots__ = []
+    __slots__ = ['_check_fields']
 
     _fields_and_field_types = {
 @[for member in message.structure.members]@

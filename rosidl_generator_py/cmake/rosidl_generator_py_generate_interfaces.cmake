@@ -177,14 +177,23 @@ endif()
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
 target_link_libraries(${_target_name_lib} PRIVATE ${c_typesupport_target})
 
-
 set(_target_name_bases_lib "${rosidl_generate_interfaces_TARGET}__bases")
 add_library(${_target_name_bases_lib} SHARED ${_generated_c_base_files})
 add_dependencies(
   ${_target_name_bases_lib}
   ${rosidl_generate_interfaces_TARGET}${_target_suffix})
-target_link_libraries(${_target_name_bases_lib} ${PythonExtra_LIBRARIES})
-target_include_directories(${_target_name_bases_lib} PRIVATE ${PythonExtra_INCLUDE_DIRS})
+target_link_libraries(
+  ${_target_name_bases_lib}
+  Python3::NumPy
+  Python3::Python
+  ${PythonExtra_LIBRARIES}
+)
+target_include_directories(
+  ${_target_name_bases_lib} PRIVATE
+  ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
+  ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
+  ${PythonExtra_INCLUDE_DIRS}
+)
 
 set_target_properties(${_target_name_bases_lib} PROPERTIES
   COMPILE_OPTIONS "${_extension_compile_flags}"
@@ -192,7 +201,6 @@ set_target_properties(${_target_name_bases_lib} PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY${_build_type} ${_output_path}
   RUNTIME_OUTPUT_DIRECTORY${_build_type} ${_output_path}
   OUTPUT_NAME "_${PROJECT_NAME}_bases${PythonExtra_EXTENSION_SUFFIX}"
-  SUFFIX "${PythonExtra_EXTENSION_EXTENSION}"
 )
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   install(TARGETS ${_target_name_bases_lib}

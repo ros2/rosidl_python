@@ -133,7 +133,6 @@ def get_type_annotation_constant_default(constant, value, type_imports) -> str:
     elif isinstance(type_, float):
         type_annotation = 'float'
     else:
-        type_imports.add('from typing import Literal')
         type_annotation = f'Literal[{value}]'
 
     type_annotation = f'\'{type_annotation}\''
@@ -323,7 +322,7 @@ for member in message.structure.members:
 
     @@override
     @@classmethod
-    def __prepare__(cls, name: 'Literal["@(message.structure.namespaced_type.name)"]', bases: Tuple[()], **kwargs: Any) -> @(message.structure.namespaced_type.name)Default:
+    def __prepare__(cls, name: Literal["@(message.structure.namespaced_type.name)"], bases: Tuple[()], **kwargs: Any) -> @(message.structure.namespaced_type.name)Default:
         # list constant names here so that they appear in the help text of
         # the message class under "Data and other attributes defined here:"
         # as well as populate each message instance

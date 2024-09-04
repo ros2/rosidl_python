@@ -322,7 +322,7 @@ for member in message.structure.members:
 
     @@override
     @@classmethod
-    def __prepare__(cls, name: Literal["@(message.structure.namespaced_type.name)"], bases: Tuple[()], **kwargs: Any) -> @(message.structure.namespaced_type.name)Default:
+    def __prepare__(cls, name: Literal['@(message.structure.namespaced_type.name)'], bases: Tuple[()], **kwargs: Any) -> @(message.structure.namespaced_type.name)Default:
         # list constant names here so that they appear in the help text of
         # the message class under "Data and other attributes defined here:"
         # as well as populate each message instance

@@ -133,7 +133,7 @@ def get_type_annotation_constant_default(constant, value, type_imports) -> str:
     elif isinstance(type_, float):
         type_annotation = 'float'
     else:
-        type_annotation = f'Literal[{value}]'
+        return f'Literal[{value}]'
 
     type_annotation = f'\'{type_annotation}\''
     return type_annotation

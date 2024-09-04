@@ -101,8 +101,6 @@ for member in message.structure.members:
 
     type_annotations_getter[member.name] = f'\'{type_annotation_getter}\''
 
-type_imports.add('from typing import Literal')
-
 def get_type_annotation_constant_default(constant, value, type_imports) -> str:
     from rosidl_parser.definition import AbstractNestedType, BasicType, NamespacedType, AbstractSequence, Array
     from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES, get_python_type, constant_value_to_py

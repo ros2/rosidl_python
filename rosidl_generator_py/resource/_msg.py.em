@@ -133,21 +133,8 @@ def get_type_annotation_constant_default(constant, value, type_imports) -> str:
     elif isinstance(type_, float):
         type_annotation = 'float'
     else:
-        if isinstance(value, str):
-            # Literal type annotations cannot handle strings with ' or " until python3.7
-            # Using from __future__ import annotations or Just importing Literal in python3.8
-            if '\'' in value or '\"' in value:
-                return 'str'
-
-            type_annotation = f'Literal[\"{value}\"]'
-        elif isinstance(value, float):
-            type_annotation = 'float'
-        elif type_.typename == 'octet':
-            # Literal type annotations cannot handle bytes with ' or " until python3.7
-            # Using from __future__ import annotations or Just importing Literal in python3.8
-            type_annotation = 'bytes'
-        else:
-            type_annotation = f'Literal[{value}]'
+        type_imports.add('from typing import Literal')
+        type_annotation = f'Literal[{value}]'
 
     type_annotation = f'\'{type_annotation}\''
     return type_annotation

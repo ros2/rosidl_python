@@ -17,8 +17,9 @@ TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
     message=service.event_message, import_statements=import_statements)
-}@
 
+type_imports.add('from typing import NoReturn')
+}@
 
 class Metaclass_@(service.namespaced_type.name)(type):
     """Metaclass of service '@(service.namespaced_type.name)'."""
@@ -55,5 +56,5 @@ class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_t
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.response_message.structure.namespaced_type.name) as Response
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.event_message.structure.namespaced_type.name) as Event
 
-    def __init__(self) -> None:
+    def __init__(self) -> NoReturn:
         raise NotImplementedError('Service classes can not be instantiated')

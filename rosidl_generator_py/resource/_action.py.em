@@ -29,6 +29,8 @@ TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
     message=action.feedback_message, import_statements=import_statements)
+
+type_imports.add('from typing import NoReturn')
 }@
 
 

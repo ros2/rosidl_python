@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rosidl_generator_py</name>
-  <version>0.21.1</version>
+  <version>0.23.1</version>
   <description>Generate the ROS interfaces in Python.</description>
 
   <maintainer email="dharini@openrobotics.org">Dharini Dutia</maintainer>
@@ -71,6 +71,7 @@
   <test_depend>test_interface_files</test_depend>
 
   <member_of_group>rosidl_generator_packages</member_of_group>
+  <member_of_group>rosidl_runtime_packages</member_of_group>
 
   <export>
     <build_type>ament_cmake</build_type>

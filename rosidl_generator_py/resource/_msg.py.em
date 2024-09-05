@@ -640,8 +640,6 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
             from collections import UserString
 @[  elif isinstance(type_, AbstractGenericString) and type_.has_maximum_size()]@
             from collections import UserString
-@[  elif isinstance(type_, BasicType) and type_.typename == 'octet']@
-            from collections.abc import ByteString
 @[  elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
             from collections import UserString
 @[  end if]@
@@ -714,7 +712,7 @@ bound = 1.7976931348623157e+308
                 isinstance(value, @(type_.name)), \
                 "The '@(member.name)' field must be a sub message of type '@(type_.name)'"
 @[  elif isinstance(type_, BasicType) and type_.typename == 'octet']@
-                (isinstance(value, (bytes, ByteString)) and
+                (isinstance(value, (bytes, bytearray, memoryview)) and
                  len(value) == 1), \
                 "The '@(member.name)' field must be of type 'bytes' or 'ByteString' with length 1"
 @[  elif isinstance(type_, BasicType) and type_.typename == 'char']@

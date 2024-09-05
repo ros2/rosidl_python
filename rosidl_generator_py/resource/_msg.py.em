@@ -135,12 +135,15 @@ def get_type_annotation_constant_default(constant, value, type_imports) -> str:
             if "'" in value or '"' in value:
                 return 'str'
             else:
-                 return f'Literal[\'{value}\']' 
+                type_imports.add('from typing import Literal')
+                type_annotation = f'Literal["{value}"]' 
         elif isinstance(value, float):
             return 'float'
         elif type_.typename == 'octet':
             return 'bytes'
-        return f'Literal[{value}]'
+        else:
+            type_imports.add('from typing import Literal')
+            type_annotation = f'Literal[{value}]'
 
     type_annotation = f'\'{type_annotation}\''
     return type_annotation

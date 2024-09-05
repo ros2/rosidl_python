@@ -5,9 +5,9 @@
 # This is being done at the module level and not on the instance level to avoid looking
 # for the same variable multiple times on each instance. This variable is not supposed to
 # change during runtime so it makes sense to only look for it once.
+from collections.abc import MutableMapping
 from os import getenv
 from typing import Any, ClassVar, Dict, Literal, Optional, Tuple, TYPE_CHECKING, Type, TypedDict
-from collections.abc import MutableMapping
 
 ros_python_check_fields = getenv('ROS_PYTHON_CHECK_FIELDS', default='')
 @

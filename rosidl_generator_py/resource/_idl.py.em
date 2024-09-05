@@ -7,6 +7,7 @@
 # change during runtime so it makes sense to only look for it once.
 from os import getenv
 from typing import Any, Dict, Literal, Optional, Tuple, TYPE_CHECKING, Type, TypedDict
+from collections.abc import MutableMapping
 
 ros_python_check_fields = getenv('ROS_PYTHON_CHECK_FIELDS', default='')
 @

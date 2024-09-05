@@ -311,7 +311,7 @@ for member in message.structure.members:
 @[end for]@
 
     @@classmethod
-    def __prepare__(cls, name: str, bases: Tuple[Type, ...], **kwargs: Any) -> @(message.structure.namespaced_type.name)Default:
+    def __prepare__(metacls, name: str, bases: Tuple[Type[Any], ...], /, **kwds: Any) -> MutableMapping[str, object]:
         # list constant names here so that they appear in the help text of
         # the message class under "Data and other attributes defined here:"
         # as well as populate each message instance

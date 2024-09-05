@@ -559,7 +559,7 @@ if isinstance(type_, AbstractNestedType):
 @[    continue]@
 @[  end if]@
 @[  if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-        if all(self.@(member.name) != other.@(member.name)):  # type: ignore[arg-type] 
+        if all(self.@(member.name) != other.@(member.name)):  # type: ignore[arg-type]
 @[  else]@
         if self.@(member.name) != other.@(member.name):
 @[  end if]@
@@ -757,7 +757,11 @@ bound = 1.7976931348623157e+308
 @[    if isinstance(member.type, Array)]@
         self._@(member.name) = numpy.array(value, dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
 @[    elif isinstance(member.type, AbstractSequence)]@
+@[      if SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'] in ('f', 'd')]@
+        self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', value)  # type: ignore[assignment]
+@[      else]@
         self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', value)
+@[      end if]@
 @[    end if]@
 @[  else]@
         self._@(member.name) = value

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from types import ModuleType
 import importlib
 
 from rpyutils import add_dll_directories_from_env
@@ -20,13 +21,13 @@ from rpyutils import add_dll_directories_from_env
 class UnsupportedTypeSupport(Exception):
     """Raised when typesupport couldn't be imported."""
 
-    def __init__(self, pkg_name):
+    def __init__(self, pkg_name: str) -> None:
         message = "Could not import 'rosidl_typesupport_c' for package '{0}'".format(pkg_name)
         super(UnsupportedTypeSupport, self).__init__(message)
         self.pkg_name = pkg_name
 
 
-def import_type_support(pkg_name):
+def import_type_support(pkg_name: str) -> ModuleType:
     """
     Import the rosidl_typesupport_c module of a package.
 

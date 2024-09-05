@@ -174,15 +174,6 @@ if TYPE_CHECKING:
     class PyCapsule(Structure):
         pass  # don't need to define the full structure
 
-    from typing import Protocol
-
-    class TypeSupportProtocol(Protocol):
-        create_ros_message_msg__@(suffix): PyCapsule
-        convert_from_py_msg__@(suffix): PyCapsule
-        convert_to_py_msg__@(suffix): PyCapsule
-        type_support_msg__@(suffix): PyCapsule
-        destroy_ros_message_msg__@(suffix): PyCapsule
-
 @[for type_import in type_imports]@
     @(type_import)
 @[end for]
@@ -280,7 +271,7 @@ class Metaclass_@(message.structure.namespaced_type.name)(type):
     def __import_type_support__(cls) -> None:
         try:
             from rosidl_generator_py import import_type_support
-            module: TypeSupportProtocol = import_type_support('@(package_name)')
+            module = import_type_support('@(package_name)')
         except ImportError:
             import logging
             import traceback

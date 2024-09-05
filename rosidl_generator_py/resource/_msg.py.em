@@ -231,11 +231,11 @@ for member in message.structure.members:
 class Metaclass_@(message.structure.namespaced_type.name)(type):
     """Metaclass of message '@(message.structure.namespaced_type.name)'."""
 
-    _CREATE_ROS_MESSAGE: Optional['PyCapsule'] = None
-    _CONVERT_FROM_PY: Optional['PyCapsule'] = None
-    _CONVERT_TO_PY: Optional['PyCapsule'] = None
-    _DESTROY_ROS_MESSAGE: Optional['PyCapsule'] = None
-    _TYPE_SUPPORT: Optional['PyCapsule'] = None
+    _CREATE_ROS_MESSAGE: ClassVar[Optional['PyCapsule']] = None
+    _CONVERT_FROM_PY: ClassVar[Optional['PyCapsule']] = None
+    _CONVERT_TO_PY: ClassVar[Optional['PyCapsule']] = None
+    _DESTROY_ROS_MESSAGE: ClassVar[Optional['PyCapsule']] = None
+    _TYPE_SUPPORT: ClassVar[Optional['PyCapsule']] = None
 
     class @(message.structure.namespaced_type.name)Constants(TypedDict):
 @[if not custom_type_annotations]@
@@ -317,7 +317,7 @@ for member in message.structure.members:
         # as well as populate each message instance
         return {
 @[for constant in message.constants]@
-            '@(constant.name)': cls.__constants['@(constant.name)'],
+            '@(constant.name)': metacls.__constants['@(constant.name)'],
 @[end for]@
 @[for member in message.structure.members]@
 @[  if member.has_annotation('default')]@

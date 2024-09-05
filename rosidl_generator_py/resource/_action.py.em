@@ -29,8 +29,6 @@ TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
     message=action.feedback_message, import_statements=import_statements)
-
-type_imports.add('from typing import NoReturn')
 }@
 
 
@@ -94,5 +92,5 @@ class @(action.namespaced_type.name)(metaclass=Metaclass_@(action.namespaced_typ
         # The generic message for get the status of a goal.
         from action_msgs.msg._goal_status_array import GoalStatusArray as GoalStatusMessage
 
-    def __init__(self) -> 'NoReturn':
+    def __init__(self) -> None:
         raise NotImplementedError('Action classes can not be instantiated')

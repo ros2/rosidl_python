@@ -31,7 +31,7 @@ from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 }@
 @{
 import_type_checking = False
-type_annotations_getter = {}
+# type_annotations_getter = {}
 type_annotations_setter = {}
 type_imports = set()
 
@@ -44,23 +44,17 @@ for member in message.structure.members:
     python_type = get_python_type(type_)
 
     type_annotation = ''
-    type_annotation_getter = ''
-
+    
     if isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
         if isinstance(member.type, Array):
-            dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
-            type_annotation_getter = f'NDArray[{dtype}]'
             type_imports.add('from numpy.typing import NDArray')
         elif isinstance(member.type, AbstractSequence):
             # Uses MutableSequence because array does not support subscripting
-            type_annotation_getter = f'MutableSequence[{python_type}]'
             type_imports.add('from collections.abc import MutableSequence')
 
     if isinstance(member.type, AbstractNestedType):
-        if type_annotation_getter != '':
-            type_annotation = f'{type_annotation_getter}, '
         type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
-                        f'Set[{python_type}], UserList[{python_type}]]')
+                           f'Set[{python_type}], UserList[{python_type}]]')
 
         type_imports.add('from typing import Union')
         type_imports.add('from collections.abc import Sequence')
@@ -93,13 +87,8 @@ for member in message.structure.members:
         else:
             type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
 
-
     type_annotations_setter[member.name] = f'\'{type_annotation}\''
 
-    if type_annotation_getter == '':
-        type_annotation_getter = type_annotation
-
-    type_annotations_getter[member.name] = f'\'{type_annotation_getter}\''
 
 def get_type_annotation_constant_default(constant, value, type_imports) -> str:
     from rosidl_parser.definition import AbstractNestedType, BasicType, NamespacedType, AbstractSequence, Array
@@ -597,7 +586,7 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 
 }@
     @@builtins.property@(noqa_string)
-    def @(member.name)(self) -> @(type_annotations_getter[member.name]):@(noqa_string)
+    def @(member.name)(self) -> @(type_annotations_setter[member.name]):@(noqa_string)
         """Message field '@(member.name)'."""
         return self._@(member.name)
 

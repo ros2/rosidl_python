@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from types import ModuleType
 import importlib
+from types import ModuleType
 
 from rpyutils import add_dll_directories_from_env
 

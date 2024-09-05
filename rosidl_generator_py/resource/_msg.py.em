@@ -159,14 +159,6 @@ for member in message.structure.members:
         value = constant.get_annotation_value('default')['value']
         default_type_annotations[constant.name] = get_type_annotation_constant_default(constant, value, type_imports)
 }@
-
-if sys.version_info >= (3, 12):
-    from typing import override
-else:
-    # Definition taking from typing_extension.
-    def override(func: Callable[..., Any]) -> Callable[..., Any]:
-        return func
-
 @{
 suffix = '__'.join(message.structure.namespaced_type.namespaces[1:]) + '__' + convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)
 }@
@@ -318,9 +310,8 @@ for member in message.structure.members:
                 @(typename[-1]).__import_type_support__()
 @[end for]@
 
-    @@override
     @@classmethod
-    def __prepare__(cls, name: Literal['@(message.structure.namespaced_type.name)'], bases: Tuple[()], **kwargs: Any) -> @(message.structure.namespaced_type.name)Default:
+    def __prepare__(cls, name: str, bases: Tuple[Type, ...], **kwargs: Any) -> @(message.structure.namespaced_type.name)Default:
         # list constant names here so that they appear in the help text of
         # the message class under "Data and other attributes defined here:"
         # as well as populate each message instance

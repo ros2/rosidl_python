@@ -6,8 +6,7 @@
 # for the same variable multiple times on each instance. This variable is not supposed to
 # change during runtime so it makes sense to only look for it once.
 from os import getenv
-import sys
-from typing import Any, Callable, Dict, Literal, Optional, Tuple, TYPE_CHECKING, TypedDict
+from typing import Any, Dict, Literal, Optional, Tuple, TYPE_CHECKING, Type, TypedDict
 
 ros_python_check_fields = getenv('ROS_PYTHON_CHECK_FIELDS', default='')
 @

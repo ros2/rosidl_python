@@ -552,14 +552,14 @@ if isinstance(type_, AbstractNestedType):
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, self.__class__):
+        if not isinstance(other, @(message.structure.namespaced_type.name)):
             return False
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@
 @[  end if]@
 @[  if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-        if all(self.@(member.name) != other.@(member.name)):
+        if all(self.@(member.name) != other.@(member.name)):  # type: ignore[arg-type] 
 @[  else]@
         if self.@(member.name) != other.@(member.name):
 @[  end if]@

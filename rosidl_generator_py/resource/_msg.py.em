@@ -31,9 +31,7 @@ from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 }@
 @{
 from typing import Set
-
 import_type_checking = False
-type_annotations_getter = {}
 type_annotations_setter = {}
 type_imports: Set[str] = set()
 
@@ -46,19 +44,16 @@ for member in message.structure.members:
     python_type = get_python_type(type_)
 
     type_annotation = ''
-    type_annotation_getter = ''
     
     if isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
         if isinstance(member.type, Array):
             dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
-            type_annotation_getter = f'NDArray[{dtype}]'
+            type_annotation = f'NDArray[{dtype}], '
             type_imports.add('from numpy.typing import NDArray')
         elif isinstance(member.type, AbstractSequence):
             # Uses MutableSequence because array does not support subscripting
-            type_annotation_getter = f'MutableSequence[{python_type}]'
+            type_annotation = f'MutableSequence[{python_type}], '
             type_imports.add('from collections.abc import MutableSequence')
-        
-        type_annotation = f'{type_annotation_getter}, '
 
     if isinstance(member.type, AbstractNestedType):
         type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
@@ -96,11 +91,6 @@ for member in message.structure.members:
             type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
 
     type_annotations_setter[member.name] = f'\'{type_annotation}\''
-
-    if type_annotation_getter == '':
-        type_annotation_getter = type_annotation
-
-    type_annotations_getter[member.name] = f'\'{type_annotation_getter}\''
 
 
 def get_type_annotation_constant_default(constant, value, type_imports) -> str:
@@ -488,10 +478,7 @@ type_ = member.type
 if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 }@
-@[  if member.has_annotation('default') and isinstance(member.type, (AbstractSequence, Array))]@
-        # type ignore Due to mypy#3004
-        self.@(member.name) = @(member.name) or @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT  # type: ignore[assignment]
-@[  elif member.has_annotation('default')]@
+@[  if member.has_annotation('default')]@
         self.@(member.name) = @(member.name) or @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT
 @[  else]@
 @[    if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence)]@
@@ -523,8 +510,7 @@ if isinstance(type_, AbstractNestedType):
 @[      end if]@
 @[    elif isinstance(member.type, AbstractSequence)]@
 @[      if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-        # type ignore Due to mypy#3004
-        self.@(member.name) = @(member.name) or array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', [])  # type: ignore[assignment]
+        self.@(member.name) = @(member.name) or array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', [])
 @[      else]@
         self.@(member.name) = @(member.name) or []
 @[      end if]@
@@ -603,14 +589,9 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 
 }@
     @@builtins.property@(noqa_string)
-    def @(member.name)(self) -> @(type_annotations_getter[member.name]):@(noqa_string)
+    def @(member.name)(self) -> @(type_annotations_setter[member.name]):@(noqa_string)
         """Message field '@(member.name)'."""
-@[  if isinstance(member.type, AbstractSequence)]@
-        # type ignore Due to mypy#3004
-        return self._@(member.name)  # type: ignore[return-value]
-@[  else]@
         return self._@(member.name)
-@[  end if]@
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value: @(type_annotations_setter[member.name])) -> None:@(noqa_string)

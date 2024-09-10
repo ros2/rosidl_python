@@ -482,6 +482,10 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 @[  elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
             from collections import UserString
 @[  end if]@
+@[  if isinstance(type_, BasicType) and type_.typename in FLOATING_POINT_TYPES]@
+            if isinstance(value, int):
+                value = float(value)
+@[  end if]@
             assert \
 @[  if isinstance(member.type, AbstractNestedType)]@
                 ((isinstance(value, Sequence) or

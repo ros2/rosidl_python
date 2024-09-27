@@ -33,6 +33,7 @@ from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 from typing import Set
 import_type_checking = False
 type_annotations_setter = {}
+type_annotations_getter = {}
 type_imports: Set[str] = set()
 
 for member in message.structure.members:
@@ -43,9 +44,15 @@ for member in message.structure.members:
 
     python_type = get_python_type(type_)
 
+    ANY = 'Any'  # Done because of mypy#3004
+
     type_annotation = ''
+    type_annotations_getter[member.name] = ''
     
     if isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
+        
+        type_annotations_getter[member.name] = ANY
+        
         if isinstance(member.type, Array):
             dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
             type_annotation = f'NDArray[{dtype}], '
@@ -56,6 +63,8 @@ for member in message.structure.members:
             type_imports.add('from collections.abc import MutableSequence')
 
     if isinstance(member.type, AbstractNestedType):
+        type_annotations_getter[member.name] = ANY
+
         type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
                            f'Set[{python_type}], UserList[{python_type}]]')
 
@@ -91,6 +100,10 @@ for member in message.structure.members:
             type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
 
     type_annotations_setter[member.name] = f'\'{type_annotation}\''
+
+    if type_annotations_getter[member.name] == '':
+        type_annotations_getter[member.name] = type_annotations_setter[member.name]
+
 
 
 def get_type_annotation_constant_default(constant, value, type_imports) -> str:
@@ -589,7 +602,7 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 
 }@
     @@builtins.property@(noqa_string)
-    def @(member.name)(self) -> @(type_annotations_setter[member.name]):@(noqa_string)
+    def @(member.name)(self) -> @(type_annotations_getter[member.name]):@(noqa_string)
         """Message field '@(member.name)'."""
         return self._@(member.name)
 

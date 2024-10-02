@@ -158,41 +158,40 @@ PyObject * @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_unde
 
 @{
 module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
+class_module = '%s.%s' % ('.'.join(message.structure.namespaced_type.namespaces), module_name)
+namespaced_type = message.structure.namespaced_type.name
 }@
 ROSIDL_GENERATOR_C_EXPORT
 bool @('__'.join(message.structure.namespaced_type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)]))__convert_from_py(PyObject * _pymsg, void * _ros_message)
 {
-@{
-full_classname = '%s.%s.%s' % ('.'.join(message.structure.namespaced_type.namespaces), module_name, message.structure.namespaced_type.name)
-}@
   // check that the passed message is of the expected Python class
   {
-    char full_classname_dest[@(len(full_classname) + 1)];
-    {
-      char * class_name = NULL;
-      char * module_name = NULL;
-      {
-        PyObject * class_attr = PyObject_GetAttrString(_pymsg, "__class__");
-        if (class_attr) {
-          PyObject * name_attr = PyObject_GetAttrString(class_attr, "__name__");
-          if (name_attr) {
-            class_name = (char *)PyUnicode_1BYTE_DATA(name_attr);
-            Py_DECREF(name_attr);
-          }
-          PyObject * module_attr = PyObject_GetAttrString(class_attr, "__module__");
-          if (module_attr) {
-            module_name = (char *)PyUnicode_1BYTE_DATA(module_attr);
-            Py_DECREF(module_attr);
-          }
-          Py_DECREF(class_attr);
-        }
-      }
-      if (!class_name || !module_name) {
-        return false;
-      }
-      snprintf(full_classname_dest, sizeof(full_classname_dest), "%s.%s", module_name, class_name);
+    PyObject * class_attr = PyObject_GetAttrString(_pymsg, "__class__");
+    if (class_attr == NULL) {
+      return false;
     }
-    assert(strncmp("@(full_classname)", full_classname_dest, @(len(full_classname))) == 0);
+    PyObject * name_attr = PyObject_GetAttrString(class_attr, "__name__");
+    if (name_attr == NULL) {
+      Py_DECREF(class_attr);
+      return false;
+    }
+    PyObject * module_attr = PyObject_GetAttrString(class_attr, "__module__");
+    if (module_attr == NULL) {
+      Py_DECREF(name_attr);
+      Py_DECREF(class_attr);
+      return false;
+    }
+
+    // No error checking is necessary here since PyUnicode_1BYTE_DATA is just a cast
+    char * class_name = (char *)PyUnicode_1BYTE_DATA(name_attr);
+    char * module_name = (char *)PyUnicode_1BYTE_DATA(module_attr);
+
+    assert(strncmp("@(class_module)", module_name, @(len(class_module))) == 0);
+    assert(strncmp("@(namespaced_type)", class_name, @(len(namespaced_type))) == 0);
+
+    Py_DECREF(module_attr);
+    Py_DECREF(name_attr);
+    Py_DECREF(class_attr);
   }
   @(msg_typename) * ros_message = _ros_message;
 @[for member in message.structure.members]@

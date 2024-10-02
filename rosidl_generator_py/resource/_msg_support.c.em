@@ -182,12 +182,9 @@ bool @('__'.join(message.structure.namespaced_type.namespaces + [convert_camel_c
       return false;
     }
 
-    // No error checking is necessary here since PyUnicode_1BYTE_DATA is just a cast
-    char * class_name = (char *)PyUnicode_1BYTE_DATA(name_attr);
-    char * module_name = (char *)PyUnicode_1BYTE_DATA(module_attr);
-
-    assert(strncmp("@(class_module)", module_name, @(len(class_module))) == 0);
-    assert(strncmp("@(namespaced_type)", class_name, @(len(namespaced_type))) == 0);
+    // PyUnicode_1BYTE_DATA is just a cast
+    assert(strncmp("@(class_module)", (char *)PyUnicode_1BYTE_DATA(module_attr), @(len(class_module))) == 0);
+    assert(strncmp("@(namespaced_type)", (char *)PyUnicode_1BYTE_DATA(name_attr), @(len(namespaced_type))) == 0);
 
     Py_DECREF(module_attr);
     Py_DECREF(name_attr);

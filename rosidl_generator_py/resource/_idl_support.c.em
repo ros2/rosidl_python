@@ -18,6 +18,7 @@
 from rosidl_parser.definition import Message
 
 include_directives = set()
+
 }@
 @[for message in content.get_elements_of_type(Message)]@
 @{

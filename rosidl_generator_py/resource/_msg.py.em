@@ -46,7 +46,7 @@ for member in message.structure.members:
             'import builtins', [])  # used for @builtins.property
     if isinstance(type_, BasicType) and type_.typename in FLOATING_POINT_TYPES:
         imports.setdefault(
-            'import math', [])  # used for math.isinf
+            'import math', [])  # used for math.isinf, math.nan
     if (
         isinstance(member.type, AbstractNestedType) and
         isinstance(member.type.value_type, BasicType) and
@@ -405,6 +405,11 @@ if isinstance(type_, AbstractNestedType):
         if all(self.@(member.name) != other.@(member.name)):
 @[  else]@
         if self.@(member.name) != other.@(member.name):
+@[      if isinstance(member.type, BasicType) and member.type.typename in FLOATING_POINT_TYPES ]@
+            # Handle special case for IEE-754 floating point NaN not equaling itself.
+            if math.isnan(self.@(member.name)) and math.isnan(other.@(member.name)):
+                return True
+@[      end if]@
 @[  end if]@
             return False
 @[end for]@

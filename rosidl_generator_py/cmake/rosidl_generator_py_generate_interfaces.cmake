@@ -305,5 +305,10 @@ if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)
       # a value of zero tells uncrustify to ignore line length
       MAX_LINE_LENGTH 0
       "${_output_path}")
+
+    find_package(ament_cmake_mypy REQUIRED)
+    ament_mypy(
+      TESTNAME "mypy_rosidl_generate_py"
+      "${_output_path}")
   endif()
 endif()

@@ -2,6 +2,12 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Revamp how we check for the correct class. (`#218 <https://github.com/ros2/rosidl_python/issues/218>`_)
+* Remove python_cmake_module and set hints (`#204 <https://github.com/ros2/rosidl_python/issues/204>`_)
+* Contributors: Chris Lalancette
+
 0.23.1 (2024-06-17)
 -------------------
 * Add rosidl_generator_py to the rosidl_runtime_packages group (`#212 <https://github.com/ros2/rosidl_python/issues/212>`_)

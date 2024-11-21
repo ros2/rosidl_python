@@ -48,6 +48,7 @@ if(BUILD_TESTING)
       ${test_interface_files_MSG_FILES}
       # Cases not covered by test_interface_files
       msg/BuiltinTypeSequencesIdl.idl
+      msg/ByteArray.msg
       msg/StringArrays.msg
       msg/Property.msg
       ADD_LINTER_TESTS
@@ -72,6 +73,13 @@ if(BUILD_TESTING)
     ament_add_pytest_test(test_cli_extension test/test_cli_extension.py)
 
     ament_add_pytest_test(test_property_py test/test_property.py
+      APPEND_ENV "PYTHONPATH=${pythonpath}"
+      APPEND_LIBRARY_DIRS "${_append_library_dirs}"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
+    )
+
+    ament_add_pytest_test(test_byte_array_py test/test_byte_array.py
+      PYTHON_EXECUTABLE "${BUILDTYPE_PYTHON_EXECUTABLE}"
       APPEND_ENV "PYTHONPATH=${pythonpath}"
       APPEND_LIBRARY_DIRS "${_append_library_dirs}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"

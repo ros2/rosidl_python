@@ -15,12 +15,13 @@
 import pathlib
 
 from ament_index_python import get_resources
+from pytest import CaptureFixture
 from rosidl_cli.command.generate.api import generate
 
 PACKAGE_DIR = str(pathlib.Path(__file__).parent.parent)
 
 
-def test_cli_extension_for_smoke(tmp_path, capsys):
+def test_cli_extension_for_smoke(tmp_path: pathlib.Path, capsys: CaptureFixture[str]) -> None:
     # NOTE(hidmic): pytest and empy do not play along,
     # the latter expects some proxy will stay in sys.stdout
     # and the former insists in overwriting it

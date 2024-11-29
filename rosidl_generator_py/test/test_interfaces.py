@@ -39,7 +39,7 @@ from rosidl_parser.definition import UnboundedSequence
 from rosidl_parser.definition import UnboundedString
 
 
-def test_basic_types():
+def test_basic_types() -> None:
     msg = BasicTypes(check_fields=True)
 
     # types
@@ -148,7 +148,7 @@ def test_basic_types():
     assert math.isinf(msg.float64_value)
 
 
-def test_strings():
+def test_strings() -> None:
     msg = Strings(check_fields=True)
 
     # types
@@ -202,7 +202,7 @@ def test_strings():
         setattr(msg, 'bounded_string_value_default1', 'a' * 23)
 
 
-def test_wstrings():
+def test_wstrings() -> None:
     msg = WStrings(check_fields=True)
 
     # types
@@ -216,7 +216,7 @@ def test_wstrings():
     assert 'ハローワールド' == msg.wstring_value_default3
 
 
-def test_arrays_of_bounded_strings():
+def test_arrays_of_bounded_strings() -> None:
     msg = StringArrays(check_fields=True)
     array_valid_string_length = ['a' * 2, 'b' * 3, 'c' * 4]
     array_too_long_strings = ['a' * 2, 'b' * 3, 'c' * 6]
@@ -259,16 +259,16 @@ def test_arrays_of_bounded_strings():
     assert array10strings == msg.ub_string_dynamic_array_value
 
 
-def test_constructor():
+def test_constructor() -> None:
     msg = Strings(string_value='foo', check_fields=True)
 
     assert 'foo' == msg.string_value
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         Strings(unknown_field='test', check_fields=True)
 
 
-def test_constants():
+def test_constants() -> None:
     assert Constants.BOOL_CONST is True
     assert bytes([50]) == Constants.BYTE_CONST
     assert 100 == Constants.CHAR_CONST
@@ -288,7 +288,7 @@ def test_constants():
         setattr(Constants, 'INT32_CONST', 42)
 
 
-def test_default_values():
+def test_default_values() -> None:
     msg = Defaults(check_fields=True)
 
     assert msg.bool_value is True
@@ -315,7 +315,7 @@ def test_default_values():
         setattr(Defaults, 'INT32_VALUE__DEFAULT', 24)
 
 
-def test_arrays():
+def test_arrays() -> None:
     msg = Arrays(check_fields=True)
 
     # types
@@ -524,7 +524,7 @@ def test_arrays():
     assert numpy.array_equal(arr_of_float64_with_inf, msg.float64_values)
 
 
-def test_bounded_sequences():
+def test_bounded_sequences() -> None:
     msg = BoundedSequences(check_fields=True)
 
     # types
@@ -748,7 +748,7 @@ def test_bounded_sequences():
             setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
 
 
-def test_unbounded_sequences():
+def test_unbounded_sequences() -> None:
     msg = UnboundedSequences(check_fields=True)
 
     # types
@@ -897,7 +897,7 @@ def test_unbounded_sequences():
             setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
 
 
-def test_slot_attributes():
+def test_slot_attributes() -> None:
     msg = Nested(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')
@@ -912,7 +912,7 @@ def test_slot_attributes():
         assert expected_slot_type == nested_slot_types_dict[expected_field]
 
 
-def test_string_slot_attributes():
+def test_string_slot_attributes() -> None:
     msg = StringArrays(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')
@@ -938,7 +938,7 @@ def test_string_slot_attributes():
         assert expected_slot_type == string_slot_types_dict[expected_field]
 
 
-def test_modifying_slot_fields_and_types():
+def test_modifying_slot_fields_and_types() -> None:
     msg = StringArrays(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')
     string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
@@ -947,7 +947,7 @@ def test_modifying_slot_fields_and_types():
     assert len(getattr(msg, 'get_fields_and_field_types')()) == string_slot_types_dict_len
 
 
-def test_slot_types():
+def test_slot_types() -> None:
     msg = Nested(check_fields=True)
     assert hasattr(msg, 'SLOT_TYPES')
     assert hasattr(msg, '__slots__')
@@ -957,7 +957,7 @@ def test_slot_types():
     assert nested_slot_types[0].name == 'BasicTypes'
 
 
-def test_string_slot_types():
+def test_string_slot_types() -> None:
     msg = StringArrays(check_fields=True)
     assert hasattr(msg, 'SLOT_TYPES')
     assert hasattr(msg, '__slots__')
@@ -985,7 +985,7 @@ def test_string_slot_types():
     assert string_slot_types[4].size == 3
 
 
-def test_builtin_sequence_slot_attributes():
+def test_builtin_sequence_slot_attributes() -> None:
     msg = BuiltinTypeSequencesIdl(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')

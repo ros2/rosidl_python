@@ -427,6 +427,7 @@ if isinstance(type_, AbstractNestedType):
 import inspect
 import builtins
 noqa_string = ''
+byte_array_detected = False
 if member.name in dict(inspect.getmembers(builtins)).keys():
     noqa_string = '  # noqa: A003'
 }@
@@ -503,8 +504,16 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 @{assert_msg_suffixes.insert(1, 'with length %d' % member.type.size)}@
 @[      end if]@
 @[    end if]@
-                 all(isinstance(v, @(get_python_type(type_))) for v in value) and
 @{assert_msg_suffixes.append("and each value of type '%s'" % get_python_type(type_))}@
+@[    if get_python_type(type_) == 'bytes']@
+@{byte_array_detected = True}@
+@{assert_msg_suffixes.append("or type 'int' in range(0, 255)")}@
+                 (isinstance(value, @(get_python_type(type_))) or
+                  all(isinstance(v, @(get_python_type(type_))) for v in value) or
+                  all(isinstance(v, int) for v in value)) and
+@[    else]@
+                 all(isinstance(v, @(get_python_type(type_))) for v in value) and
+@[    end if]@
 @[    if isinstance(type_, BasicType) and type_.typename in SIGNED_INTEGER_TYPES]@
 @{
 nbits = int(type_.typename[3:])
@@ -604,6 +613,13 @@ bound = 1.7976931348623157e+308
         self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', value)
 @[    end if]@
 @[  else]@
+@[    if byte_array_detected]@
+        if any(isinstance(v, int) for v in value):
+            self._@(member.name) = bytes(value)
+        else:
+            self._@(member.name) = value
+@[    else]@
         self._@(member.name) = value
+@[    end if]@
 @[  end if]@
 @[end for]@

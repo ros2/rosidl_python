@@ -199,8 +199,7 @@ def generate_py(generator_arguments_file, typesupport_impls):
             generated_files.append(generated_file)
 
     # Generate py.typed to mark the generate files as having type support as according to PEP561.
-    with open(os.path.join(args['output_dir'], 'py.typed'), 'w', encoding='utf-8'):
-        pass
+    (pathlib.Path(args['output_dir']) / 'py.typed').touch()
 
     return generated_files
 

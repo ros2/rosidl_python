@@ -490,7 +490,6 @@ if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 }@
 @[  if member.has_annotation('default')]@
-        if 
         self.@(member.name) = @(member.name) if @(member.name) is not None else @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT
 @[  else]@
 @[    if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence)]@

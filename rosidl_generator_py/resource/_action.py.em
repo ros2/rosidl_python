@@ -5,37 +5,47 @@ from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 action_name = '_' + convert_camel_case_to_lower_case_underscore(action.namespaced_type.name)
 module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
 
+type_annotations_import_statements.add(f'from {'.'.join(action.namespaced_type.namespaces)}.{module_name} import {action.goal.structure.namespaced_type.name}')
+type_annotations_import_statements.add(f'from {'.'.join(action.namespaced_type.namespaces)}.{module_name} import {action.result.structure.namespaced_type.name}')
+type_annotations_import_statements.add(f'from {'.'.join(action.namespaced_type.namespaces)}.{module_name} import {action.feedback.structure.namespaced_type.name}')
+
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.goal, import_statements=import_statements)
+    message=action.goal, import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.result, import_statements=import_statements)
+    message=action.result, import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.feedback, import_statements=import_statements)
+    message=action.feedback, import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 TEMPLATE(
     '_srv.py.em',
     package_name=package_name, interface_path=interface_path,
-    service=action.send_goal_service, import_statements=import_statements)
+    service=action.send_goal_service, import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 TEMPLATE(
     '_srv.py.em',
     package_name=package_name, interface_path=interface_path,
-    service=action.get_result_service, import_statements=import_statements)
+    service=action.get_result_service, import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=action.feedback_message, import_statements=import_statements)
+    message=action.feedback_message, import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 }@
 
 
 class Metaclass_@(action.namespaced_type.name)(type):
     """Metaclass of action '@(action.namespaced_type.name)'."""
 
-    _TYPE_SUPPORT = None
+    _TYPE_SUPPORT: ClassVar[Optional['PyCapsule']] = None
 
     @@classmethod
     def __import_type_support__(cls) -> None:

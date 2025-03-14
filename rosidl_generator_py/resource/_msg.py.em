@@ -36,6 +36,13 @@ type_annotations_setter = {}
 type_annotations_getter = {}
 type_imports: Set[str] = set()
 
+# Types which always exist
+# Done in one multi-line string to preserve order
+type_imports.add(
+    """from ctypes import Structure
+
+    class PyCapsule(Structure):
+        pass  # don't need to define the full structure""")
 for member in message.structure.members:
     type_ = member.type
 
@@ -167,16 +174,22 @@ for member in message.structure.members:
 }@
 @{
 suffix = '__'.join(message.structure.namespaced_type.namespaces[1:]) + '__' + convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)
+type_annotations_import_statements_copy = type_annotations_import_statements.copy()
 }@
+
+
 if TYPE_CHECKING:
-    from ctypes import Structure
-
-    class PyCapsule(Structure):
-        pass  # don't need to define the full structure
-
 @[for type_import in type_imports]@
+@[if type_import not in type_annotations_import_statements]@
     @(type_import)
-@[end for]
+@{
+type_annotations_import_statements.add(type_import)
+}@
+@[end if]@
+@[end for]@
+@[if type_annotations_import_statements == type_annotations_import_statements_copy]@
+    pass
+@[end if]@
 @#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 @# Collect necessary import statements for all members
 @{

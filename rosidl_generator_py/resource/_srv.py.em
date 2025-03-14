@@ -5,24 +5,31 @@ from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 service_name = '_' + convert_camel_case_to_lower_case_underscore(service.namespaced_type.name)
 module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
 
+type_annotations_import_statements.add(f'from {'.'.join(service.namespaced_type.namespaces)} import {service.request_message.structure.namespaced_type.name}')
+type_annotations_import_statements.add(f'from {'.'.join(service.namespaced_type.namespaces)} import {service.response_message.structure.namespaced_type.name}')
+
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.request_message, import_statements=import_statements)
+    message=service.request_message, import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.response_message, import_statements=import_statements)
+    message=service.response_message, import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path,
-    message=service.event_message, import_statements=import_statements)
+    message=service.event_message, import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 }@
+
 
 class Metaclass_@(service.namespaced_type.name)(type):
     """Metaclass of service '@(service.namespaced_type.name)'."""
 
-    _TYPE_SUPPORT = None
+    _TYPE_SUPPORT: ClassVar[Optional['PyCapsule']] = None
 
     @@classmethod
     def __import_type_support__(cls) -> None:

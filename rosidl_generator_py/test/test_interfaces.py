@@ -523,6 +523,11 @@ def test_arrays():
     setattr(msg, 'float64_values', arr_of_float64_with_inf)
     assert numpy.array_equal(arr_of_float64_with_inf, msg.float64_values)
 
+    msg2 = Arrays(int8_values=[1, 2, 3])
+    msg3 = Arrays(int8_values=[4, 5, 3])
+
+    assert msg2 != msg3
+
 
 def test_bounded_sequences():
     msg = BoundedSequences(check_fields=True)

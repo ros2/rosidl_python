@@ -402,7 +402,7 @@ if isinstance(type_, AbstractNestedType):
 @[    continue]@
 @[  end if]@
 @[  if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-        if all(self.@(member.name) != other.@(member.name)):
+        if any(self.@(member.name) != other.@(member.name)):
 @[  else]@
         if self.@(member.name) != other.@(member.name):
 @[  end if]@

@@ -2,6 +2,12 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.24.1 (2025-04-18)
+-------------------
+* Fix `__eq__` for Array fields (`#224 <https://github.com/ros2/rosidl_python/issues/224>`_)
+* Remove use of ament_target_dependencies (`#222 <https://github.com/ros2/rosidl_python/issues/222>`_)
+* Contributors: Michael Carlstrom, Shane Loretz
+
 0.24.0 (2024-11-20)
 -------------------
 * Revamp how we check for the correct class. (`#218 <https://github.com/ros2/rosidl_python/issues/218>`_)

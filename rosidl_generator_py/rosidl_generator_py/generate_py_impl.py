@@ -14,6 +14,7 @@
 
 from ast import literal_eval
 import keyword
+import math
 import os
 import pathlib
 import sys
@@ -246,7 +247,7 @@ def primitive_value_to_py(type_, value):
         return repr(bytes([value]))
 
     if type_.typename in FLOATING_POINT_TYPES:
-        return '%s' % value
+        return floating_point_to_py(value)
 
     assert False, "unknown primitive type '%s'" % type_.typename
 
@@ -268,12 +269,19 @@ def constant_value_to_py(type_, value):
             return repr(bytes([value]))
 
         if type_.typename in FLOATING_POINT_TYPES:
-            return '%s' % value
+            return floating_point_to_py(value)
 
     if isinstance(type_, AbstractGenericString):
         return quoted_string(value)
 
     assert False, "unknown constant type '%s'" % type_
+
+
+def floating_point_to_py(value):
+    if math.isnan(float(value)):
+        return 'math.nan'
+    else:
+        return '%s' % value
 
 
 def quoted_string(s):

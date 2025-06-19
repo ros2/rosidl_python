@@ -19,7 +19,7 @@
 # a different CMake subdirectory, and this command is invoked after an
 # add_subdirectory() call.
 add_custom_command(
-  OUTPUT ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files}
+  OUTPUT ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files} ${_generated_c_base_files}
   # This assumes that python_cmake_module was found, which is always the case since this is only
   # called from rosidl_generator_py_generate_interfaces.cmake
   COMMAND Python3::Interpreter ${rosidl_generator_py_BIN}
@@ -39,5 +39,6 @@ else()
     ${_generated_extension_files}
     ${_generated_py_files}
     ${_generated_c_files}
+    ${_generated_c_base_files}
   )
 endif()

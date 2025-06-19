@@ -21,22 +21,6 @@ include_directives = set()
 register_functions = []
 }@
 #include <Python.h>
-
-static PyMethodDef @(package_name)__methods[] = {
-  {NULL, NULL, 0, NULL}  /* sentinel */
-};
-
-static struct PyModuleDef @(package_name)__module = {
-  PyModuleDef_HEAD_INIT,
-  "_@(package_name)_support",
-  "_@(package_name)_doc",
-  -1,  /* -1 means that the module keeps state in global variables */
-  @(package_name)__methods,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-};
 @
 @[for message in content.get_elements_of_type(Message)]@
 
@@ -85,6 +69,40 @@ TEMPLATE(
 }@
 @[end for]@
 
+#include "./_@(package_name)_decl.h"
+
+static PyMethodDef @(package_name)__methods[] = {
+  {NULL, NULL, 0, NULL}  /* sentinel */
+};
+
+static int
+_@(package_name)_clear(PyObject * module)
+{
+  (void)module;
+  @(package_name)__lazy_import_release();
+  return 0;
+}
+
+static void
+_@(package_name)_free(void * module)
+{
+  _@(package_name)_clear((PyObject *)module);
+}
+
+
+static struct PyModuleDef @(package_name)__module = {
+  PyModuleDef_HEAD_INIT,
+  "_@(package_name)_support",
+  "_@(package_name)_doc",
+  -1,  /* -1 means that the module keeps state in global variables */
+  @(package_name)__methods,
+  NULL,
+  NULL,
+  _@(package_name)_clear,
+  _@(package_name)_free,
+};
+
+
 PyMODINIT_FUNC
 PyInit_@(package_name)_s__@(typesupport_impl)(void)
 {
@@ -103,5 +121,6 @@ PyInit_@(package_name)_s__@(typesupport_impl)(void)
   }
 @[end for]@
 
+  @(package_name)__lazy_import_acquire();
   return pymodule;
 }

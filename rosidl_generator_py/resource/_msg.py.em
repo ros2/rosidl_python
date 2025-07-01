@@ -51,25 +51,27 @@ for member in message.structure.members:
 
     python_type = get_python_type(type_)
 
-    ANY = 'Any'  # Done because of mypy#3004
 
     type_annotation = ''
     type_annotations_getter[member.name] = ''
     
     if isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
-        
-        type_annotations_getter[member.name] = ANY
-        
+
+        type_imports.add('from typing import Annotated')
+
         if isinstance(member.type, Array):
-            dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
-            type_annotation = f'NDArray[{dtype}], '
             type_imports.add('from numpy.typing import NDArray')
+            dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
+            type_annotation = f'NDArray[{dtype}]'
         elif isinstance(member.type, AbstractSequence):
-            # Uses MutableSequence because array does not support subscripting
-            type_annotation = f'MutableSequence[{python_type}], '
-            type_imports.add('from collections.abc import MutableSequence')
+            type_annotation = f'array.array[{python_type}]'
+
+        # Using Annotated because of mypy#3004
+        type_annotations_getter[member.name] = f'Annotated[Any, {type_annotation}]'
 
     if isinstance(member.type, AbstractNestedType):
+        if type_annotation != '':
+            type_annotation = f'{type_annotation}, '
         type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
                            f'Set[{python_type}], UserList[{python_type}]]')
 
@@ -104,7 +106,7 @@ for member in message.structure.members:
         else:
             type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
 
-    type_annotations_setter[member.name] = f'\'{type_annotation}\''
+    type_annotations_setter[member.name] = type_annotation
 
     if type_annotations_getter[member.name] == '':
         type_annotations_getter[member.name] = type_annotations_setter[member.name]
@@ -130,12 +132,9 @@ def get_type_annotation_constant_default(constant, value, type_imports) -> str:
             type_annotation = f'NDArray[{dtype}]'
             type_imports.add('from numpy.typing import NDArray')
         elif isinstance(constant.type, AbstractSequence):
-            # Uses MutableSequence because array does not support subscripting
-            type_annotation = f'MutableSequence[{python_type}]'
-            type_imports.add('from collections.abc import MutableSequence')
+            type_annotation = f'array.array[{python_type}]'
     elif isinstance(constant.type, AbstractNestedType):
-        type_imports.add('from typing import List')
-        type_annotation = f'List[{python_type}]'
+        type_annotation = f'list[{python_type}]'
     elif isinstance(type_, NamespacedType):
         type_annotation = python_type
     elif isinstance(type_, float):
@@ -146,7 +145,7 @@ def get_type_annotation_constant_default(constant, value, type_imports) -> str:
                 return 'str'
             else:
                 type_imports.add('from typing import Literal')
-                type_annotation = f'Literal["{value}"]' 
+                type_annotation = f"Literal['{value}']" 
         elif isinstance(value, float):
             return 'float'
         elif type_.typename == 'octet':
@@ -155,7 +154,6 @@ def get_type_annotation_constant_default(constant, value, type_imports) -> str:
             type_imports.add('from typing import Literal')
             type_annotation = f'Literal[{value}]'
 
-    type_annotation = f'\'{type_annotation}\''
     return type_annotation
 
 custom_type_annotations = {}
@@ -330,7 +328,7 @@ for member in message.structure.members:
 @[end for]@
 
     @@classmethod
-    def __prepare__(metacls, name: str, bases: Tuple[Type[Any], ...], /, **kwds: Any) -> MutableMapping[str, object]:
+    def __prepare__(metacls, name: str, bases: tuple[type[Any], ...], /, **kwds: Any) -> MutableMapping[str, object]:
         # list constant names here so that they appear in the help text of
         # the message class under "Data and other attributes defined here:"
         # as well as populate each message instance
@@ -386,7 +384,7 @@ class @(message.structure.namespaced_type.name)(metaclass=Metaclass_@(message.st
         '_check_fields',
     ]
 
-    _fields_and_field_types: Dict[str, str] = {
+    _fields_and_field_types: dict[str, str] = {
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@
@@ -431,7 +429,7 @@ string@
 
     # This attribute is used to store an rosidl_parser.definition variable
     # related to the data type of each of the components the message.
-    SLOT_TYPES: Tuple[rosidl_parser.definition.AbstractType, ...] = (
+    SLOT_TYPES: tuple[rosidl_parser.definition.AbstractType, ...] = (
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@
@@ -592,7 +590,7 @@ if isinstance(type_, AbstractNestedType):
         return True
 
     @@classmethod
-    def get_fields_and_field_types(cls) -> Dict[str, str]:
+    def get_fields_and_field_types(cls) -> dict[str, str]:
         from copy import copy
         return copy(cls._fields_and_field_types)
 @[for member in message.structure.members]@

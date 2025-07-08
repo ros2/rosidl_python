@@ -69,7 +69,7 @@ type_annotations_import_statements_copy = type_annotations_import_statements.cop
 }@
 
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
 @[for type_import in type_imports]@
 @[if type_import not in type_annotations_import_statements]@
     @(type_import)
@@ -141,13 +141,13 @@ for member in message.structure.members:
 class Metaclass_@(message.structure.namespaced_type.name)(type):
     """Metaclass of message '@(message.structure.namespaced_type.name)'."""
 
-    _CREATE_ROS_MESSAGE: ClassVar[Optional[PyCapsule]] = None
-    _CONVERT_FROM_PY: ClassVar[Optional[PyCapsule]] = None
-    _CONVERT_TO_PY: ClassVar[Optional[PyCapsule]] = None
-    _DESTROY_ROS_MESSAGE: ClassVar[Optional[PyCapsule]] = None
-    _TYPE_SUPPORT: ClassVar[Optional[PyCapsule]] = None
+    _CREATE_ROS_MESSAGE: typing.ClassVar[typing.Optional[PyCapsule]] = None
+    _CONVERT_FROM_PY: typing.ClassVar[typing.Optional[PyCapsule]] = None
+    _CONVERT_TO_PY: typing.ClassVar[typing.Optional[PyCapsule]] = None
+    _DESTROY_ROS_MESSAGE: typing.ClassVar[typing.Optional[PyCapsule]] = None
+    _TYPE_SUPPORT: typing.ClassVar[typing.Optional[PyCapsule]] = None
 
-    class @(message.structure.namespaced_type.name)Constants(TypedDict):
+    class @(message.structure.namespaced_type.name)Constants(typing.TypedDict):
 @[if not custom_type_annotations]@
         pass
 @[else]@
@@ -221,7 +221,7 @@ for member in message.structure.members:
 @[end for]@
 
     @@classmethod
-    def __prepare__(metacls, name: str, bases: tuple[type[Any], ...], /, **kwds: Any) -> MutableMapping[str, object]:
+    def __prepare__(metacls, name: str, bases: tuple[type[typing.Any], ...], /, **kwds: typing.Any) -> collections.abc.MutableMapping[str, object]:
         # list constant names here so that they appear in the help text of
         # the message class under "Data and other attributes defined here:"
         # as well as populate each message instance
@@ -374,12 +374,12 @@ BUILTINS = [
 @[    continue]@
 @[  end if]@
 @[    if member.name in BUILTINS]@
-                 @(member.name): Optional[@(type_annotations_setter[member.name])] = None,  # noqa: E501, A002
+                 @(member.name): typing.Optional[@(type_annotations_setter[member.name])] = None,  # noqa: E501, A002
 @[    else]@
-                 @(member.name): Optional[@(type_annotations_setter[member.name])] = None,  # noqa: E501
+                 @(member.name): typing.Optional[@(type_annotations_setter[member.name])] = None,  # noqa: E501
 @[    end if]@
 @[end for]@
-                 check_fields: Optional[bool] = None) -> None:
+                 check_fields: typing.Optional[bool] = None) -> None:
         if check_fields is not None:
             self._check_fields = check_fields
         else:

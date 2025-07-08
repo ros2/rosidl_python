@@ -350,9 +350,9 @@ def get_type_annotation_constant_default(constant: Constant, value: Union[str, i
     if isinstance(constant.type, AbstractNestedType) and isinstance(type_, BasicType) and \
        type_.typename in SPECIAL_NESTED_BASIC_TYPES:
         if isinstance(constant.type, Array):
-            type_imports.add('from numpy.typing import NDArray')
+            type_imports.add('import numpy.typing')
             dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
-            return f'NDArray[{dtype}]'
+            return f'numpy.typing.NDArray[{dtype}]'
         elif isinstance(constant.type, AbstractSequence):
             return f'array.array[{python_type}]'
     elif isinstance(constant.type, AbstractNestedType):
@@ -366,15 +366,13 @@ def get_type_annotation_constant_default(constant: Constant, value: Union[str, i
             if "'" in value or '"' in value:
                 return 'str'
             else:
-                type_imports.add('from typing import Literal')
-                return f"Literal['{value}']"
+                return f"typing.Literal['{value}']"
         elif isinstance(value, float):
             return 'float'
         elif isinstance(type_, BasicType) and type_.typename == 'octet':
             return 'bytes'
         else:
-            type_imports.add('from typing import Literal')
-            return f'Literal[{value}]'
+            return f'typing.Literal[{value}]'
 
     assert False, f"unknown type '{type_}'"
 
@@ -392,49 +390,39 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
 
     if isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and \
        type_.typename in SPECIAL_NESTED_BASIC_TYPES:
-
-        type_imports.add('from typing import Annotated')
-
         if isinstance(member.type, Array):
-            type_imports.add('from numpy.typing import NDArray')
+            type_imports.add('import numpy.typing')
             dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
-            type_annotation = f'NDArray[{dtype}]'
+            type_annotation = f'numpy.typing.NDArray[{dtype}]'
         elif isinstance(member.type, AbstractSequence):
             type_annotation = f'array.array[{python_type}]'
 
         # Using Annotated because of mypy#3004
-        type_annotations_getter = f'Annotated[Any, {type_annotation}]'
+        type_annotations_getter = f'typing.Annotated[typing.Any, {type_annotation}]'
 
     if isinstance(member.type, AbstractNestedType):
         if type_annotation != '':
             type_annotation = f'{type_annotation}, '
-        type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
-                           f'Set[{python_type}], UserList[{python_type}]]')
+        type_annotation = (f'typing.Union[{type_annotation}'
+                           f'collections.abc.Sequence[{python_type}], '
+                           f'collections.abc.Set[{python_type}], '
+                           f'collections.UserList[{python_type}]]')
 
-        type_imports.add('from typing import Union')
-        type_imports.add('from collections.abc import Sequence')
-        type_imports.add('from collections.abc import Set')
-        type_imports.add('from collections import UserList')
+        type_imports.add('import collections')
     elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
-        type_annotation = 'Union[str, UserString]'
+        type_annotation = 'typing.Union[str, collections.UserString]'
 
-        type_imports.add('from typing import Union')
-        type_imports.add('from collections import UserString')
+        type_imports.add('import collections')
     elif isinstance(type_, BasicType) and type_.typename == 'char':
-        type_annotation = 'Union[str, UserString]'
+        type_annotation = 'typing.Union[str, collection.UserString]'
 
-        type_imports.add('from typing import Union')
-        type_imports.add('from collections import UserString')
+        type_imports.add('import collections')
     elif isinstance(type_, BasicType) and type_.typename == 'octet':
-        type_annotation = 'Union[bytes, ByteString]'
-
-        type_imports.add('from typing import Union')
-        type_imports.add('from collections.abc import ByteString')
+        type_annotation = 'typing.Union[bytes, collections.abc.ByteString]'
     else:
         type_annotation = python_type
 
     if isinstance(type_, NamespacedType):
-
         joined_type_namespaces = '.'.join(type_.namespaces)
         if type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) \
            or type_.name.endswith(ACTION_FEEDBACK_SUFFIX):
@@ -442,7 +430,7 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
             type_name_rsplit = type_.name.rsplit('_', 1)
             lower_case_name = convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])
             type_imports.add(f'from {joined_type_namespaces}._{lower_case_name} '
-                             'import {type_.name}')
+                             f'import {type_.name}')
         else:
             type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
 

@@ -8,9 +8,9 @@
 
 from __future__ import annotations
 
-from collections.abc import MutableMapping
+import collections.abc
 from os import getenv
-from typing import Any, ClassVar, Optional, TYPE_CHECKING, TypedDict
+import typing
 
 ros_python_check_fields = getenv('ROS_PYTHON_CHECK_FIELDS', default='')
 @

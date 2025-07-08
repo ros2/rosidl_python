@@ -30,7 +30,7 @@ TEMPLATE(
 class Metaclass_@(service.namespaced_type.name)(type):
     """Metaclass of service '@(service.namespaced_type.name)'."""
 
-    _TYPE_SUPPORT: ClassVar[Optional[PyCapsule]] = None
+    _TYPE_SUPPORT: typing.ClassVar[typing.Optional[PyCapsule]] = None
 
     @@classmethod
     def __import_type_support__(cls) -> None:
@@ -55,17 +55,6 @@ class Metaclass_@(service.namespaced_type.name)(type):
                 @(module_name).Metaclass_@(service.response_message.structure.namespaced_type.name).__import_type_support__()
             if @(module_name).Metaclass_@(service.event_message.structure.namespaced_type.name)._TYPE_SUPPORT is None:
                 @(module_name).Metaclass_@(service.event_message.structure.namespaced_type.name).__import_type_support__()
-@[if NO_RETURN_IMPORT not in type_annotations_import_statements]@
-
-
-if TYPE_CHECKING:
-    @(NO_RETURN_IMPORT)
-@{
-type_annotations_import_statements.add(NO_RETURN_IMPORT)
-}@
-@[else]@
-    pass
-@[end if]@
 
 
 class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_type.name)):
@@ -73,5 +62,5 @@ class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_t
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.response_message.structure.namespaced_type.name) as Response
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.event_message.structure.namespaced_type.name) as Event
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> typing.NoReturn:
         raise NotImplementedError('Service classes can not be instantiated')

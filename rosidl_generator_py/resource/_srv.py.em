@@ -5,7 +5,6 @@ from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 service_name = '_' + convert_camel_case_to_lower_case_underscore(service.namespaced_type.name)
 module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
 
-NO_RETURN_IMPORT = 'from typing import NoReturn'
 type_annotations_import_statements.add(f'from {'.'.join(service.namespaced_type.namespaces)} import {service.request_message.structure.namespaced_type.name}')
 type_annotations_import_statements.add(f'from {'.'.join(service.namespaced_type.namespaces)} import {service.response_message.structure.namespaced_type.name}')
 

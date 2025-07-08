@@ -4,6 +4,8 @@
 from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 from rosidl_generator_py.generate_py_impl import constant_value_to_py
 from rosidl_generator_py.generate_py_impl import get_python_type
+from rosidl_generator_py.generate_py_impl import get_type_annotation_constant_default
+from rosidl_generator_py.generate_py_impl import get_setter_and_getter_type
 from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 from rosidl_generator_py.generate_py_impl import value_to_py
 from rosidl_parser.definition import AbstractGenericString
@@ -30,11 +32,10 @@ from rosidl_parser.definition import UnboundedSequence
 from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 }@
 @{
-from typing import Set
 import_type_checking = False
-type_annotations_setter = {}
-type_annotations_getter = {}
-type_imports: Set[str] = set()
+type_annotations_setter: dict[str, str] = {}
+type_annotations_getter: dict[str, str] = {}
+type_imports: set[str] = set()
 
 # Types which always exist
 # Done in one multi-line string to preserve order
@@ -44,117 +45,9 @@ type_imports.add(
     class PyCapsule(Structure):
         pass  # don't need to define the full structure""")
 for member in message.structure.members:
-    type_ = member.type
-
-    if isinstance(type_, AbstractNestedType):
-        type_ = type_.value_type
-
-    python_type = get_python_type(type_)
-
-
-    type_annotation = ''
-    type_annotations_getter[member.name] = ''
-    
-    if isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
-
-        type_imports.add('from typing import Annotated')
-
-        if isinstance(member.type, Array):
-            type_imports.add('from numpy.typing import NDArray')
-            dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
-            type_annotation = f'NDArray[{dtype}]'
-        elif isinstance(member.type, AbstractSequence):
-            type_annotation = f'array.array[{python_type}]'
-
-        # Using Annotated because of mypy#3004
-        type_annotations_getter[member.name] = f'Annotated[Any, {type_annotation}]'
-
-    if isinstance(member.type, AbstractNestedType):
-        if type_annotation != '':
-            type_annotation = f'{type_annotation}, '
-        type_annotation = (f'Union[{type_annotation}Sequence[{python_type}], '
-                           f'Set[{python_type}], UserList[{python_type}]]')
-
-        type_imports.add('from typing import Union')
-        type_imports.add('from collections.abc import Sequence')
-        type_imports.add('from collections.abc import Set')
-        type_imports.add('from collections import UserList')
-    elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
-        type_annotation = 'Union[str, UserString]'
-
-        type_imports.add('from typing import Union')
-        type_imports.add('from collections import UserString')
-    elif isinstance(type_, BasicType) and type_.typename == 'char':
-        type_annotation = 'Union[str, UserString]'
-        
-        type_imports.add('from typing import Union')
-        type_imports.add('from collections import UserString')
-    elif isinstance(type_, BasicType) and type_.typename == 'octet':
-        type_annotation = 'Union[bytes, ByteString]'
-
-        type_imports.add('from typing import Union')
-        type_imports.add('from collections.abc import ByteString')
-    else:
-        type_annotation = python_type
-
-    if isinstance(type_, NamespacedType):
-
-        joined_type_namespaces = '.'.join(type_.namespaces)
-        if(type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) or type_.name.endswith(ACTION_FEEDBACK_SUFFIX)):
-            type_name_rsplit = type_.name.rsplit('_', 1)
-            type_imports.add(f'from {joined_type_namespaces}._{convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])} import {type_.name}')
-        else:
-            type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
-
-    type_annotations_setter[member.name] = type_annotation
-
-    if type_annotations_getter[member.name] == '':
-        type_annotations_getter[member.name] = type_annotations_setter[member.name]
-
-
-
-def get_type_annotation_constant_default(constant, value, type_imports) -> str:
-    from rosidl_parser.definition import AbstractNestedType, BasicType, NamespacedType, AbstractSequence, Array
-    from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES, get_python_type, constant_value_to_py
-
-    type_ = constant.type
-
-    if isinstance(type_, AbstractNestedType):
-        type_ = type_.value_type
-
-    python_type = get_python_type(type_)
-
-    type_annotation = ''
-
-    if isinstance(constant.type, AbstractNestedType) and isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES:
-        if isinstance(constant.type, Array):
-            dtype = SPECIAL_NESTED_BASIC_TYPES[constant.type.value_type.typename]['dtype']
-            type_annotation = f'NDArray[{dtype}]'
-            type_imports.add('from numpy.typing import NDArray')
-        elif isinstance(constant.type, AbstractSequence):
-            type_annotation = f'array.array[{python_type}]'
-    elif isinstance(constant.type, AbstractNestedType):
-        type_annotation = f'list[{python_type}]'
-    elif isinstance(type_, NamespacedType):
-        type_annotation = python_type
-    elif isinstance(type_, float):
-        return 'float'
-    else:
-        if isinstance(value, str):
-            if "'" in value or '"' in value:
-                return 'str'
-            else:
-                type_imports.add('from typing import Literal')
-                type_annotation = f"Literal['{value}']" 
-        elif isinstance(value, float):
-            return 'float'
-        elif type_.typename == 'octet':
-            return 'bytes'
-        else:
-            type_imports.add('from typing import Literal')
-            type_annotation = f'Literal[{value}]'
-
-    return type_annotation
+    setter_type, getter_type = get_setter_and_getter_type(member, type_imports)
+    type_annotations_setter[member.name] = setter_type
+    type_annotations_getter[member.name] = getter_type
 
 custom_type_annotations = {}
 
@@ -248,11 +141,11 @@ for member in message.structure.members:
 class Metaclass_@(message.structure.namespaced_type.name)(type):
     """Metaclass of message '@(message.structure.namespaced_type.name)'."""
 
-    _CREATE_ROS_MESSAGE: ClassVar[Optional['PyCapsule']] = None
-    _CONVERT_FROM_PY: ClassVar[Optional['PyCapsule']] = None
-    _CONVERT_TO_PY: ClassVar[Optional['PyCapsule']] = None
-    _DESTROY_ROS_MESSAGE: ClassVar[Optional['PyCapsule']] = None
-    _TYPE_SUPPORT: ClassVar[Optional['PyCapsule']] = None
+    _CREATE_ROS_MESSAGE: ClassVar[Optional[PyCapsule]] = None
+    _CONVERT_FROM_PY: ClassVar[Optional[PyCapsule]] = None
+    _CONVERT_TO_PY: ClassVar[Optional[PyCapsule]] = None
+    _DESTROY_ROS_MESSAGE: ClassVar[Optional[PyCapsule]] = None
+    _TYPE_SUPPORT: ClassVar[Optional[PyCapsule]] = None
 
     class @(message.structure.namespaced_type.name)Constants(TypedDict):
 @[if not custom_type_annotations]@

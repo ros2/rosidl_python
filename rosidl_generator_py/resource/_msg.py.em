@@ -46,7 +46,6 @@ type_imports.add(
     class PyCapsule(Structure):
         pass  # don't need to define the full structure""")
 for member in message.structure.members:
-    # setter_type, getter_type = '', ''
     setter_type, getter_type = get_setter_and_getter_type(member, type_imports)
     type_annotations_setter[member.name] = setter_type
     type_annotations_getter[member.name] = getter_type
@@ -54,14 +53,12 @@ for member in message.structure.members:
 custom_type_annotations = {}
 
 for constant in message.constants:
-    # custom_type_annotations[constant.name] = ''
     custom_type_annotations[constant.name] = get_type_annotation_constant(constant)
 
 default_type_annotations = {}
 
 for member in message.structure.members:
     if member.has_annotation('default'):
-        # default_type_annotations[member.name] = ''
         default_type_annotations[member.name] = get_type_annotation_default(member)
 }@
 @{

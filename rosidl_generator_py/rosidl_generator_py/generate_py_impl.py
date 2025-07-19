@@ -22,6 +22,7 @@ from typing import Union
 from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
+from rosidl_parser.definition import AbstractType
 from rosidl_parser.definition import Action
 from rosidl_parser.definition import ACTION_FEEDBACK_SUFFIX
 from rosidl_parser.definition import ACTION_GOAL_SUFFIX
@@ -291,7 +292,7 @@ def constant_value_to_py(type_, value):
     assert False, "unknown constant type '%s'" % type_
 
 
-def quoted_string(s):
+def quoted_string(s: str) -> str:
     s = s.replace('\\', '\\\\')
     # strings containing single quote but no double quotes can be wrapped in
     # double quotes without escaping
@@ -303,7 +304,7 @@ def quoted_string(s):
     return "'%s'" % s
 
 
-def get_python_type(type_):
+def get_python_type(type_: AbstractType) -> str:
     if isinstance(type_, NamespacedType):
         return type_.name
 
@@ -338,8 +339,19 @@ def get_python_type(type_):
     assert False, "unknown type '%s'" % type_
 
 
-def get_type_annotation_constant_default(constant: Constant, value: Union[str, int, float, bool],
-                                         type_imports: set[str]) -> str:
+def get_type_annotation_constant(constant: Constant) -> str:
+    return get_type_annotation_constant_default(constant, constant.value)
+
+
+def get_type_annotation_default(member: Member) -> str:
+    default = member.get_annotation_value('default')
+    assert isinstance(default, dict), 'Only default types are dictionary'
+    return get_type_annotation_constant_default(member, default['value'])
+
+
+def get_type_annotation_constant_default(constant: Union[Constant, Member],
+                                         value: Union[str, int, float, bool]) -> str:
+    """From a constant/member return type annotations for constant/default values."""
     type_ = constant.type
 
     if isinstance(type_, AbstractNestedType):
@@ -350,7 +362,6 @@ def get_type_annotation_constant_default(constant: Constant, value: Union[str, i
     if isinstance(constant.type, AbstractNestedType) and isinstance(type_, BasicType) and \
        type_.typename in SPECIAL_NESTED_BASIC_TYPES:
         if isinstance(constant.type, Array):
-            type_imports.add('import numpy.typing')
             dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
             return f'numpy.typing.NDArray[{dtype}]'
         elif isinstance(constant.type, AbstractSequence):
@@ -363,10 +374,7 @@ def get_type_annotation_constant_default(constant: Constant, value: Union[str, i
         return 'float'
     else:
         if isinstance(value, str):
-            if "'" in value or '"' in value:
-                return 'str'
-            else:
-                return f"typing.Literal['{value}']"
+            return f'typing.Literal[{quoted_string(value)}]'
         elif isinstance(value, float):
             return 'float'
         elif isinstance(type_, BasicType) and type_.typename == 'octet':
@@ -378,6 +386,7 @@ def get_type_annotation_constant_default(constant: Constant, value: Union[str, i
 
 
 def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[str, str]:
+    """From a member return the setter and getter type annotations. Add needed type_imports."""
     type_ = member.type
 
     if isinstance(type_, AbstractNestedType):

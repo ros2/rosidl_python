@@ -4,7 +4,8 @@
 from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 from rosidl_generator_py.generate_py_impl import constant_value_to_py
 from rosidl_generator_py.generate_py_impl import get_python_type
-from rosidl_generator_py.generate_py_impl import get_type_annotation_constant_default
+from rosidl_generator_py.generate_py_impl import get_type_annotation_constant
+from rosidl_generator_py.generate_py_impl import get_type_annotation_default
 from rosidl_generator_py.generate_py_impl import get_setter_and_getter_type
 from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 from rosidl_generator_py.generate_py_impl import value_to_py
@@ -45,6 +46,7 @@ type_imports.add(
     class PyCapsule(Structure):
         pass  # don't need to define the full structure""")
 for member in message.structure.members:
+    # setter_type, getter_type = '', ''
     setter_type, getter_type = get_setter_and_getter_type(member, type_imports)
     type_annotations_setter[member.name] = setter_type
     type_annotations_getter[member.name] = getter_type
@@ -52,16 +54,15 @@ for member in message.structure.members:
 custom_type_annotations = {}
 
 for constant in message.constants:
-    value = constant.value
-    custom_type_annotations[constant.name] = get_type_annotation_constant_default(constant, value, type_imports)
+    # custom_type_annotations[constant.name] = ''
+    custom_type_annotations[constant.name] = get_type_annotation_constant(constant)
 
 default_type_annotations = {}
 
 for member in message.structure.members:
     if member.has_annotation('default'):
-        constant = member
-        value = constant.get_annotation_value('default')['value']
-        default_type_annotations[constant.name] = get_type_annotation_constant_default(constant, value, type_imports)
+        # default_type_annotations[member.name] = ''
+        default_type_annotations[member.name] = get_type_annotation_default(member)
 }@
 @{
 suffix = '__'.join(message.structure.namespaced_type.namespaces[1:]) + '__' + convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)
@@ -161,15 +162,6 @@ class Metaclass_@(message.structure.namespaced_type.name)(type):
         '@(constant.name)': @constant_value_to_py(constant.type, constant.value),
 @[end for]@
     }
-
-    class @(message.structure.namespaced_type.name)Default(@(message.structure.namespaced_type.name)Constants):
-@[if not default_type_annotations]@
-        pass
-@[else]@
-@[    for name, type in default_type_annotations.items()]@
-        @(name.upper())__DEFAULT: @(type)
-@[     end for]@
-@[end if]@
 
     @@classmethod
     def __import_type_support__(cls) -> None:
@@ -443,7 +435,7 @@ if isinstance(type_, AbstractNestedType):
         typename = self.__class__.__module__.split('.')
         typename.pop()
         typename.append(self.__class__.__name__)
-        args = []
+        args: list[str] = []
         for s, t in zip(self.get_fields_and_field_types().keys(), self.SLOT_TYPES):
             field = getattr(self, s)
             fieldstr = repr(field)

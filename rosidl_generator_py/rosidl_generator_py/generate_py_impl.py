@@ -359,8 +359,10 @@ def get_type_annotation_constant_default(constant: Union[Constant, Member],
 
     python_type = get_python_type(type_)
 
-    if isinstance(constant.type, AbstractNestedType) and isinstance(type_, BasicType) and \
-       type_.typename in SPECIAL_NESTED_BASIC_TYPES:
+    if (
+        isinstance(constant.type, AbstractNestedType) and isinstance(type_, BasicType) and
+        type_.typename in SPECIAL_NESTED_BASIC_TYPES
+    ):
         if isinstance(constant.type, Array):
             dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
             return f'numpy.typing.NDArray[{dtype}]'

@@ -399,8 +399,10 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
     type_annotation = ''
     type_annotations_getter = ''
 
-    if isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and \
-       type_.typename in SPECIAL_NESTED_BASIC_TYPES:
+    if (
+        isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and
+        type_.typename in SPECIAL_NESTED_BASIC_TYPES
+    ):
         if isinstance(member.type, Array):
             type_imports.add('import numpy.typing')
             dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']

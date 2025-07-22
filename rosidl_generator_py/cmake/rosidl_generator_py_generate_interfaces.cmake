@@ -304,7 +304,7 @@ if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)
 
     find_package(ament_cmake_mypy REQUIRED)
     ament_mypy(
-      TESTNAME "mypy_rosidl_generate_py"
+      TESTNAME "mypy_rosidl_generated_py"
       "${_output_path}")
   endif()
 endif()

@@ -5,9 +5,9 @@ from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 action_name = '_' + convert_camel_case_to_lower_case_underscore(action.namespaced_type.name)
 module_name = '_' + convert_camel_case_to_lower_case_underscore(interface_path.stem)
 
-type_annotations_import_statements.add(f'from {'.'.join(action.namespaced_type.namespaces)}.{module_name} import {action.goal.structure.namespaced_type.name}')
-type_annotations_import_statements.add(f'from {'.'.join(action.namespaced_type.namespaces)}.{module_name} import {action.result.structure.namespaced_type.name}')
-type_annotations_import_statements.add(f'from {'.'.join(action.namespaced_type.namespaces)}.{module_name} import {action.feedback.structure.namespaced_type.name}')
+type_annotations_import_statements.add(f'from {".".join(action.namespaced_type.namespaces)}.{module_name} import {action.goal.structure.namespaced_type.name}')
+type_annotations_import_statements.add(f'from {".".join(action.namespaced_type.namespaces)}.{module_name} import {action.result.structure.namespaced_type.name}')
+type_annotations_import_statements.add(f'from {".".join(action.namespaced_type.namespaces)}.{module_name} import {action.feedback.structure.namespaced_type.name}')
 
 TEMPLATE(
     '_msg.py.em',

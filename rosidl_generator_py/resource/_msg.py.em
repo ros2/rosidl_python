@@ -116,6 +116,8 @@ for member in message.structure.members:
 @
 @#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 @[if imports]@
+
+
 # Import statements for member types
 @[    for import_statement, member_names in sorted(imports.items())]@
 
@@ -346,27 +348,20 @@ if isinstance(type_, AbstractNestedType):
 ,  # noqa: E501
 @[end for]@
     )
-@{
-# Taken from flake8-builtins
-# https://github.com/gforcada/flake8-builtins/blob/689ad01c03cb52ae73be23d19706e6a4a491f4e9/flake8_builtins.py
-import inspect
-import builtins
-BUILTINS = [
-    a[0]
-    for a in inspect.getmembers(builtins)
-]
-}@
 
     def __init__(self, *,
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@
 @[  end if]@
-@[    if member.name in BUILTINS]@
-                 @(member.name): typing.Optional[@(type_annotations_setter[member.name])] = None,  # noqa: E501, A002
-@[    else]@
-                 @(member.name): typing.Optional[@(type_annotations_setter[member.name])] = None,  # noqa: E501
-@[    end if]@
+@{
+import inspect
+import builtins
+noqa_string = ''
+if member.name in dict(inspect.getmembers(builtins)).keys():
+    noqa_string = ', A002'
+}@
+                 @(member.name): typing.Optional[@(type_annotations_setter[member.name])] = None,  # noqa: E501@(noqa_string)
 @[end for]@
                  check_fields: typing.Optional[bool] = None) -> None:
         if check_fields is not None:
@@ -485,8 +480,6 @@ type_ = member.type
 if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 
-import inspect
-import builtins
 noqa_string = ''
 if member.name in dict(inspect.getmembers(builtins)).keys():
     noqa_string = '  # noqa: A003'

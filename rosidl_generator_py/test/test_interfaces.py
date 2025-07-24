@@ -237,7 +237,7 @@ def test_arrays_of_bounded_strings() -> None:
     with pytest.raises(AssertionError):
         setattr(msg, 'ub_string_ub_array_value', array_too_long_strings)
 
-    array10strings = [] + [str(i) for i in range(10)]
+    array10strings: list[str] = [] + [str(i) for i in range(10)]
     msg.ub_string_ub_array_value = array10strings
     assert array10strings == msg.ub_string_ub_array_value
 

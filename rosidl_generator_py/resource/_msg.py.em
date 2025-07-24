@@ -484,9 +484,12 @@ noqa_string = ''
 if member.name in dict(inspect.getmembers(builtins)).keys():
     noqa_string = '  # noqa: A003'
 
+array_type_commment = ''
+if isinstance(member.type, (Array, AbstractSequence)):
+    array_type_commment = '   # typing.Annotated can be remove after mypy 1.16+ see mypy#3004'
 }@
     @@builtins.property@(noqa_string)
-    def @(member.name)(self) -> @(type_annotations_getter[member.name]):@(noqa_string)
+    def @(member.name)(self) -> @(type_annotations_getter[member.name]):@(noqa_string)@(array_type_commment)
         """Message field '@(member.name)'."""
         return self._@(member.name)
 
@@ -654,6 +657,7 @@ bound = 1.7976931348623157e+308
 @[    if isinstance(member.type, Array)]@
         self._@(member.name) = numpy.array(value, dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
 @[    elif isinstance(member.type, AbstractSequence)]@
+        # type ignore below fixed in mypy 1.17+ see mypy#19421
         self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', value)  # type: ignore[assignment]
 @[    end if]@
 @[  else]@

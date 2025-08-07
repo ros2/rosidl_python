@@ -61,6 +61,6 @@ class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_t
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.response_message.structure.namespaced_type.name) as Response
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.event_message.structure.namespaced_type.name) as Event
 
-    # type ignore below fixed in mypy 1.0+ see mypy#10342
-    def __init__(self) -> typing.NoReturn:  # type: ignore
+    # Should eventually be typing.NoReturn. See mypy#14044
+    def __init__(self) -> None:
         raise NotImplementedError('Service classes can not be instantiated')

@@ -26,7 +26,12 @@ TEMPLATE(
 }@
 
 
-class Metaclass_@(service.namespaced_type.name)(type):
+class Metaclass_@(service.namespaced_type.name)(
+    rosidl_pycommon.message_base_metaclasses.ServiceAbstractMeta[
+        @(service.request_message.structure.namespaced_type.name),
+        @(service.response_message.structure.namespaced_type.name)
+    ]
+):
     """Metaclass of service '@(service.namespaced_type.name)'."""
 
     _TYPE_SUPPORT: typing.ClassVar[typing.Optional[PyCapsule]] = None

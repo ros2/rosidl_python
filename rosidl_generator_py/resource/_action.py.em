@@ -42,7 +42,13 @@ TEMPLATE(
 }@
 
 
-class Metaclass_@(action.namespaced_type.name)(type):
+class Metaclass_@(action.namespaced_type.name)(
+    rosidl_pycommon.message_base_metaclasses.ActionAbstractMeta[
+        @(action.goal.structure.namespaced_type.name),
+        @(action.result.structure.namespaced_type.name),
+        @(action.feedback.structure.namespaced_type.name)
+    ]
+):
     """Metaclass of action '@(action.namespaced_type.name)'."""
 
     _TYPE_SUPPORT: typing.ClassVar[typing.Optional[PyCapsule]] = None

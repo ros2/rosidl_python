@@ -43,7 +43,7 @@ TEMPLATE(
 
 
 class Metaclass_@(action.namespaced_type.name)(
-    rosidl_pycommon.message_base_metaclasses.ActionAbstractMeta[
+    rosidl_pycommon.interface_base_metaclasses.ActionAbstractMeta[
         @(action.goal.structure.namespaced_type.name),
         @(action.result.structure.namespaced_type.name),
         @(action.feedback.structure.namespaced_type.name)

@@ -138,7 +138,7 @@ for member in message.structure.members:
 @#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
-class Metaclass_@(message.structure.namespaced_type.name)(rosidl_pycommon.message_base_metaclasses.MessageAbstractMeta):
+class Metaclass_@(message.structure.namespaced_type.name)(rosidl_pycommon.interface_base_metaclasses.MessageAbstractMeta):
     """Metaclass of message '@(message.structure.namespaced_type.name)'."""
 
     _CREATE_ROS_MESSAGE: typing.ClassVar[typing.Optional[PyCapsule]] = None

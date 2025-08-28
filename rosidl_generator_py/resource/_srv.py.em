@@ -27,7 +27,7 @@ TEMPLATE(
 
 
 class Metaclass_@(service.namespaced_type.name)(
-    rosidl_pycommon.message_base_metaclasses.ServiceAbstractMeta[
+    rosidl_pycommon.interface_base_metaclasses.ServiceAbstractMeta[
         @(service.request_message.structure.namespaced_type.name),
         @(service.response_message.structure.namespaced_type.name)
     ]

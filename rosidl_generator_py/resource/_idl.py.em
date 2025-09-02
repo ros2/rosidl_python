@@ -8,7 +8,7 @@ import collections.abc
 from os import getenv
 import typing
 
-import rosidl_pycommon.interface_base_metaclasses
+import rosidl_pycommon.interface_base_classes
 
 # This is being done at the module level and not on the instance level to avoid looking
 # for the same variable multiple times on each instance. This variable is not supposed to

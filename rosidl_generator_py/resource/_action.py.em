@@ -42,13 +42,7 @@ TEMPLATE(
 }@
 
 
-class Metaclass_@(action.namespaced_type.name)(
-    rosidl_pycommon.interface_base_metaclasses.ActionAbstractMeta[
-        @(action.goal.structure.namespaced_type.name),
-        @(action.result.structure.namespaced_type.name),
-        @(action.feedback.structure.namespaced_type.name)
-    ]
-):
+class Metaclass_@(action.namespaced_type.name)(rosidl_pycommon.interface_base_classes.ActionTypeSupportMeta):
     """Metaclass of action '@(action.namespaced_type.name)'."""
 
     _TYPE_SUPPORT: typing.ClassVar[typing.Optional[PyCapsule]] = None
@@ -85,14 +79,19 @@ class Metaclass_@(action.namespaced_type.name)(
                 @(module_name).Metaclass_@(action.feedback_message.structure.namespaced_type.name).__import_type_support__()
 
 
-class @(action.namespaced_type.name)(metaclass=Metaclass_@(action.namespaced_type.name)):
+class @(action.namespaced_type.name)(rosidl_pycommon.interface_base_classes.BaseAction[
+        @(action.goal.structure.namespaced_type.name),
+        @(action.result.structure.namespaced_type.name),
+        @(action.feedback.structure.namespaced_type.name)
+    ],
+metaclass=Metaclass_@(action.namespaced_type.name)):
 
     # The goal message defined in the action definition.
-    from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.goal.structure.namespaced_type.name) as Goal
+    Goal: type[@(action.goal.structure.namespaced_type.name)] = @(action.goal.structure.namespaced_type.name)
     # The result message defined in the action definition.
-    from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.result.structure.namespaced_type.name) as Result
+    Result: type[@(action.result.structure.namespaced_type.name)] = @(action.result.structure.namespaced_type.name)
     # The feedback message defined in the action definition.
-    from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.feedback.structure.namespaced_type.name) as Feedback
+    Feedback: type[@(action.feedback.structure.namespaced_type.name)] = @(action.feedback.structure.namespaced_type.name)
 
     class Impl:
 

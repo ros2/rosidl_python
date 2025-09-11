@@ -80,9 +80,9 @@ class Metaclass_@(action.namespaced_type.name)(rosidl_pycommon.interface_base_cl
 
 
 class @(action.namespaced_type.name)(rosidl_pycommon.interface_base_classes.BaseAction[
-        @(action.goal.structure.namespaced_type.name),
-        @(action.result.structure.namespaced_type.name),
-        @(action.feedback.structure.namespaced_type.name)
+    @(action.goal.structure.namespaced_type.name),
+    @(action.result.structure.namespaced_type.name),
+    @(action.feedback.structure.namespaced_type.name)
 ], metaclass=Metaclass_@(action.namespaced_type.name)):
 
     # The goal message defined in the action definition.

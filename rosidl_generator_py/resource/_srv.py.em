@@ -26,7 +26,7 @@ TEMPLATE(
 }@
 
 
-class Metaclass_@(service.namespaced_type.name)(type):
+class Metaclass_@(service.namespaced_type.name)(rosidl_pycommon.interface_base_classes.ServiceTypeSupportMeta):
     """Metaclass of service '@(service.namespaced_type.name)'."""
 
     _TYPE_SUPPORT: typing.ClassVar[typing.Optional[PyCapsule]] = None
@@ -56,9 +56,12 @@ class Metaclass_@(service.namespaced_type.name)(type):
                 @(module_name).Metaclass_@(service.event_message.structure.namespaced_type.name).__import_type_support__()
 
 
-class @(service.namespaced_type.name)(metaclass=Metaclass_@(service.namespaced_type.name)):
-    from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.request_message.structure.namespaced_type.name) as Request
-    from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.response_message.structure.namespaced_type.name) as Response
+class @(service.namespaced_type.name)(rosidl_pycommon.interface_base_classes.BaseService[
+    @(service.request_message.structure.namespaced_type.name),
+    @(service.response_message.structure.namespaced_type.name)
+], metaclass=Metaclass_@(service.namespaced_type.name)):
+    Request: type[@(service.request_message.structure.namespaced_type.name)] = @(service.request_message.structure.namespaced_type.name)
+    Response: type[@(service.response_message.structure.namespaced_type.name)] = @(service.response_message.structure.namespaced_type.name)
     from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.event_message.structure.namespaced_type.name) as Event
 
     # Should eventually be typing.NoReturn. See mypy#14044

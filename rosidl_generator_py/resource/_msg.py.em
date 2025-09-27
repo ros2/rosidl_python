@@ -401,8 +401,7 @@ if isinstance(type_, AbstractNestedType):
         if @(member.name) is None:
             self.@(member.name) = numpy.zeros(@(member.type.size), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
         else:
-            self.@(member.name) = numpy.array(@(member.name), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
-            assert self.@(member.name).shape == (@(member.type.size), )
+            self.@(member.name) = @(member.name)
 @[        else]@
         self.@(member.name) = @(member.name) if @(member.name) is not None else [@(get_python_type(type_))() for x in range(@(member.type.size))]
 @[        end if]@

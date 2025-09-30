@@ -18,6 +18,7 @@
 # CMake does not allow `add_custom_command()` to depend on files generated in
 # a different CMake subdirectory, and this command is invoked after an
 # add_subdirectory() call.
+cmake_minimum_required(VERSION 3.27) # Required by option DEPENDS_EXPLICIT_ONLY of add_custom_command
 add_custom_command(
   OUTPUT ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files}
   # This assumes that python_cmake_module was found, which is always the case since this is only
@@ -28,6 +29,7 @@ add_custom_command(
   DEPENDS ${target_dependencies} ${rosidl_generate_interfaces_TARGET}
   COMMENT "Generating Python code for ROS interfaces"
   VERBATIM
+  DEPENDS_EXPLICIT_ONLY
 )
 
 if(TARGET ${rosidl_generate_interfaces_TARGET}${_target_suffix})

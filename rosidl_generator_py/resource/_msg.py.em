@@ -342,8 +342,7 @@ if isinstance(type_, AbstractNestedType):
         if '@(member.name)' not in kwargs:
             self.@(member.name) = numpy.zeros(@(member.type.size), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
         else:
-            self.@(member.name) = numpy.array(kwargs.get('@(member.name)'), dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
-            assert self.@(member.name).shape == (@(member.type.size), )
+            self.@(member.name) = kwargs.get('@(member.name)')
 @[        else]@
         self.@(member.name) = kwargs.get(
             '@(member.name)',

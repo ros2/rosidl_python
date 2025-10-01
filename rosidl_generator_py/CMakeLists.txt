@@ -45,6 +45,8 @@ if(BUILD_TESTING)
     # The alternative style (just using ${PROJECT_NAME}) is used by most interface packages.
     rosidl_generate_interfaces(${PROJECT_NAME}_custom
       ${test_interface_files_MSG_FILES}
+      ${test_interface_files_SRV_FILES}
+      ${test_interface_files_ACTION_FILES}
       # Cases not covered by test_interface_files
       msg/BuiltinTypeSequencesIdl.idl
       msg/StringArrays.msg

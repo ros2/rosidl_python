@@ -97,6 +97,18 @@ for member in message.structure.members:
     if isinstance(type_, BasicType) and type_.typename in FLOATING_POINT_TYPES:
         imports.setdefault(
             'import math', [])  # used for math.isinf
+    if isinstance(type_, NamespacedType):
+        if not (
+            type_.name.endswith(SERVICE_RESPONSE_MESSAGE_SUFFIX) or
+            type_.name.endswith(SERVICE_REQUEST_MESSAGE_SUFFIX) or 
+            type_.name.endswith(ACTION_GOAL_SUFFIX) or
+            type_.name.endswith(ACTION_RESULT_SUFFIX) or
+            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
+        ):
+            joined_type_namespaces = '.'.join(type_.namespaces)
+            imports.setdefault(
+                    f'from {joined_type_namespaces}._{convert_camel_case_to_lower_case_underscore(type_.name)} import {type_.name}',
+                    [])
     if (
         isinstance(member.type, AbstractNestedType) and
         isinstance(member.type.value_type, BasicType) and
@@ -199,16 +211,15 @@ for member in message.structure.members:
             type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
         ):
             action_name, suffix = type_.name.rsplit('_', 1)
-            typename = (*type_.namespaces, action_name, action_name + '.' + suffix)
+            typename = action_name + '.' + suffix
         else:
-            typename = (*type_.namespaces, type_.name, type_.name)
+            typename = type_.name
         importable_typesupports.add(typename)
 }@
 @[for typename in sorted(importable_typesupports)]@
 
-            from @('.'.join(typename[:-2])) import @(typename[-2])
-            if @(typename[-1])._TYPE_SUPPORT is None:
-                @(typename[-1]).__import_type_support__()
+            if @(typename)._TYPE_SUPPORT is None:
+                @(typename).__import_type_support__()
 @[end for]@
 
     @@classmethod
@@ -380,17 +391,6 @@ if isinstance(type_, AbstractNestedType):
 @[  if member.has_annotation('default')]@
         self.@(member.name) = @(member.name) if @(member.name) is not None else @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT
 @[  else]@
-@[    if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence)]@
-@[      if (
-            type_.name.endswith(ACTION_GOAL_SUFFIX) or
-            type_.name.endswith(ACTION_RESULT_SUFFIX) or
-            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
-        )]@
-        from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
-@[      else]@
-        from @('.'.join(type_.namespaces)) import @(type_.name)
-@[      end if]@
-@[    end if]@
 @[    if isinstance(member.type, Array)]@
 @[      if isinstance(type_, BasicType) and type_.typename == 'octet']@
         self.@(member.name) = @(member.name) if @(member.name) is not None else [bytes([0]) for x in range(@(member.type.size))]
@@ -515,17 +515,6 @@ if isinstance(member.type, (Array, AbstractSequence)):
                 self._@(member.name) = value
                 return
 @[    end if]@
-@[  end if]@
-@[  if isinstance(type_, NamespacedType)]@
-@[      if (
-            type_.name.endswith(ACTION_GOAL_SUFFIX) or
-            type_.name.endswith(ACTION_RESULT_SUFFIX) or
-            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
-        )]@
-            from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
-@[      else]@
-            from @('.'.join(type_.namespaces)) import @(type_.name)
-@[      end if]@
 @[  end if]@
 @[  if isinstance(member.type, AbstractNestedType)]@
             from collections.abc import Sequence

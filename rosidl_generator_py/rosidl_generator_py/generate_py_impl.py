@@ -24,9 +24,6 @@ from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
 from rosidl_parser.definition import AbstractType
 from rosidl_parser.definition import Action
-from rosidl_parser.definition import ACTION_FEEDBACK_SUFFIX
-from rosidl_parser.definition import ACTION_GOAL_SUFFIX
-from rosidl_parser.definition import ACTION_RESULT_SUFFIX
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import CHARACTER_TYPES
@@ -434,18 +431,6 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
         type_annotation = 'typing.Union[bytes, collections.abc.ByteString]'
     else:
         type_annotation = python_type
-
-    if isinstance(type_, NamespacedType):
-        joined_type_namespaces = '.'.join(type_.namespaces)
-        if type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) \
-           or type_.name.endswith(ACTION_FEEDBACK_SUFFIX):
-
-            type_name_rsplit = type_.name.rsplit('_', 1)
-            lower_case_name = convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])
-            type_imports.add(f'from {joined_type_namespaces}._{lower_case_name} '
-                             f'import {type_.name}')
-        else:
-            type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
 
     type_annotations_setter = type_annotation
 

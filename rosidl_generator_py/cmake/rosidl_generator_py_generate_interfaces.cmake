@@ -17,10 +17,23 @@ find_package(rosidl_runtime_c REQUIRED)
 find_package(rosidl_typesupport_c REQUIRED)
 find_package(rosidl_typesupport_interface REQUIRED)
 
-find_package(PythonInterp 3.6 REQUIRED)
+# By default, without the settings below, find_package(Python3) will attempt
+# to find the newest python version it can, and additionally will find the
+# most specific version.  For instance, on a system that has
+# /usr/bin/python3.10, /usr/bin/python3.11, and /usr/bin/python3, it will find
+# /usr/bin/python3.11, even if /usr/bin/python3 points to /usr/bin/python3.10.
+# The behavior we want is to prefer the "system" installed version unless the
+# user specifically tells us othewise through the Python3_EXECUTABLE hint.
+# Setting CMP0094 to NEW means that the search will stop after the first
+# python version is found.  Setting Python3_FIND_UNVERSIONED_NAMES means that
+# the search will prefer /usr/bin/python3 over /usr/bin/python3.11.  And that
+# latter functionality is only available in CMake 3.20 or later, so we need
+# at least that version.
+cmake_minimum_required(VERSION 3.20)
+cmake_policy(SET CMP0094 NEW)
+set(Python3_FIND_UNVERSIONED_NAMES FIRST)
 
-find_package(python_cmake_module REQUIRED)
-find_package(PythonExtra MODULE REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
 
 # Get a list of typesupport implementations from valid rmw implementations.
 rosidl_generator_py_get_typesupports(_typesupport_impls)
@@ -72,10 +85,10 @@ foreach(_generated_py_file ${_generated_py_files})
 endforeach()
 
 if(NOT _generated_c_files STREQUAL "")
-    foreach(_typesupport_impl ${_typesupport_impls})
-      list(APPEND _generated_extension_${_typesupport_impl}_files "${_output_path}/_${PROJECT_NAME}_s.ep.${_typesupport_impl}.c")
-      list(APPEND _generated_extension_files "${_generated_extension_${_typesupport_impl}_files}")
-    endforeach()
+  foreach(_typesupport_impl ${_typesupport_impls})
+    list(APPEND _generated_extension_${_typesupport_impl}_files "${_output_path}/_${PROJECT_NAME}_s.ep.${_typesupport_impl}.c")
+    list(APPEND _generated_extension_files "${_generated_extension_${_typesupport_impl}_files}")
+  endforeach()
 endif()
 set(_dependency_files "")
 set(_dependencies "")
@@ -126,11 +139,6 @@ endif()
 
 set(_target_suffix "__py")
 
-set(_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
-if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE_DEBUG})
-endif()
-
 # move custom command into a subdirectory to avoid multiple invocations on Windows
 set(_subdir "${CMAKE_CURRENT_BINARY_DIR}/${rosidl_generate_interfaces_TARGET}${_target_suffix}")
 file(MAKE_DIRECTORY "${_subdir}")
@@ -142,29 +150,9 @@ set_property(
   ${_generated_extension_files} ${_generated_py_files} ${_generated_c_files}
   PROPERTY GENERATED 1)
 
-macro(set_properties _build_type)
-  set_target_properties(${_target_name} PROPERTIES
-    COMPILE_OPTIONS "${_extension_compile_flags}"
-    PREFIX ""
-    LIBRARY_OUTPUT_DIRECTORY${_build_type} ${_output_path}
-    RUNTIME_OUTPUT_DIRECTORY${_build_type} ${_output_path}
-    OUTPUT_NAME "${PROJECT_NAME}_s__${_typesupport_impl}${PythonExtra_EXTENSION_SUFFIX}"
-    SUFFIX "${PythonExtra_EXTENSION_EXTENSION}")
-endmacro()
-
-macro(set_lib_properties _build_type)
-  set_target_properties(${_target_name_lib} PROPERTIES
-    COMPILE_OPTIONS "${_extension_compile_flags}"
-    LIBRARY_OUTPUT_DIRECTORY${_build_type} ${_output_path}
-    RUNTIME_OUTPUT_DIRECTORY${_build_type} ${_output_path})
-endmacro()
-
-# Export target so downstream interface packages can link to it
-set(rosidl_generator_py_suffix "__rosidl_generator_py")
-
-set(_target_name_lib "${rosidl_generate_interfaces_TARGET}${rosidl_generator_py_suffix}")
+set(_target_name_lib "${rosidl_generate_interfaces_TARGET}__rosidl_generator_py")
 add_library(${_target_name_lib} SHARED ${_generated_c_files})
-target_link_libraries(${_target_name_lib}
+target_link_libraries(${_target_name_lib} PRIVATE
   ${rosidl_generate_interfaces_TARGET}__rosidl_generator_c)
 add_dependencies(
   ${_target_name_lib}
@@ -173,44 +161,23 @@ add_dependencies(
 )
 
 target_link_libraries(
-  ${_target_name_lib}
-  ${PythonExtra_LIBRARIES}
+  ${_target_name_lib} PRIVATE
+  Python3::NumPy
+  Python3::Python
 )
 target_include_directories(${_target_name_lib}
   PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
   ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
-  ${PythonExtra_INCLUDE_DIRS}
 )
 
-# Check if numpy is in the include path
-find_file(_numpy_h numpy/numpyconfig.h
-  PATHS ${PythonExtra_INCLUDE_DIRS}
-)
-
-if(APPLE OR WIN32 OR NOT _numpy_h)
-  # add include directory for numpy headers
-  set(_python_code
-    "import numpy"
-    "print(numpy.get_include())"
-  )
-  execute_process(
-    COMMAND "${PYTHON_EXECUTABLE}" "-c" "${_python_code}"
-    OUTPUT_VARIABLE _output
-    RESULT_VARIABLE _result
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if(NOT _result EQUAL 0)
-    message(FATAL_ERROR
-      "execute_process(${PYTHON_EXECUTABLE} -c '${_python_code}') returned "
-      "error code ${_result}")
-  endif()
-  message(STATUS "Using numpy include directory: ${_output}")
-  target_include_directories(${_target_name_lib} PUBLIC "${_output}")
+set(_extension_compile_flags "")
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(_extension_compile_flags -Wall -Wextra)
 endif()
 
 rosidl_get_typesupport_target(c_typesupport_target "${rosidl_generate_interfaces_TARGET}" "rosidl_typesupport_c")
-target_link_libraries(${_target_name_lib} ${c_typesupport_target})
+target_link_libraries(${_target_name_lib} PRIVATE ${c_typesupport_target})
 
 foreach(_typesupport_impl ${_typesupport_impls})
   find_package(${_typesupport_impl} REQUIRED)
@@ -220,10 +187,9 @@ foreach(_typesupport_impl ${_typesupport_impls})
     continue()
   endif()
 
-  set(_pyext_suffix "__pyext")
-  set(_target_name "${PROJECT_NAME}__${_typesupport_impl}${_pyext_suffix}")
+  set(_target_name "${PROJECT_NAME}_s__${_typesupport_impl}")
 
-  add_library(${_target_name} SHARED
+  python3_add_library(${_target_name} MODULE
     ${_generated_extension_${_typesupport_impl}_files}
   )
   add_dependencies(
@@ -232,72 +198,56 @@ foreach(_typesupport_impl ${_typesupport_impls})
     ${rosidl_generate_interfaces_TARGET}__rosidl_typesupport_c
   )
 
-  set(_extension_compile_flags "")
-  if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(_extension_compile_flags -Wall -Wextra)
+  if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_target_properties(${_target_name} PROPERTIES DEBUG_POSTFIX "_d")
   endif()
-  set_properties("")
-  if(WIN32)
-    set_properties("_DEBUG")
-    set_properties("_MINSIZEREL")
-    set_properties("_RELEASE")
-    set_properties("_RELWITHDEBINFO")
-  endif()
+  # target_compile_options(${_target_name} PRIVATE ${_extension_compile_flags})
+  # TODO(sloretz) use target_compile_options when python extension passes -Wpedantic
+  set_target_properties(${_target_name} PROPERTIES COMPILE_OPTIONS "${_extension_compile_flags}")
+
+  set_target_properties(${_target_name} PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${_output_path}
+    RUNTIME_OUTPUT_DIRECTORY ${_output_path})
+
   target_link_libraries(
-    ${_target_name}
+    ${_target_name} PRIVATE
     ${_target_name_lib}
-    ${PythonExtra_LIBRARIES}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
+    ${c_typesupport_target}
+    rosidl_runtime_c::rosidl_runtime_c
+    rosidl_typesupport_c::rosidl_typesupport_c
+    rosidl_typesupport_interface::rosidl_typesupport_interface
   )
 
   target_include_directories(${_target_name}
-    PUBLIC
+    PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
     ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py
-    ${PythonExtra_INCLUDE_DIRS}
   )
 
-  target_link_libraries(${_target_name} ${c_typesupport_target})
-
-  ament_target_dependencies(${_target_name}
-    "rosidl_runtime_c"
-    "rosidl_typesupport_c"
-    "rosidl_typesupport_interface"
-  )
   foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-    ament_target_dependencies(${_target_name}
-      ${_pkg_name}
-    )
+    target_link_libraries(${_target_name} PRIVATE ${${_pkg_name}__TARGETS})
   endforeach()
 
   add_dependencies(${_target_name}
     ${rosidl_generate_interfaces_TARGET}__${_typesupport_impl}
   )
-  ament_target_dependencies(${_target_name}
-    "rosidl_runtime_c"
-    "rosidl_generator_py"
-  )
 
   if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
+    # PYTHON_INSTALL_DIR is defined by ament_cmake_python
     install(TARGETS ${_target_name}
       DESTINATION "${PYTHON_INSTALL_DIR}/${PROJECT_NAME}")
   endif()
 endforeach()
 
-set(PYTHON_EXECUTABLE ${_PYTHON_EXECUTABLE})
 
 # Depend on rosidl_generator_py generated targets from our dependencies
 foreach(_pkg_name ${rosidl_generate_interfaces_DEPENDENCY_PACKAGE_NAMES})
-  target_link_libraries(${_target_name_lib} ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
+  target_link_libraries(${_target_name_lib} PRIVATE ${${_pkg_name}_TARGETS${rosidl_generator_py_suffix}})
 endforeach()
 
-set_lib_properties("")
-if(WIN32)
-  set_lib_properties("_DEBUG")
-  set_lib_properties("_MINSIZEREL")
-  set_lib_properties("_RELEASE")
-  set_lib_properties("_RELWITHDEBINFO")
-endif()
+set_target_properties(${_target_name_lib} PROPERTIES COMPILE_OPTIONS "${_extension_compile_flags}")
+
 if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
   install(TARGETS ${_target_name_lib}
     EXPORT export_${_target_name_lib}
@@ -350,6 +300,11 @@ if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)
       # the generated code might contain longer lines for templated types
       # a value of zero tells uncrustify to ignore line length
       MAX_LINE_LENGTH 0
+      "${_output_path}")
+
+    find_package(ament_cmake_mypy REQUIRED)
+    ament_mypy(
+      TESTNAME "mypy_rosidl_generated_py"
       "${_output_path}")
   endif()
 endif()

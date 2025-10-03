@@ -2,6 +2,57 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.26.0 (2025-08-04)
+-------------------
+* Static typing for Message, Services, and Actions (`#206 <https://github.com/ros2/rosidl_python/issues/206>`_)
+* Contributors: Michael Carlstrom
+
+0.25.0 (2025-04-25)
+-------------------
+
+0.24.1 (2025-04-18)
+-------------------
+* Fix `__eq__` for Array fields (`#224 <https://github.com/ros2/rosidl_python/issues/224>`_)
+* Remove use of ament_target_dependencies (`#222 <https://github.com/ros2/rosidl_python/issues/222>`_)
+* Contributors: Michael Carlstrom, Shane Loretz
+
+0.24.0 (2024-11-20)
+-------------------
+* Revamp how we check for the correct class. (`#218 <https://github.com/ros2/rosidl_python/issues/218>`_)
+* Remove python_cmake_module and set hints (`#204 <https://github.com/ros2/rosidl_python/issues/204>`_)
+* Contributors: Chris Lalancette
+
+0.23.1 (2024-06-17)
+-------------------
+* Add rosidl_generator_py to the rosidl_runtime_packages group (`#212 <https://github.com/ros2/rosidl_python/issues/212>`_)
+* Contributors: Scott K Logan
+
+0.23.0 (2024-04-26)
+-------------------
+
+0.22.0 (2024-04-16)
+-------------------
+* Revert install of .so files into python path (`#211 <https://github.com/ros2/rosidl_python/issues/211>`_)
+  There seems that some regression might have happened after `#195 <https://github.com/ros2/rosidl_python/issues/195>`_.
+  When removing those 2 lines, we avoid to install the .so files
+  in lib *and* python path.
+* Contributors: Matthias Schoepfer
+
+0.21.2 (2024-03-27)
+-------------------
+* Prototype code for seeing if FindPython3 is usable for rosidl_python (`#140 <https://github.com/ros2/rosidl_python/issues/140>`_)
+* Contributors: Shane Loretz
+
+0.21.1 (2024-02-07)
+-------------------
+* Add in a missing space. (`#203 <https://github.com/ros2/rosidl_python/issues/203>`_)
+* Contributors: Chris Lalancette
+
+0.21.0 (2023-12-26)
+-------------------
+* Install compiled libraries only to 'lib' (`#195 <https://github.com/ros2/rosidl_python/issues/195>`_)
+* Contributors: Scott K Logan
+
 0.20.0 (2023-08-21)
 -------------------
 * Fix: Missing dependency that causes cmake error in downstream (resolves https://github.com/ros2/rosidl_python/issues/198) (`#199 <https://github.com/ros2/rosidl_python/issues/199>`_)

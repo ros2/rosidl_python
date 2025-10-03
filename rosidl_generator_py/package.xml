@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rosidl_generator_py</name>
-  <version>0.20.0</version>
+  <version>0.26.0</version>
   <description>Generate the ROS interfaces in Python.</description>
 
   <maintainer email="dharini@openrobotics.org">Dharini Dutia</maintainer>
@@ -23,7 +23,6 @@
 
   <buildtool_export_depend>ament_cmake</buildtool_export_depend>
   <buildtool_export_depend>ament_index_python</buildtool_export_depend>
-  <buildtool_export_depend>python_cmake_module</buildtool_export_depend>
   <buildtool_export_depend>rosidl_generator_c</buildtool_export_depend>
   <buildtool_export_depend>rosidl_pycommon</buildtool_export_depend>
   <buildtool_export_depend>rosidl_typesupport_c</buildtool_export_depend>
@@ -36,6 +35,7 @@
   <exec_depend>ament_cmake_cppcheck</exec_depend>
   <exec_depend>ament_cmake_cpplint</exec_depend>
   <exec_depend>ament_cmake_flake8</exec_depend>
+  <exec_depend>ament_cmake_mypy</exec_depend>
   <exec_depend>ament_cmake_pep257</exec_depend>
   <exec_depend>ament_cmake_uncrustify</exec_depend>
 
@@ -53,7 +53,6 @@
   <test_depend>ament_lint_common</test_depend>
   <test_depend>python3-numpy</test_depend>
   <test_depend>python3-pytest</test_depend>
-  <test_depend>python_cmake_module</test_depend>
   <test_depend>rmw</test_depend>
   <test_depend>rosidl_cmake</test_depend>
 
@@ -71,6 +70,7 @@
   <test_depend>test_interface_files</test_depend>
 
   <member_of_group>rosidl_generator_packages</member_of_group>
+  <member_of_group>rosidl_runtime_packages</member_of_group>
 
   <export>
     <build_type>ament_cmake</build_type>

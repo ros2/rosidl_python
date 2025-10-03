@@ -17,18 +17,25 @@ import keyword
 import os
 import pathlib
 import sys
+from typing import Union
 
 from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
+from rosidl_parser.definition import AbstractType
 from rosidl_parser.definition import Action
+from rosidl_parser.definition import ACTION_FEEDBACK_SUFFIX
+from rosidl_parser.definition import ACTION_GOAL_SUFFIX
+from rosidl_parser.definition import ACTION_RESULT_SUFFIX
 from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import CHARACTER_TYPES
+from rosidl_parser.definition import Constant
 from rosidl_parser.definition import FLOATING_POINT_TYPES
 from rosidl_parser.definition import IdlContent
 from rosidl_parser.definition import IdlLocator
 from rosidl_parser.definition import INTEGER_TYPES
+from rosidl_parser.definition import Member
 from rosidl_parser.definition import Message
 from rosidl_parser.definition import NamespacedType
 from rosidl_parser.definition import Service
@@ -130,36 +137,42 @@ def generate_py(generator_arguments_file, typesupport_impls):
                     sorted((value, key) for (key, value) in module_names.items()):
                 f.write(
                     f'from {package_name}.{subfolder}.{module_name} import '
-                    f'{idl_stem}  # noqa: F401\n')
+                    f'{idl_stem} as {idl_stem}  # noqa: F401\n')
                 if subfolder == 'srv':
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_Event  # noqa: F401\n')
+                        f'{idl_stem}_Event as {idl_stem}_Event  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_Request  # noqa: F401\n')
+                        f'{idl_stem}_Request as {idl_stem}_Request  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_Response  # noqa: F401\n')
+                        f'{idl_stem}_Response as {idl_stem}_Response  # noqa: F401\n')
                 elif subfolder == 'action':
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_GetResult_Event  # noqa: F401\n')
+                        f'{idl_stem}_GetResult_Event as {idl_stem}_GetResult_Event'
+                        '  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_GetResult_Request  # noqa: F401\n')
+                        f'{idl_stem}_GetResult_Request as {idl_stem}_GetResult_Request'
+                        '  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_GetResult_Response  # noqa: F401\n')
+                        f'{idl_stem}_GetResult_Response as {idl_stem}_GetResult_Response'
+                        '  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_SendGoal_Event  # noqa: F401\n')
+                        f'{idl_stem}_SendGoal_Event as {idl_stem}_SendGoal_Event'
+                        '  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_SendGoal_Request  # noqa: F401\n')
+                        f'{idl_stem}_SendGoal_Request as {idl_stem}_SendGoal_Request'
+                        '  # noqa: F401\n')
                     f.write(
                         f'from {package_name}.{subfolder}.{module_name} import '
-                        f'{idl_stem}_SendGoal_Response  # noqa: F401\n')
+                        f'{idl_stem}_SendGoal_Response as {idl_stem}_SendGoal_Response'
+                        '  # noqa: F401\n')
 
     # expand templates per available typesupport implementation
     template_dir = args['template_dir']
@@ -191,6 +204,9 @@ def generate_py(generator_arguments_file, typesupport_impls):
                 template_file, data, generated_file,
                 minimum_timestamp=latest_target_timestamp)
             generated_files.append(generated_file)
+
+    # Generate py.typed to mark the generate files as having type support as according to PEP561.
+    (pathlib.Path(args['output_dir']) / 'py.typed').touch()
 
     return generated_files
 
@@ -276,7 +292,7 @@ def constant_value_to_py(type_, value):
     assert False, "unknown constant type '%s'" % type_
 
 
-def quoted_string(s):
+def quoted_string(s: str) -> str:
     s = s.replace('\\', '\\\\')
     # strings containing single quote but no double quotes can be wrapped in
     # double quotes without escaping
@@ -288,7 +304,7 @@ def quoted_string(s):
     return "'%s'" % s
 
 
-def get_python_type(type_):
+def get_python_type(type_: AbstractType) -> str:
     if isinstance(type_, NamespacedType):
         return type_.name
 
@@ -321,3 +337,119 @@ def get_python_type(type_):
         return 'str'
 
     assert False, "unknown type '%s'" % type_
+
+
+def get_type_annotation_constant(constant: Constant) -> str:
+    return get_type_annotation_constant_default(constant, constant.value)
+
+
+def get_type_annotation_default(member: Member) -> str:
+    default = member.get_annotation_value('default')
+    assert isinstance(default, dict), 'Only default types are dictionary'
+    return get_type_annotation_constant_default(member, default['value'])
+
+
+def get_type_annotation_constant_default(constant: Union[Constant, Member],
+                                         value: Union[str, int, float, bool]) -> str:
+    """From a constant/member return type annotations for constant/default values."""
+    type_ = constant.type
+
+    if isinstance(type_, AbstractNestedType):
+        type_ = type_.value_type
+
+    python_type = get_python_type(type_)
+
+    if (
+        isinstance(constant.type, AbstractNestedType) and isinstance(type_, BasicType) and
+        type_.typename in SPECIAL_NESTED_BASIC_TYPES
+    ):
+        if isinstance(constant.type, Array):
+            dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
+            return f'numpy.typing.NDArray[{dtype}]'
+        elif isinstance(constant.type, AbstractSequence):
+            return f'array.array[{python_type}]'
+    elif isinstance(constant.type, AbstractNestedType):
+        return f'list[{python_type}]'
+    elif isinstance(type_, NamespacedType):
+        return python_type
+    elif isinstance(type_, float):
+        return 'float'
+    else:
+        if isinstance(value, str):
+            return f'typing.Literal[{quoted_string(value)}]'
+        elif isinstance(value, float):
+            return 'float'
+        elif isinstance(type_, BasicType) and type_.typename == 'octet':
+            return 'bytes'
+        else:
+            return f'typing.Literal[{value}]'
+
+    assert False, f"unknown type '{type_}'"
+
+
+def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[str, str]:
+    """From a member return the setter and getter type annotations. Add needed type_imports."""
+    type_ = member.type
+
+    if isinstance(type_, AbstractNestedType):
+        type_ = type_.value_type
+
+    python_type = get_python_type(type_)
+
+    type_annotation = ''
+    type_annotations_getter = ''
+
+    if (
+        isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and
+        type_.typename in SPECIAL_NESTED_BASIC_TYPES
+    ):
+        if isinstance(member.type, Array):
+            type_imports.add('import numpy.typing')
+            dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
+            type_annotation = f'numpy.typing.NDArray[{dtype}]'
+        elif isinstance(member.type, AbstractSequence):
+            type_annotation = f'array.array[{python_type}]'
+
+        # Using Annotated because of mypy#3004
+        type_annotations_getter = f'typing.Annotated[typing.Any, {type_annotation}]'
+
+    if isinstance(member.type, AbstractNestedType):
+        if type_annotation != '':
+            type_annotation = f'{type_annotation}, '
+        type_annotation = (f'typing.Union[{type_annotation}'
+                           f'collections.abc.Sequence[{python_type}], '
+                           f'collections.abc.Set[{python_type}], '
+                           f'collections.UserList[{python_type}]]')
+
+        type_imports.add('import collections')
+    elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
+        type_annotation = 'typing.Union[str, collections.UserString]'
+
+        type_imports.add('import collections')
+    elif isinstance(type_, BasicType) and type_.typename == 'char':
+        type_annotation = 'typing.Union[str, collection.UserString]'
+
+        type_imports.add('import collections')
+    elif isinstance(type_, BasicType) and type_.typename == 'octet':
+        type_annotation = 'typing.Union[bytes, collections.abc.ByteString]'
+    else:
+        type_annotation = python_type
+
+    if isinstance(type_, NamespacedType):
+        joined_type_namespaces = '.'.join(type_.namespaces)
+        if type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) \
+           or type_.name.endswith(ACTION_FEEDBACK_SUFFIX):
+
+            type_name_rsplit = type_.name.rsplit('_', 1)
+            lower_case_name = convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])
+            type_imports.add(f'from {joined_type_namespaces}._{lower_case_name} '
+                             f'import {type_.name}')
+        else:
+            type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
+
+    type_annotations_setter = type_annotation
+
+    if type_annotations_getter == '':
+        type_annotations_getter = type_annotations_setter
+
+    return type_annotations_setter, type_annotations_getter

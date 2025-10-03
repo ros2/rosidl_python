@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.14)
 
 project(rosidl_generator_py)
 
@@ -22,19 +22,10 @@ if(BUILD_TESTING)
 
   find_package(test_interface_files REQUIRED)
 
-  find_package(python_cmake_module REQUIRED)
-  find_package(PythonExtra MODULE REQUIRED)
-
-  set(BUILDTYPE_PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE}")
-  if(WIN32 AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    set(BUILDTYPE_PYTHON_EXECUTABLE "${PYTHON_EXECUTABLE_DEBUG}")
-  endif()
-
   include(cmake/register_py.cmake)
   include(cmake/rosidl_generator_py_get_typesupports.cmake)
 
-  # Trick ament_target_dependencies() into thinking this package has been found
-  set(rosidl_generator_py_FOUND "1")
+  # Trick ament_execute_extensions into finding this extension in the source space
   set(rosidl_generator_py_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
   # Need to call extras before get_typesupports, to register the extension
@@ -73,18 +64,14 @@ if(BUILD_TESTING)
       string(REPLACE ";" ":" pythonpath "${pythonpath}")
     endif()
     ament_add_pytest_test(test_interfaces_py "test/test_interfaces.py"
-      PYTHON_EXECUTABLE "${BUILDTYPE_PYTHON_EXECUTABLE}"
       APPEND_ENV "PYTHONPATH=${pythonpath}"
       APPEND_LIBRARY_DIRS "${_append_library_dirs}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
     )
 
-    ament_add_pytest_test(test_cli_extension test/test_cli_extension.py
-      PYTHON_EXECUTABLE "${BUILDTYPE_PYTHON_EXECUTABLE}"
-    )
+    ament_add_pytest_test(test_cli_extension test/test_cli_extension.py)
 
     ament_add_pytest_test(test_property_py test/test_property.py
-      PYTHON_EXECUTABLE "${BUILDTYPE_PYTHON_EXECUTABLE}"
       APPEND_ENV "PYTHONPATH=${pythonpath}"
       APPEND_LIBRARY_DIRS "${_append_library_dirs}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"

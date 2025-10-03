@@ -2,11 +2,17 @@
 # with input from @(package_name):@(interface_path)
 # generated code does not contain a copyright notice
 
+from __future__ import annotations
+
+import collections.abc
+from os import getenv
+import typing
+
+import rosidl_pycommon.interface_base_classes
+
 # This is being done at the module level and not on the instance level to avoid looking
 # for the same variable multiple times on each instance. This variable is not supposed to
 # change during runtime so it makes sense to only look for it once.
-from os import getenv
-
 ros_python_check_fields = getenv('ROS_PYTHON_CHECK_FIELDS', default='')
 @
 @#######################################################################
@@ -19,6 +25,7 @@ ros_python_check_fields = getenv('ROS_PYTHON_CHECK_FIELDS', default='')
 @#######################################################################
 @{
 import_statements = set()
+type_annotations_import_statements = set()
 }@
 @
 @#######################################################################
@@ -32,7 +39,8 @@ from rosidl_parser.definition import Message
 TEMPLATE(
     '_msg.py.em',
     package_name=package_name, interface_path=interface_path, message=message,
-    import_statements=import_statements)
+    import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 }@
 @[end for]@
 @
@@ -47,7 +55,8 @@ from rosidl_parser.definition import Service
 TEMPLATE(
     '_srv.py.em',
     package_name=package_name, interface_path=interface_path, service=service,
-    import_statements=import_statements)
+    import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 }@
 @[end for]@
 @
@@ -62,6 +71,7 @@ from rosidl_parser.definition import Action
 TEMPLATE(
     '_action.py.em',
     package_name=package_name, interface_path=interface_path, action=action,
-    import_statements=import_statements)
+    import_statements=import_statements,
+    type_annotations_import_statements=type_annotations_import_statements)
 }@
 @[end for]@

@@ -2,6 +2,13 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.26.1 (2025-10-03)
+-------------------
+* remove second call (`#232 <https://github.com/ros2/rosidl_python/issues/232>`_)
+* Derive Messages from Base Classes (`#230 <https://github.com/ros2/rosidl_python/issues/230>`_)
+* Remove NoReturn for now (`#229 <https://github.com/ros2/rosidl_python/issues/229>`_)
+* Contributors: Michael Carlstrom
+
 0.26.0 (2025-08-04)
 -------------------
 * Static typing for Message, Services, and Actions (`#206 <https://github.com/ros2/rosidl_python/issues/206>`_)

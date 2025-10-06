@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.22.2 (2025-10-06)
+-------------------
+* [kilted] Remove redudant numpy.array() backport `#232 <https://github.com/ros2/rosidl_python/issues/232>`_ `#236 <https://github.com/ros2/rosidl_python/issues/236>`_ (`#239 <https://github.com/ros2/rosidl_python/issues/239>`_)
+* Contributors: mergify[bot]
+
 0.22.1 (2025-04-24)
 -------------------
 * fix (`#224 <https://github.com/ros2/rosidl_python/issues/224>`_) (`#227 <https://github.com/ros2/rosidl_python/issues/227>`_)

@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.24.2 (2025-10-06)
+-------------------
+* [kilted] Remove redudant numpy.array() backport `#232 <https://github.com/ros2/rosidl_python/issues/232>`_ `#236 <https://github.com/ros2/rosidl_python/issues/236>`_
+* Contributors: Michael Carlstrom
+
 0.24.1 (2025-04-18)
 -------------------
 * Fix `__eq__` for Array fields (`#224 <https://github.com/ros2/rosidl_python/issues/224>`_)

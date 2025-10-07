@@ -23,6 +23,18 @@ TEMPLATE(
     package_name=package_name, interface_path=interface_path,
     message=service.event_message, import_statements=import_statements,
     type_annotations_import_statements=type_annotations_import_statements)
+
+# Can be removed in rhel10 since TypeAlias will exist in typing
+TYPE_ALIAS_IMPORT = 'from typing_extensions import TypeAlias'
+}@
+@[if TYPE_ALIAS_IMPORT not in type_annotations_import_statements]@
+
+
+if typing.TYPE_CHECKING:
+    @(TYPE_ALIAS_IMPORT)
+@[end if]@
+@{
+type_annotations_import_statements.add(TYPE_ALIAS_IMPORT)
 }@
 
 
@@ -60,9 +72,9 @@ class @(service.namespaced_type.name)(rosidl_pycommon.interface_base_classes.Bas
     @(service.request_message.structure.namespaced_type.name),
     @(service.response_message.structure.namespaced_type.name)
 ], metaclass=Metaclass_@(service.namespaced_type.name)):
-    Request: type[@(service.request_message.structure.namespaced_type.name)] = @(service.request_message.structure.namespaced_type.name)
-    Response: type[@(service.response_message.structure.namespaced_type.name)] = @(service.response_message.structure.namespaced_type.name)
-    from @('.'.join(service.namespaced_type.namespaces)).@(module_name) import @(service.event_message.structure.namespaced_type.name) as Event
+    Request: TypeAlias = @(service.request_message.structure.namespaced_type.name)
+    Response: TypeAlias = @(service.response_message.structure.namespaced_type.name)
+    Event: TypeAlias = @(service.event_message.structure.namespaced_type.name)
 
     # Should eventually be typing.NoReturn. See mypy#14044
     def __init__(self) -> None:

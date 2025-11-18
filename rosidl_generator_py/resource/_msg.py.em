@@ -500,7 +500,7 @@ if isinstance(member.type, (Array, AbstractSequence)):
         if isinstance(value, Set):
             import warnings
             warnings.warn(
-                'Using set or subclass of set is deprecated'
+                'Using set or subclass of set is deprecated,'
                 ' please use a subclass of collections.abc.Sequence like list',
                 DeprecationWarning)
 @[  end if]@

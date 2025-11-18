@@ -503,7 +503,6 @@ if isinstance(member.type, (Array, AbstractSequence)):
                 'Using set or subclass of set is deprecated'
                 ' please use a subclass of collections.abc.Sequence like list',
                 DeprecationWarning)
-
 @[  end if]@
         if self._check_fields:
 @[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@

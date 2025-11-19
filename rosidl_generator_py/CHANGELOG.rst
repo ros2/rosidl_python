@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.26.2 (2025-11-11)
+-------------------
+* Update to use new BaseImpl (`#241 <https://github.com/ros2/rosidl_python/issues/241>`_)
+* Contributors: Michael Carlstrom
+
 0.26.1 (2025-10-03)
 -------------------
 * remove second call (`#232 <https://github.com/ros2/rosidl_python/issues/232>`_)

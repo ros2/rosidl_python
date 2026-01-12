@@ -2,6 +2,11 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.26.3 (2026-01-12)
+-------------------
+* Deprecate using set for container based input (`#243 <https://github.com/ros2/rosidl_python//issues/243>`_)
+* Contributors: Michael Carlstrom
+
 0.26.2 (2025-11-11)
 -------------------
 * Update to use new BaseImpl (`#241 <https://github.com/ros2/rosidl_python/issues/241>`_)

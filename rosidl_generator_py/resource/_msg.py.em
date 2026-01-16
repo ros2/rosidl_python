@@ -494,6 +494,16 @@ if isinstance(member.type, (Array, AbstractSequence)):
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value: @(type_annotations_setter[member.name])) -> None:@(noqa_string)
+
+@[  if isinstance(member.type, AbstractNestedType)]@
+        from collections.abc import Set
+        if isinstance(value, Set):
+            import warnings
+            warnings.warn(
+                'Using set or subclass of set is deprecated,'
+                ' please use a subclass of collections.abc.Sequence like list',
+                DeprecationWarning)
+@[  end if]@
         if self._check_fields:
 @[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@
@@ -529,8 +539,6 @@ if isinstance(member.type, (Array, AbstractSequence)):
 @[  end if]@
 @[  if isinstance(member.type, AbstractNestedType)]@
             from collections.abc import Sequence
-            from collections.abc import Set
-            from collections import UserList
             from collections import UserString
 @[  elif isinstance(type_, AbstractGenericString) and type_.has_maximum_size()]@
             from collections import UserString
@@ -540,11 +548,10 @@ if isinstance(member.type, (Array, AbstractSequence)):
             assert \
 @[  if isinstance(member.type, AbstractNestedType)]@
                 ((isinstance(value, Sequence) or
-                  isinstance(value, Set) or
-                  isinstance(value, UserList)) and
+                  isinstance(value, Set)) and
                  not isinstance(value, str) and
                  not isinstance(value, UserString) and
-@{assert_msg_suffixes = ['a set or sequence']}@
+@{assert_msg_suffixes = ['sequence']}@
 @[    if isinstance(type_, AbstractGenericString) and type_.has_maximum_size()]@
                  all(len(val) <= @(type_.maximum_size) for val in value) and
 @{assert_msg_suffixes.append('and each string value not longer than %d' % type_.maximum_size)}@

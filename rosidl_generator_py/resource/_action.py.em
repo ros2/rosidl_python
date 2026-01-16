@@ -79,32 +79,42 @@ class Metaclass_@(action.namespaced_type.name)(rosidl_pycommon.interface_base_cl
                 @(module_name).Metaclass_@(action.feedback_message.structure.namespaced_type.name).__import_type_support__()
 
 
+class _@(action.namespaced_type.name)_Impl(rosidl_pycommon.interface_base_classes.BaseImpl[
+        @(action.send_goal_service.namespaced_type.name),
+        @(action.get_result_service.namespaced_type.name),
+        @(action.feedback_message.structure.namespaced_type.name)
+]):
+
+    # The send_goal service using a wrapped version of the goal message as a request.
+    SendGoalService: TypeAlias = @(action.send_goal_service.namespaced_type.name)
+    # The get_result service using a wrapped version of the result message as a response.
+    GetResultService: TypeAlias = @(action.get_result_service.namespaced_type.name)
+    # The feedback message with generic fields which wraps the feedback message.
+    FeedbackMessage: TypeAlias = @(action.feedback_message.structure.namespaced_type.name)
+
+    # The generic service to cancel a goal.
+    from action_msgs.srv._cancel_goal import CancelGoal
+    CancelGoalService: TypeAlias = CancelGoal
+    # The generic message for get the status of a goal.
+    from action_msgs.msg._goal_status_array import GoalStatusArray
+    GoalStatusMessage: TypeAlias = GoalStatusArray
+
+
 class @(action.namespaced_type.name)(rosidl_pycommon.interface_base_classes.BaseAction[
     @(action.goal.structure.namespaced_type.name),
     @(action.result.structure.namespaced_type.name),
-    @(action.feedback.structure.namespaced_type.name)
+    @(action.feedback.structure.namespaced_type.name),
+    _@(action.namespaced_type.name)_Impl
 ], metaclass=Metaclass_@(action.namespaced_type.name)):
 
     # The goal message defined in the action definition.
-    Goal: type[@(action.goal.structure.namespaced_type.name)] = @(action.goal.structure.namespaced_type.name)
+    Goal: TypeAlias = @(action.goal.structure.namespaced_type.name)
     # The result message defined in the action definition.
-    Result: type[@(action.result.structure.namespaced_type.name)] = @(action.result.structure.namespaced_type.name)
+    Result: TypeAlias = @(action.result.structure.namespaced_type.name)
     # The feedback message defined in the action definition.
-    Feedback: type[@(action.feedback.structure.namespaced_type.name)] = @(action.feedback.structure.namespaced_type.name)
+    Feedback: TypeAlias = @(action.feedback.structure.namespaced_type.name)
 
-    class Impl:
-
-        # The send_goal service using a wrapped version of the goal message as a request.
-        from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.send_goal_service.namespaced_type.name) as SendGoalService
-        # The get_result service using a wrapped version of the result message as a response.
-        from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.get_result_service.namespaced_type.name) as GetResultService
-        # The feedback message with generic fields which wraps the feedback message.
-        from @('.'.join(action.namespaced_type.namespaces)).@(module_name) import @(action.feedback_message.structure.namespaced_type.name) as FeedbackMessage
-
-        # The generic service to cancel a goal.
-        from action_msgs.srv._cancel_goal import CancelGoal as CancelGoalService
-        # The generic message for get the status of a goal.
-        from action_msgs.msg._goal_status_array import GoalStatusArray as GoalStatusMessage
+    Impl: TypeAlias = _@(action.namespaced_type.name)_Impl
 
     # Should eventually be typing.NoReturn. See mypy#14044
     def __init__(self) -> None:

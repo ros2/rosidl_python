@@ -529,6 +529,9 @@ def test_arrays() -> None:
 
     assert msg2 != msg3
 
+    with pytest.warns(DeprecationWarning):
+        Arrays(string_values={'bar', 'baz', 'foo'})
+
 
 def test_bounded_sequences() -> None:
     msg = BoundedSequences(check_fields=True)

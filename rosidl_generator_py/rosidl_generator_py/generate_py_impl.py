@@ -414,14 +414,13 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
         type_annotations_getter = f'typing.Annotated[typing.Any, {type_annotation}]'
 
     if isinstance(member.type, AbstractNestedType):
-        if type_annotation != '':
-            type_annotation = f'{type_annotation}, '
-        type_annotation = (f'typing.Union[{type_annotation}'
-                           f'collections.abc.Sequence[{python_type}], '
-                           f'collections.abc.Set[{python_type}], '
-                           f'collections.UserList[{python_type}]]')
+        sequence_type = f'collections.abc.Sequence[{python_type}]'
 
-        type_imports.add('import collections')
+        if type_annotation != '':
+            type_annotation = f'typing.Union[{type_annotation}, {sequence_type}]'
+        else:
+            type_annotation = sequence_type
+
     elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
         type_annotation = 'typing.Union[str, collections.UserString]'
 

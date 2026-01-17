@@ -535,6 +535,9 @@ def test_arrays() -> None:
     with pytest.warns(DeprecationWarning):
         Arrays(string_values=('bar', 'baz', 'foo'))
 
+    msg4 = Arrays(int8_values=numpy.array([4, 5, 3], dtype=numpy.int8))
+    assert msg3 == msg4
+
 
 def test_bounded_sequences() -> None:
     msg = BoundedSequences(check_fields=True)

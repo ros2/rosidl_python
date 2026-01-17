@@ -510,12 +510,21 @@ if isinstance(member.type, (Array, AbstractSequence)):
                 'Using set or subclass of set is deprecated,'
                 ' please use a subclass of collections.abc.MutableSequence like list',
                 DeprecationWarning)
+@[      if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
+        if isinstance(value, Sequence) and not isinstance(value, (MutableSequence, numpy.ndarray)):
+            import warnings
+            warnings.warn(
+                "Using a subclass of Sequence that isn't a subclass of MutableSequence is deprecated,"
+                ' please use a subclass of collections.abc.MutableSequence like list or a numpy.ndarray',
+                DeprecationWarning)
+@[      else]@
         if isinstance(value, Sequence) and not isinstance(value, MutableSequence):
             import warnings
             warnings.warn(
                 "Using a subclass of Sequence that isn't a subclass of MutableSequence is deprecated,"
                 ' please use a subclass of collections.abc.MutableSequence like list',
                 DeprecationWarning)
+@[     end if]@
 @[  end if]@
         if self._check_fields:
 @[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@

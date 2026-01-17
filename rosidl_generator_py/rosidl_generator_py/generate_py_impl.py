@@ -399,25 +399,26 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
     type_annotation = ''
     type_annotations_getter = ''
 
-    if (
-        isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and
-        type_.typename in SPECIAL_NESTED_BASIC_TYPES
-    ):
-        if isinstance(member.type, Array):
-            type_imports.add('import numpy.typing')
-            dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
-            type_annotation = f'numpy.typing.NDArray[{dtype}]'
-        elif isinstance(member.type, AbstractSequence):
-            type_annotation = f'array.array[{python_type}]'
-
-        # Using Annotated because of mypy#3004
-        type_annotations_getter = f'typing.Annotated[typing.Any, {type_annotation}]'
-
     if isinstance(member.type, AbstractNestedType):
         sequence_type = f'collections.abc.MutableSequence[{python_type}]'
 
-        if type_annotation != '':
-            type_annotation = f'typing.Union[{type_annotation}, {sequence_type}]'
+        if (isinstance(type_, BasicType) and type_.typename in SPECIAL_NESTED_BASIC_TYPES):
+
+            if isinstance(member.type, Array):
+                type_imports.add('import numpy.typing')
+                dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
+                real_type_annotation = f'numpy.typing.NDArray[{dtype}]'
+                used_type_annotation = 'typing.Any'
+                type_annotation = f'typing.Union[{real_type_annotation}, {sequence_type}]'
+            else:  # Aka AbstractSequence
+                real_type_annotation = f'array.array[{python_type}]'
+                used_type_annotation = sequence_type
+                type_annotation = sequence_type
+
+            # Using Annotated because of mypy#3004
+            type_annotations_getter = \
+                f'typing.Annotated[{used_type_annotation}, {real_type_annotation}]'
+
         else:
             type_annotation = sequence_type
 

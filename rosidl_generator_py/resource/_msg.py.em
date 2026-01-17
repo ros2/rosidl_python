@@ -508,7 +508,7 @@ if isinstance(member.type, (Array, AbstractSequence)):
         if isinstance(value, Sequence) and not isinstance(value, MutableSequence):
             import warnings
             warnings.warn(
-                'Using a subclass of Sequence is deprecated,'
+                'Using a subclass of Sequence that isn't a subclass of MutableSequence is deprecated,'
                 ' please use a subclass of collections.abc.MutableSequence like list',
                 DeprecationWarning)
 @[  end if]@

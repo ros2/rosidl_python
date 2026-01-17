@@ -532,6 +532,9 @@ def test_arrays() -> None:
     with pytest.warns(DeprecationWarning):
         Arrays(string_values={'bar', 'baz', 'foo'})
 
+    with pytest.warns(DeprecationWarning):
+        Arrays(string_values=('bar', 'baz', 'foo'))
+
 
 def test_bounded_sequences() -> None:
     msg = BoundedSequences(check_fields=True)

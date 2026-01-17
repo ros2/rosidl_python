@@ -497,11 +497,19 @@ if isinstance(member.type, (Array, AbstractSequence)):
 
 @[  if isinstance(member.type, AbstractNestedType)]@
         from collections.abc import Set
+        from collections.abc import Sequence
+        from collections.abc import MutableSequence
         if isinstance(value, Set):
             import warnings
             warnings.warn(
                 'Using set or subclass of set is deprecated,'
-                ' please use a subclass of collections.abc.Sequence like list',
+                ' please use a subclass of collections.abc.MutableSequence like list',
+                DeprecationWarning)
+        if isinstance(value, Sequence) and not isinstance(value, MutableSequence):
+            import warnings
+            warnings.warn(
+                'Using a subclass of Sequence is deprecated,'
+                ' please use a subclass of collections.abc.MutableSequence like list',
                 DeprecationWarning)
 @[  end if]@
         if self._check_fields:
@@ -538,7 +546,6 @@ if isinstance(member.type, (Array, AbstractSequence)):
 @[      end if]@
 @[  end if]@
 @[  if isinstance(member.type, AbstractNestedType)]@
-            from collections.abc import Sequence
             from collections import UserString
 @[  elif isinstance(type_, AbstractGenericString) and type_.has_maximum_size()]@
             from collections import UserString

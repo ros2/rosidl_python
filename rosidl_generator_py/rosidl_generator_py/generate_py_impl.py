@@ -414,7 +414,7 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
         type_annotations_getter = f'typing.Annotated[typing.Any, {type_annotation}]'
 
     if isinstance(member.type, AbstractNestedType):
-        sequence_type = f'collections.abc.Sequence[{python_type}]'
+        sequence_type = f'collections.abc.MutableSequence[{python_type}]'
 
         if type_annotation != '':
             type_annotation = f'typing.Union[{type_annotation}, {sequence_type}]'

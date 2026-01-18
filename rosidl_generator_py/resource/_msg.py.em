@@ -679,7 +679,7 @@ bound = 1.7976931348623157e+308
 @[    if isinstance(member.type, Array)]@
         self._@(member.name) = numpy.array(value, dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
 @[    elif isinstance(member.type, AbstractSequence)]@
-        # type ignore below fixed in mypy 1.17+
+        # type ignore below fixed in mypy 1.17+ see mypy#19421
         self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', value)  # type: ignore[assignment]
 @[    end if]@
 @[  else]@

@@ -490,12 +490,7 @@ if isinstance(member.type, (Array, AbstractSequence)):
     @@builtins.property@(noqa_string)
     def @(member.name)(self) -> @(type_annotations_getter[member.name]):@(noqa_string)@(array_type_commment)
         """Message field '@(member.name)'."""
-@[  if isinstance(member.type, AbstractSequence)]@
-        # type ignore below fixed in mypy 1.17+
-        return self._@(member.name)  # type: ignore[has-type]
-@[  else]@
         return self._@(member.name)
-@[  end if]@
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value: @(type_annotations_setter[member.name])) -> None:@(noqa_string)
@@ -685,7 +680,7 @@ bound = 1.7976931348623157e+308
         self._@(member.name) = numpy.array(value, dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
 @[    elif isinstance(member.type, AbstractSequence)]@
         # type ignore below fixed in mypy 1.17+
-        self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', value)  # type: ignore[assignment, has-type]
+        self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', value)  # type: ignore[assignment]
 @[    end if]@
 @[  else]@
         self._@(member.name) = value

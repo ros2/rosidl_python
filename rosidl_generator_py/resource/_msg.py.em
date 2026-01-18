@@ -538,6 +538,7 @@ if isinstance(member.type, (Array, AbstractSequence)):
                 return
 @[    elif isinstance(member.type, AbstractSequence)]@
             if isinstance(value, array.array):
+                value = typing.cast(array.array, value)  # Can be removed in mypy 1.0+
                 assert value.typecode == '@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', \
                     "The '@(member.name)' array.array() must have the type code of '@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])'"
 @[      if isinstance(member.type, BoundedSequence)]@

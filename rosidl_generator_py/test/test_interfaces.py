@@ -535,6 +535,12 @@ def test_arrays() -> None:
     with pytest.warns(DeprecationWarning):
         Arrays(string_values=('bar', 'baz', 'foo'))
 
+    with pytest.warns(None):
+        Arrays(int8_values=numpy.array([4, 5, 3], dtype=numpy.int8))
+
+    with pytest.warns(None):
+        Arrays(int8_values=[6, 7, 8])
+
     msg4 = Arrays(int8_values=numpy.array([4, 5, 3], dtype=numpy.int8))
     assert msg3 == msg4
 
@@ -911,6 +917,11 @@ def test_unbounded_sequences() -> None:
             float64_ieee_max_next = numpy.nextafter(1.7976931348623157e+308, math.inf)
             setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
 
+    with pytest.warns(None):
+        msg.int8_values = [1, 2, 3]
+    
+    with pytest.warns(None):
+        msg.int8_values = array.array('b', [2, 5])
 
 def test_slot_attributes() -> None:
     msg = Nested(check_fields=True)

@@ -505,6 +505,7 @@ if isinstance(member.type, (Array, AbstractSequence)):
                 'Using set or subclass of set is deprecated,'
                 ' please use a subclass of collections.abc.MutableSequence like list',
                 DeprecationWarning)
+
 @[      if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
         if isinstance(value, Sequence) and not isinstance(value, (MutableSequence, numpy.ndarray)):
             import warnings
@@ -521,15 +522,17 @@ if isinstance(member.type, (Array, AbstractSequence)):
                 DeprecationWarning)
 @[     end if]@
 
+        import array
+
 @[      if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-        if isinstance(value, MutableSequence) and not isinstance(value, (list, numpy.ndarray)):
+        if isinstance(value, MutableSequence) and not isinstance(value, (list, numpy.ndarray, array.array)):
             import warnings
             warnings.warn(
                 "Using a subclass of MutableSequence that isn't a subclass of list is deprecated,"
                 ' please use a subclass of list or a numpy.ndarray',
                 DeprecationWarning)
 @[      else]@
-        if isinstance(value, MutableSequence) and not isinstance(value, list):
+        if isinstance(value, MutableSequence) and not isinstance(value, (list, array.array)):
             import warnings
             warnings.warn(
                 "Using a subclass of MutableSequence that isn't a subclass of list is deprecated.",

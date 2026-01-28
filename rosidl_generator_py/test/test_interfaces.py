@@ -316,7 +316,7 @@ def test_default_values() -> None:
         setattr(Defaults, 'INT32_VALUE__DEFAULT', 24)
 
 
-def test_arrays() -> None:
+def test_arrays(recwarn) -> None:
     msg = Arrays(check_fields=True)
 
     # types
@@ -535,11 +535,11 @@ def test_arrays() -> None:
     with pytest.warns(DeprecationWarning):
         Arrays(string_values=('bar', 'baz', 'foo'))
 
-    with pytest.warns(None):
-        Arrays(int8_values=numpy.array([4, 5, 3], dtype=numpy.int8))
+    recwarn.clear()
+    Arrays(int8_values=numpy.array([4, 5, 3], dtype=numpy.int8))
+    Arrays(int8_values=[6, 7, 8])
 
-    with pytest.warns(None):
-        Arrays(int8_values=[6, 7, 8])
+    assert len(recwarn) == 0
 
     msg4 = Arrays(int8_values=numpy.array([4, 5, 3], dtype=numpy.int8))
     assert msg3 == msg4
@@ -769,7 +769,7 @@ def test_bounded_sequences() -> None:
             setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
 
 
-def test_unbounded_sequences() -> None:
+def test_unbounded_sequences(recwarn) -> None:
     msg = UnboundedSequences(check_fields=True)
 
     # types
@@ -917,11 +917,11 @@ def test_unbounded_sequences() -> None:
             float64_ieee_max_next = numpy.nextafter(1.7976931348623157e+308, math.inf)
             setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
 
-    with pytest.warns(None):
-        msg.int8_values = [1, 2, 3]
-    
-    with pytest.warns(None):
-        msg.int8_values = array.array('b', [2, 5])
+    msg.int8_values = [1, 2, 3]
+    msg.int8_values = array.array('b', [2, 5])
+
+    assert len(recwarn) == 0
+
 
 def test_slot_attributes() -> None:
     msg = Nested(check_fields=True)

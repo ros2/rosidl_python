@@ -10,6 +10,11 @@ from rosidl_generator_py.generate_py_impl import get_setter_and_getter_type
 from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 from rosidl_generator_py.generate_py_impl import value_to_py
 from rosidl_generator_py.generate_py_impl import generate_check_fields
+from rosidl_generator_py.generate_py_impl import generate_early_return
+#def generate_check_fields(a):
+#    return ''
+#def generate_early_return(a):
+#    return ''
 from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
@@ -505,13 +510,18 @@ if isinstance(member.type, (Array, AbstractSequence)):
                 ' please use a subclass of collections.abc.Sequence like list',
                 DeprecationWarning)
 @[  end if]@
+@(generate_early_return(member))
 @(generate_check_fields(member))
-@[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-@[    if isinstance(member.type, Array)]@
+@[  if isinstance(member.type, AbstractNestedType)]@
+@[    if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
+@[      if isinstance(member.type, Array)]@
         self._@(member.name) = numpy.array(value, dtype=@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']))
-@[    elif isinstance(member.type, AbstractSequence)]@
+@[      elif isinstance(member.type, AbstractSequence)]@
         # type ignore below fixed in mypy 1.17+ see mypy#19421
         self._@(member.name) = array.array('@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', value)  # type: ignore[assignment]
+@[      end if]@
+@[    else]@
+        self._@(member.name) = list(value)
 @[    end if]@
 @[  else]@
         self._@(member.name) = value

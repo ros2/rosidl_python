@@ -1,6 +1,5 @@
 @# Included from rosidl_generator_py/resource/_idl.py.em
 @{
-
 from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 from rosidl_generator_py.generate_py_impl import constant_value_to_py
 from rosidl_generator_py.generate_py_impl import get_python_type
@@ -9,12 +8,9 @@ from rosidl_generator_py.generate_py_impl import get_type_annotation_default
 from rosidl_generator_py.generate_py_impl import get_setter_and_getter_type
 from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 from rosidl_generator_py.generate_py_impl import value_to_py
-from rosidl_generator_py.generate_py_impl import generate_check_fields
-from rosidl_generator_py.generate_py_impl import generate_early_return
-#def generate_check_fields(a):
-#    return ''
-#def generate_early_return(a):
-#    return ''
+from rosidl_generator_py.generate_py_impl import generate_guards
+# def generate_guards(a):
+#    return ''=
 from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
@@ -500,18 +496,15 @@ if isinstance(member.type, (Array, AbstractSequence)):
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value: @(type_annotations_setter[member.name])) -> None:@(noqa_string)
-
 @[  if isinstance(member.type, AbstractNestedType)]@
-        from collections.abc import Set
-        if isinstance(value, Set):
+        if isinstance(value, collections.abc.Set):
             import warnings
             warnings.warn(
                 'Using set or subclass of set is deprecated,'
                 ' please use a subclass of collections.abc.Sequence like list',
                 DeprecationWarning)
 @[  end if]@
-@(generate_early_return(member))
-@(generate_check_fields(member))
+@(generate_guards(member))
 @[  if isinstance(member.type, AbstractNestedType)]@
 @[    if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[      if isinstance(member.type, Array)]@

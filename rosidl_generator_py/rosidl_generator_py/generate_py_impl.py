@@ -408,8 +408,10 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
     if (
         isinstance(member.type, AbstractNestedType)
     ):
-        if (isinstance(type_, BasicType) and
-        type_.typename in SPECIAL_NESTED_BASIC_TYPES):
+        if (
+            isinstance(type_, BasicType) and
+            type_.typename in SPECIAL_NESTED_BASIC_TYPES
+        ):
             if isinstance(member.type, Array):
                 type_imports.add('import numpy.typing')
                 dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
@@ -488,21 +490,19 @@ class CodeWriter:
         return '\n'.join(self._lines)
 
 
-def generate_imports(member: Member) -> None:
-    cw = CodeWriter(start_level=2)
-
-
-def _sequence_check_fields(member: AbstractNestedType, cw: CodeWriter) -> None:
+def _sequence_check_fields(member: Member, cw: CodeWriter) -> None:
     type_ = member.type
     if isinstance(type_, AbstractNestedType):
         type_ = type_.value_type
+    else:
+        return
 
     cw.write('assert \\')
     cw.indent()
-    cw.write('((isinstance(value, Sequence) or')
-    cw.write('  isinstance(value, Set)) and')
+    cw.write('((isinstance(value, collections.abc.Sequence) or')
+    cw.write('  isinstance(value, collections.abc.Set)) and')
     cw.write(' not isinstance(value, str) and')
-    cw.write(' not isinstance(value, UserString) and')
+    cw.write(' not isinstance(value, collections.UserString) and')
 
     assert_msg_suffixes: list[str] = ['sequence']
 
@@ -567,14 +567,32 @@ def _sequence_check_fields(member: AbstractNestedType, cw: CodeWriter) -> None:
     cw.write(f'"The \'{member.name}\' field must be {joined_assert_msg_suffixes}"')
 
 
-def generate_early_return(member: Member) -> str:
-    cw = CodeWriter(start_level=2)
+def generate_imports(member: Member, cw: CodeWriter) -> None:
+    type_ = member.type
+    if isinstance(type_, AbstractNestedType):
+        type_ = type_.value_type
 
+    if isinstance(type_, NamespacedType):
+        resolved_namespace = '.'.join(type_.namespaces)
+        if (
+            type_.name.endswith(ACTION_GOAL_SUFFIX) or
+            type_.name.endswith(ACTION_RESULT_SUFFIX) or
+            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
+        ):
+            lower_case_action_name = convert_camel_case_to_lower_case_underscore(
+                type_.name.rsplit('_', 1)[0]
+            )
+            cw.write(f'from {resolved_namespace}._{lower_case_action_name} import {type_.name}')
+        else:
+            cw.write(f'from {resolved_namespace} import {type_.name}')
+
+
+def generate_early_return(member: Member, cw: CodeWriter) -> None:
     type_ = member.type
     if isinstance(type_, AbstractNestedType):
         type_ = type_.value_type
     else:
-        return ''
+        return
 
     if isinstance(member.type, AbstractNestedType):
         if (
@@ -582,6 +600,7 @@ def generate_early_return(member: Member) -> str:
             member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES
         ):
             if isinstance(member.type, Array):
+                comment_front = f"The '{member.name}' numpy.ndarray() must have"
                 cw.write('if isinstance(value, numpy.ndarray):')
                 cw.indent()
                 cw.write('if self._check_fields:')
@@ -589,29 +608,31 @@ def generate_early_return(member: Member) -> str:
                 dtype = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']
                 cw.write(f'assert value.dtype == {dtype}, \\')
                 cw.indent()
-                cw.write(f'"The \'{member.name}\' numpy.ndarray() must have the dtype of \'{dtype}\'"')
+                cw.write(f'"{comment_front} the dtype of \'{dtype}\'"')
                 cw.dedent()
                 size = member.type.size
                 cw.write(f'assert value.size == {size}, \\')
                 cw.indent()
-                cw.write(f'"The \'{member.name}\' numpy.ndarray() must have a size of {size}"')
+                cw.write(f'"{comment_front} have a size of {size}"')
                 cw.dedent()
             elif isinstance(member.type, AbstractSequence):
                 cw.write('if isinstance(value, array.array):')
                 cw.indent()
                 cw.write('if self._check_fields:')
                 cw.indent()
-                type_code = SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code']
+                type_code = SPECIAL_NESTED_BASIC_TYPES[
+                    member.type.value_type.typename]['type_code']
                 cw.write(f"assert value.typecode == '{type_code}', \\")
                 cw.indent()
                 cw.write(f'"The \'{member.name}\' array.array() '
-                        f'must have the type code of \'{type_code}\'"')
+                         f'must have the type code of \'{type_code}\'"')
                 cw.dedent()
                 if isinstance(member.type, BoundedSequence):
                     max_size = member.type.maximum_size
                     cw.write(f'assert len(value) <= {max_size}, \\')
                     cw.indent()
-                    cw.write(f'"The \'{member.name}\' array.array() must have a size <= {max_size}"')
+                    cw.write(f'"The \'{member.name}\' array.array() '
+                             f'must have a size <= {max_size}"')
                     cw.dedent()
 
         else:
@@ -627,11 +648,8 @@ def generate_early_return(member: Member) -> str:
         cw.write('return')
         cw.dedent()
 
-    return cw.get_value()
 
-
-def generate_check_fields(member: Member) -> str:
-    cw = CodeWriter(start_level=2)
+def generate_check_fields(member: Member, cw: CodeWriter) -> None:
     cw.write('if self._check_fields:')
     cw.indent()
 
@@ -641,7 +659,7 @@ def generate_check_fields(member: Member) -> str:
 
     if isinstance(member.type, AbstractNestedType):
         _sequence_check_fields(member, cw)
-        return cw.get_value()
+        return
 
     cw.write('assert \\')
     cw.indent()
@@ -650,7 +668,7 @@ def generate_check_fields(member: Member) -> str:
         isinstance(member.type, (BoundedString, BoundedWString)) and
         member.type.has_maximum_size()
     ):
-        cw.write('(isinstance(value, (str, UserString)) and')
+        cw.write('(isinstance(value, (str, collections.UserString)) and')
         cw.write(f' len(value) <= {member.type.maximum_size}), \\')
         cw.write(f'"The \'{member.name}\' field must be string value " \\')
         assert isinstance(type_, (BoundedString, BoundedWString))
@@ -664,7 +682,7 @@ def generate_check_fields(member: Member) -> str:
         byte_alias = "'bytes' or 'ByteString'"
         cw.write(f'"The \'{member.name}\' field must be of type {byte_alias} with length 1"')
     elif isinstance(type_, BasicType) and type_.typename == 'char':
-        cw.write('(isinstance(value, (str, UserString)) and')
+        cw.write('(isinstance(value, (str, collections.UserString)) and')
         cw.write(' len(value) == 1 and ord(value) >= -128 and ord(value) < 128), \\')
         cw.write(f'"The \'{member.name}\' field must be of type \'str\' or \'UserString\' " \\')
         cw.write("'with length 1 and the character ord() in [-128, 127]'")
@@ -714,4 +732,10 @@ def generate_check_fields(member: Member) -> str:
     else:
         cw.write('False')
 
+
+def generate_guards(member: Member) -> str:
+    cw = CodeWriter(start_level=2)
+    generate_imports(member, cw)
+    generate_early_return(member, cw)
+    generate_check_fields(member, cw)
     return cw.get_value()

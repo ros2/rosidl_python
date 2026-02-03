@@ -9,8 +9,6 @@ from rosidl_generator_py.generate_py_impl import get_setter_and_getter_type
 from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 from rosidl_generator_py.generate_py_impl import value_to_py
 from rosidl_generator_py.generate_py_impl import generate_guards
-# def generate_guards(a):
-#    return ''=
 from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence

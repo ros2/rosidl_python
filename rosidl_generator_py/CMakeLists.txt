@@ -49,6 +49,8 @@ if(BUILD_TESTING)
       msg/BuiltinTypeSequencesIdl.idl
       msg/StringArrays.msg
       msg/Property.msg
+      srv/Simple.srv
+      action/Simple.action
       ADD_LINTER_TESTS
       SKIP_INSTALL
     )

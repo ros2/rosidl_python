@@ -56,20 +56,18 @@ for member in message.structure.members:
 }@
 @{
 suffix = '__'.join(message.structure.namespaced_type.namespaces[1:]) + '__' + convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)
-type_annotations_import_statements_copy = type_annotations_import_statements.copy()
+new_typing_imports = sorted(type_imports - type_annotations_import_statements)
 }@
+@[if new_typing_imports]@
+
 
 if typing.TYPE_CHECKING:
-@[for type_import in sorted(type_imports)]@
-@[if type_import not in type_annotations_import_statements]@
+@[  for type_import in new_typing_imports]@
     @(type_import)  # noqa: E402, I100
 @{
 type_annotations_import_statements.add(type_import)
 }@
-@[end if]@
-@[end for]@
-@[if type_annotations_import_statements == type_annotations_import_statements_copy]@
-    pass
+@[  end for]@
 @[end if]@
 @#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 @# Collect necessary import statements for all members

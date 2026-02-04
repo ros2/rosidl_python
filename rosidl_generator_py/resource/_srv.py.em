@@ -46,7 +46,7 @@ class Metaclass_@(service.namespaced_type.name)(rosidl_pycommon.interface_base_c
     @@classmethod
     def __import_type_support__(cls) -> None:
         try:
-            from rosidl_generator_py import import_type_support
+            from rosidl_generator_py import import_type_support  # type: ignore[attr-defined]
             module = import_type_support('@(package_name)')
         except ImportError:
             import logging

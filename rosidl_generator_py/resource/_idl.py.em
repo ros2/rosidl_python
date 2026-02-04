@@ -5,15 +5,22 @@
 from __future__ import annotations
 
 import collections.abc
-from os import getenv
+import os
 import typing
 
 import rosidl_pycommon.interface_base_classes
 
+if typing.TYPE_CHECKING:
+    from ctypes import Structure
+
+    class PyCapsule(Structure):
+        pass  # don't need to define the full structure
+
+
 # This is being done at the module level and not on the instance level to avoid looking
 # for the same variable multiple times on each instance. This variable is not supposed to
 # change during runtime so it makes sense to only look for it once.
-ros_python_check_fields = getenv('ROS_PYTHON_CHECK_FIELDS', default='')
+ros_python_check_fields = os.getenv('ROS_PYTHON_CHECK_FIELDS', default='')
 @
 @#######################################################################
 @# EmPy template for generating _<idl>.py files

@@ -31,7 +31,7 @@ TYPE_ALIAS_IMPORT = 'from typing_extensions import TypeAlias'
 
 
 if typing.TYPE_CHECKING:
-    @(TYPE_ALIAS_IMPORT)
+    @(TYPE_ALIAS_IMPORT)  # noqa: I100, I300
 @[end if]@
 @{
 type_annotations_import_statements.add(TYPE_ALIAS_IMPORT)

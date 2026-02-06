@@ -63,7 +63,7 @@ new_typing_imports = sorted(type_imports - type_annotations_import_statements)
 
 if typing.TYPE_CHECKING:
 @[  for type_import in new_typing_imports]@
-    @(type_import)  # noqa: E402, I100, I300
+    @(type_import)  # noqa: E402, I100, I201, I300
 @{
 type_annotations_import_statements.add(type_import)
 }@

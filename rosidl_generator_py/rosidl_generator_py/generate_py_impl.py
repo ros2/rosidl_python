@@ -409,7 +409,7 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
             if isinstance(member.type, Array):
                 type_imports.add('from numpy.typing import NDArray')
                 dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
-                type_annotation = f'numpy.typing.NDArray[{dtype}]'
+                type_annotation = f'NDArray[{dtype}]'
             elif isinstance(member.type, AbstractSequence):
                 type_annotation = f'array.array[{python_type}]'
         else:

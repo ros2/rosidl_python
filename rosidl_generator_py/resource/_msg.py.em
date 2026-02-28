@@ -502,106 +502,27 @@ if isinstance(member.type, (Array, AbstractSequence)):
         from @('.'.join(type_.namespaces)) import @(type_.name)
 @[      end if]@
 @[  end if]@
+
+@{
+TEMPLATE(
+    '_msg_check_fields.py.em',
+    member=member,
+    type_=type_,
+)
+}@
+
 @[  if isinstance(member.type, AbstractNestedType)]@
 @[    if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[      if isinstance(member.type, Array)]@
         if isinstance(value, numpy.ndarray):
-            if self._check_fields:
-                assert value.dtype == @(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype']), \
-                    "The '@(member.name)' numpy.ndarray() must have the dtype of '@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'])'"
-                assert value.size == @(member.type.size), \
-                    "The '@(member.name)' numpy.ndarray() must have a size of @(member.type.size)"
 @[      elif isinstance(member.type, AbstractSequence)]@
         if isinstance(value, array.array):
-            if self._check_fields:
-                assert value.typecode == '@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])', \
-                    "The '@(member.name)' array.array() must have the type code of '@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])'"
-@[        if isinstance(member.type, BoundedSequence)]@
-                assert len(value) <= @(member.type.maximum_size), \
-                    "The '@(member.name)' array.array() must have a size <= @(member.type.maximum_size)"
-@[        end if]@
 @[      end if]@
 @[    else]@
         if isinstance(value, list):
-            if self._check_fields:
-                assert \
-@{
-TEMPLATE(
-    'abstract_nested_type_check.py.em',
-    member=member,
-    type_=type_,
-    indent=('    ' * 5)
-)
-}@
 @[    end if]@
             self._@(member.name) = value
             return
-@[  end if]@
-        if self._check_fields:
-            assert \
-@[  if isinstance(member.type, AbstractNestedType)]@
-@{
-TEMPLATE(
-    'abstract_nested_type_check.py.em',
-    member=member,
-    type_=type_,
-    indent=('    ' * 4)
-)
-}@
-@[  elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size()]@
-                (isinstance(value, (str, collections.UserString)) and
-                 len(value) <= @(member.type.maximum_size)), \
-                "The '@(member.name)' field must be string value " \
-                'not longer than @(type_.maximum_size)'
-@[  elif isinstance(type_, NamespacedType)]@
-                isinstance(value, @(type_.name)), \
-                "The '@(member.name)' field must be a sub message of type '@(type_.name)'"
-@[  elif isinstance(type_, BasicType) and type_.typename == 'octet']@
-                (isinstance(value, (bytes, bytearray, memoryview)) and
-                 len(value) == 1), \
-                "The '@(member.name)' field must be of type 'bytes' or 'ByteString' with length 1"
-@[  elif isinstance(type_, BasicType) and type_.typename == 'char']@
-                (isinstance(value, (str, collections.UserString)) and
-                 len(value) == 1 and ord(value) >= -128 and ord(value) < 128), \
-                "The '@(member.name)' field must be of type 'str' or 'collections.UserString' " \
-                'with length 1 and the character ord() in [-128, 127]'
-@[  elif isinstance(type_, AbstractGenericString)]@
-                isinstance(value, str), \
-                "The '@(member.name)' field must be of type '@(get_python_type(type_))'"
-@[  elif isinstance(type_, BasicType) and type_.typename in (BOOLEAN_TYPE, *FLOATING_POINT_TYPES, *INTEGER_TYPES)]@
-                isinstance(value, @(get_python_type(type_))), \
-                "The '@(member.name)' field must be of type '@(get_python_type(type_))'"
-@[    if type_.typename in SIGNED_INTEGER_TYPES]@
-@{
-nbits = int(type_.typename[3:])
-bound = 2**(nbits - 1)
-}@
-            assert value >= -@(bound) and value < @(bound), \
-                "The '@(member.name)' field must be an integer in [@(-bound), @(bound - 1)]"
-@[    elif type_.typename in UNSIGNED_INTEGER_TYPES]@
-@{
-nbits = int(type_.typename[4:])
-bound = 2**nbits
-}@
-            assert value >= 0 and value < @(bound), \
-                "The '@(member.name)' field must be an unsigned integer in [0, @(bound - 1)]"
-@[    elif type_.typename in FLOATING_POINT_TYPES]@
-@[      if type_.typename == "float"]@
-@{
-name = "float"
-bound = 3.402823466e+38
-}@
-@[      elif type_.typename == "double"]@
-@{
-name = "double"
-bound = 1.7976931348623157e+308
-}@
-@[      end if]@
-            assert not (value < -@(bound) or value > @(bound)) or math.isinf(value), \
-                "The '@(member.name)' field must be a @(name) in [@(-bound), @(bound)]"
-@[    end if]@
-@[  else]@
-                False
 @[  end if]@
 @[  if isinstance(member.type, AbstractNestedType)]@
 @[    if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@

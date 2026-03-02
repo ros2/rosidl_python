@@ -532,6 +532,10 @@ def test_arrays() -> None:
     with pytest.warns(DeprecationWarning):
         Arrays(string_values={'bar', 'baz', 'foo'})
 
+    msg.bool_values = (False, False, False)
+    assert isinstance(msg.bool_values, list)
+    assert msg.bool_values == [False, False, False]
+
 
 def test_bounded_sequences() -> None:
     msg = BoundedSequences(check_fields=True)
@@ -756,6 +760,10 @@ def test_bounded_sequences() -> None:
             float64_ieee_max_next = numpy.nextafter(1.7976931348623157e+308, math.inf)
             setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
 
+    msg.bool_values = (True, False)
+    assert isinstance(msg.bool_values, list)
+    assert msg.bool_values == [True, False]
+
 
 def test_unbounded_sequences() -> None:
     msg = UnboundedSequences(check_fields=True)
@@ -904,6 +912,10 @@ def test_unbounded_sequences() -> None:
         with pytest.raises(AssertionError):
             float64_ieee_max_next = numpy.nextafter(1.7976931348623157e+308, math.inf)
             setattr(msg, 'float64_values', [-float64_ieee_max_next, 0.0, float64_ieee_max_next])
+
+    msg.bool_values = (True, False, True, False)
+    assert isinstance(msg.bool_values, list)
+    assert msg.bool_values == [True, False, True, False]
 
 
 def test_slot_attributes() -> None:

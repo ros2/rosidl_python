@@ -400,15 +400,20 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
     type_annotations_getter = ''
 
     if (
-        isinstance(member.type, AbstractNestedType) and isinstance(type_, BasicType) and
-        type_.typename in SPECIAL_NESTED_BASIC_TYPES
+        isinstance(member.type, AbstractNestedType)
     ):
-        if isinstance(member.type, Array):
-            type_imports.add('from numpy.typing import NDArray')
-            dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
-            type_annotation = f'NDArray[{dtype}]'
-        elif isinstance(member.type, AbstractSequence):
-            type_annotation = f'array.array[{python_type}]'
+        if (
+            isinstance(type_, BasicType) and
+            type_.typename in SPECIAL_NESTED_BASIC_TYPES
+        ):
+            if isinstance(member.type, Array):
+                type_imports.add('from numpy.typing import NDArray')
+                dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
+                type_annotation = f'NDArray[{dtype}]'
+            elif isinstance(member.type, AbstractSequence):
+                type_annotation = f'array.array[{python_type}]'
+        else:
+            type_annotation = f'list[{python_type}]'
 
         # Using Annotated because of mypy#3004
         type_annotations_getter = f'typing.Annotated[typing.Any, {type_annotation}]'
@@ -416,7 +421,11 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
     if isinstance(member.type, AbstractNestedType):
         sequence_type = f'collections.abc.Sequence[{python_type}]'
 
-        if type_annotation != '':
+        if (
+            isinstance(type_, BasicType) and
+            type_.typename in SPECIAL_NESTED_BASIC_TYPES and
+            isinstance(member.type, Array)
+        ):
             type_annotation = f'typing.Union[{type_annotation}, {sequence_type}]'
         else:
             type_annotation = sequence_type

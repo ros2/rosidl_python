@@ -109,6 +109,7 @@ set(target_dependencies
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl_support.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_idl.py.em"
+  "${rosidl_generator_py_TEMPLATE_DIR}/_msg_check_fields.py.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg_pkg_typesupport_entry_point.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg_support.c.em"
   "${rosidl_generator_py_TEMPLATE_DIR}/_msg.py.em"

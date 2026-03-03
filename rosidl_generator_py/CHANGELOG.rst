@@ -2,8 +2,8 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.27.0 (2026-03-03)
+-------------------
 * Cast Sequence to list on assignment (with templates) (`#249 <https://github.com/ros2/rosidl_python/issues/249>`_)
 * Fix linter violations with flake8-import-order 0.19.0 (`#248 <https://github.com/ros2/rosidl_python/issues/248>`_)
 * Add DEPENDS_EXPLICIT_ONLY to remove implicit dependencies (`#238 <https://github.com/ros2/rosidl_python/issues/238>`_)

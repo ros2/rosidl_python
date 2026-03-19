@@ -431,11 +431,25 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 }@
     @@builtins.property@(noqa_string)
     def @(member.name)(self):@(noqa_string)
+@[  if member.has_annotation('deprecated')]@
+        import warnings
+        warnings.warn(
+            "field '@(member.name)' in '@(message.structure.namespaced_type.name)' is deprecated",
+            DeprecationWarning,
+            stacklevel=2)
+@[  end if]@
         """Message field '@(member.name)'."""
         return self._@(member.name)
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value):@(noqa_string)
+@[  if member.has_annotation('deprecated')]@
+        import warnings
+        warnings.warn(
+            "field '@(member.name)' in '@(message.structure.namespaced_type.name)' is deprecated",
+            DeprecationWarning,
+            stacklevel=2)
+@[  end if]@
         if self._check_fields:
 @[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@

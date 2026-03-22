@@ -499,7 +499,7 @@ if isinstance(member.type, (Array, AbstractSequence)):
 @[    if isinstance(member.type, AbstractSequence) and isinstance(member.type, UnboundedSequence) and member.type.value_type.typename == 'uint8']@
         from rosidl_buffer import Buffer as _RosidlBuffer
         if isinstance(value, _RosidlBuffer):
-            self._@(member.name) = value
+            self._@(member.name) = value  # type: ignore[assignment]
             return
 @[    end if]@
 @[  end if]@
@@ -533,7 +533,11 @@ TEMPLATE(
 @[    else]@
         if isinstance(value, list):
 @[    end if]@
+@[      if isinstance(member.type, UnboundedSequence) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'uint8']@
+            self._@(member.name) = value  # type: ignore[assignment]
+@[      else]@
             self._@(member.name) = value
+@[      end if]@
             return
 @[  end if]@
 @[  if isinstance(member.type, AbstractNestedType)]@

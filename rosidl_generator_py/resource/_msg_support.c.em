@@ -283,6 +283,7 @@ nested_type = '__'.join(type_.namespaced_name())
                 ros_message->@(member.name).size = 0;
                 ros_message->@(member.name).capacity = 0;
                 ros_message->@(member.name).is_rosidl_buffer = true;
+                ros_message->@(member.name).owns_rosidl_buffer = false;
                 Py_DECREF(ptr_result);
               }
               Py_DECREF(get_ptr_func);
@@ -632,22 +633,25 @@ if isinstance(type_, AbstractNestedType):
       if (rosidl_buffer_internal != NULL) {
         PyObject * take_func = PyObject_GetAttrString(rosidl_buffer_internal, "_take_buffer_from_ptr");
         if (take_func != NULL) {
-          // Pass the raw pointer as a Python integer; _take_buffer_from_ptr takes ownership
           PyObject * ptr_arg = PyLong_FromUnsignedLongLong(
             (uint64_t)(uintptr_t)ros_message->@(member.name).data);
           field = PyObject_CallFunctionObjArgs(take_func, ptr_arg, NULL);
           Py_XDECREF(ptr_arg);
           Py_DECREF(take_func);
+          if (field != NULL) {
+            // Ownership transferred to Python — clear the C sequence immediately
+            ros_message->@(member.name).data = NULL;
+            ros_message->@(member.name).size = 0;
+            ros_message->@(member.name).capacity = 0;
+            ros_message->@(member.name).is_rosidl_buffer = false;
+            ros_message->@(member.name).owns_rosidl_buffer = false;
+          }
         }
         Py_DECREF(rosidl_buffer_internal);
       }
       if (field == NULL) {
         return NULL;
       }
-      ros_message->@(member.name).data = NULL;
-      ros_message->@(member.name).size = 0;
-      ros_message->@(member.name).capacity = 0;
-      ros_message->@(member.name).is_rosidl_buffer = false;
       // Set the Buffer on the Python message object
       if (PyObject_SetAttrString(_pymessage, "@(member.name)", field) == -1) {
         Py_DECREF(field);

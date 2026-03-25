@@ -134,6 +134,9 @@ nested_header += '__functions.h'
 @[  end for]@
 // end nested array functions include
 @[end if]@
+@[if any(member.has_annotation('deprecated') for member in message.structure.members)]@
+#include "rosidl_runtime_c/deprecation.h"
+@[end if]@
 @{
 msg_typename = '__'.join(message.structure.namespaced_type.namespaced_name())
 }@
@@ -202,6 +205,9 @@ if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 }@
   {  // @(member.name)
+@[  if member.has_annotation('deprecated')]@
+    DISABLE_DEPRECATED_PUSH
+@[  end if]@
     PyObject * field = PyObject_GetAttrString(_pymsg, "@(member.name)");
     if (!field) {
       return false;
@@ -512,6 +518,9 @@ nested_type = '__'.join(type_.namespaced_name())
     assert(false);
 @[  end if]@
     Py_DECREF(field);
+@[  if member.has_annotation('deprecated')]@
+    DISABLE_DEPRECATED_POP
+@[  end if]@
   }
 @[end for]@
 
@@ -550,6 +559,9 @@ if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 }@
   {  // @(member.name)
+@[  if member.has_annotation('deprecated')]@
+    DISABLE_DEPRECATED_PUSH
+@[  end if]@
     PyObject * field = NULL;
 @[ if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@
@@ -795,6 +807,9 @@ nested_type = '__'.join(type_.namespaced_name())
       }
     }
 @[ end if]@
+@[  if member.has_annotation('deprecated')]@
+    DISABLE_DEPRECATED_POP
+@[  end if]@
   }
 @[end for]@
 

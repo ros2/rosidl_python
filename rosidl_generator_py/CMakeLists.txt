@@ -49,6 +49,7 @@ if(BUILD_TESTING)
       msg/BuiltinTypeSequencesIdl.idl
       msg/StringArrays.msg
       msg/Property.msg
+      msg/TestDeprecated.idl
       ADD_LINTER_TESTS
       SKIP_INSTALL
     )
@@ -71,6 +72,12 @@ if(BUILD_TESTING)
     ament_add_pytest_test(test_cli_extension test/test_cli_extension.py)
 
     ament_add_pytest_test(test_property_py test/test_property.py
+      APPEND_ENV "PYTHONPATH=${pythonpath}"
+      APPEND_LIBRARY_DIRS "${_append_library_dirs}"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
+    )
+
+    ament_add_pytest_test(test_deprecated_py test/test_deprecated.py
       APPEND_ENV "PYTHONPATH=${pythonpath}"
       APPEND_LIBRARY_DIRS "${_append_library_dirs}"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"

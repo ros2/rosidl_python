@@ -44,6 +44,9 @@ for member in message.structure.members:
     if member.name != EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME:
         imports.setdefault(
             'import builtins', [])  # used for @builtins.property
+    if member.has_annotation('deprecated'):
+        imports.setdefault(
+            'from typing_extensions import deprecated as _deprecated', [])
     if isinstance(type_, BasicType) and type_.typename in FLOATING_POINT_TYPES:
         imports.setdefault(
             'import math', [])  # used for math.isinf
@@ -429,12 +432,24 @@ noqa_string = ''
 if member.name in dict(inspect.getmembers(builtins)).keys():
     noqa_string = '  # noqa: A003'
 }@
+@[  if member.has_annotation('deprecated')]@
+@{
+deprecation_annotation = member.get_annotation_value('deprecated')
+deprecation_text = deprecation_annotation.get('text', '') if isinstance(deprecation_annotation, dict) else ''
+}@
+@[  end if]@
     @@builtins.property@(noqa_string)
+@[  if member.has_annotation('deprecated')]@
+    @@_deprecated('@(deprecation_text)')@(noqa_string)
+@[  end if]@
     def @(member.name)(self):@(noqa_string)
         """Message field '@(member.name)'."""
         return self._@(member.name)
 
     @@@(member.name).setter@(noqa_string)
+@[  if member.has_annotation('deprecated')]@
+    @@_deprecated('@(deprecation_text)')@(noqa_string)
+@[  end if]@
     def @(member.name)(self, value):@(noqa_string)
         if self._check_fields:
 @[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@

@@ -1,0 +1,9 @@
+module rosidl_generator_py {
+  module msg {
+    struct TestDeprecated {
+      @deprecated ( text="Use distance_meters instead")
+      uint8 distance_cm;
+      double distance_meters;
+    };
+  };
+};

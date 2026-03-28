@@ -164,7 +164,7 @@ add_dependencies(
 target_link_libraries(
   ${_target_name_lib} PRIVATE
   Python3::NumPy
-  Python3::Python
+  Python3::Module
 )
 target_include_directories(${_target_name_lib}
   PRIVATE

@@ -45,6 +45,7 @@
   <exec_depend>rosidl_cli</exec_depend>
   <exec_depend>rosidl_generator_c</exec_depend>
   <exec_depend>rosidl_parser</exec_depend>
+  <exec_depend>rosidl_buffer_py</exec_depend>
   <exec_depend>rosidl_runtime_c</exec_depend>
   <exec_depend>rpyutils</exec_depend>
 
@@ -55,6 +56,7 @@
   <test_depend>python3-numpy</test_depend>
   <test_depend>python3-pytest</test_depend>
   <test_depend>rmw</test_depend>
+  <test_depend>rosidl_buffer_py</test_depend>
   <test_depend>rosidl_cmake</test_depend>
 
   <!--

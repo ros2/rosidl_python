@@ -430,11 +430,13 @@ if isinstance(type_, AbstractNestedType):
                 if len(field) == 0:
                     fieldstr = '[]'
                 else:
-                    if self._check_fields:
-                        assert fieldstr.startswith('array(')
-                    prefix = "array('X', "
-                    suffix = ')'
-                    fieldstr = fieldstr[len(prefix):-len(suffix)]
+                    from rosidl_buffer import Buffer as _RosidlBuffer
+                    if not isinstance(field, _RosidlBuffer):
+                        if self._check_fields:
+                            assert fieldstr.startswith('array(')
+                        prefix = "array('X', "
+                        suffix = ')'
+                        fieldstr = fieldstr[len(prefix):-len(suffix)]
             args.append(s + '=' + fieldstr)
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 
@@ -491,6 +493,16 @@ if isinstance(member.type, (Array, AbstractSequence)):
                 ' please use a subclass of collections.abc.Sequence like list',
                 DeprecationWarning)
 @[  end if]@
+@# Buffer type dispatch for uint8[] fields must run unconditionally (not behind _check_fields)
+@# because it is a type dispatch, not a validation check.
+@[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
+@[    if isinstance(member.type, AbstractSequence) and isinstance(member.type, UnboundedSequence) and member.type.value_type.typename == 'uint8']@
+        from rosidl_buffer import Buffer as _RosidlBuffer
+        if isinstance(value, _RosidlBuffer):
+            self._@(member.name) = value  # type: ignore[assignment]
+            return
+@[    end if]@
+@[  end if]@
 @[  if isinstance(type_, NamespacedType)]@
 @[      if (
             type_.name.endswith(ACTION_GOAL_SUFFIX) or
@@ -521,7 +533,11 @@ TEMPLATE(
 @[    else]@
         if isinstance(value, list):
 @[    end if]@
+@[      if isinstance(member.type, UnboundedSequence) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'uint8']@
+            self._@(member.name) = value  # type: ignore[assignment]
+@[      else]@
             self._@(member.name) = value
+@[      end if]@
             return
 @[  end if]@
 @[  if isinstance(member.type, AbstractNestedType)]@

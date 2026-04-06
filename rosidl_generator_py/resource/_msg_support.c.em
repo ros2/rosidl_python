@@ -11,6 +11,7 @@ from rosidl_parser.definition import Array
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME
 from rosidl_parser.definition import NamespacedType
+from rosidl_parser.definition import UnboundedSequence
 from rosidl_parser.definition import SERVICE_RESPONSE_MESSAGE_SUFFIX
 from rosidl_parser.definition import SERVICE_REQUEST_MESSAGE_SUFFIX
 
@@ -28,6 +29,14 @@ def primitive_msg_type_to_c(type_):
     return BASIC_IDL_TYPES_TO_C[type_.typename]
 
 
+# Check if this message has any uint8[] buffer fields
+has_buffer_fields = False
+for member in message.structure.members:
+    if isinstance(member.type, UnboundedSequence) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'uint8':
+        has_buffer_fields = True
+        break
+
+
 include_parts = [package_name] + list(interface_path.parents[0].parts) + [
     'detail', convert_camel_case_to_lower_case_underscore(interface_path.stem)]
 include_base = '/'.join(include_parts)
@@ -35,6 +44,10 @@ include_base = '/'.join(include_parts)
 header_files = [
     'Python.h',
     'stdbool.h',
+]
+if has_buffer_fields:
+    header_files.append('stdint.h')
+header_files += [
     'numpy/ndarrayobject.h',
     'rosidl_runtime_c/visibility_control.h',
     include_base + '__struct.h',
@@ -68,6 +81,7 @@ repeated_header_file = header_file in include_directives
 #endif
 @[    end if]@
 @[end for]@
+@# Buffer-backed uint8[] fields use the is_rosidl_buffer flag on the sequence struct.
 
 @{
 have_not_included_primitive_arrays = True
@@ -250,6 +264,43 @@ nested_type = '__'.join(type_.namespaced_name())
 @[    end if]@
 @[  elif isinstance(member.type, AbstractNestedType)]@
 @[    if isinstance(member.type, AbstractSequence) and isinstance(member.type.value_type, BasicType)]@
+@[      if isinstance(member.type, UnboundedSequence) and member.type.value_type.typename == 'uint8']@
+    // Check if the field is an rosidl_buffer.Buffer with a non-CPU backend
+    {
+      PyObject * backend_attr = PyObject_GetAttrString(field, "backend_type");
+      if (backend_attr != NULL) {
+        const char * backend_str = PyUnicode_AsUTF8(backend_attr);
+        if (backend_str != NULL && strcmp(backend_str, "cpu") != 0) {
+          // Non-CPU backend: set is_rosidl_buffer flag instead of copying data
+          PyObject * rosidl_buffer_mod = PyImport_ImportModule("rosidl_buffer");
+          if (rosidl_buffer_mod != NULL) {
+            PyObject * get_ptr_func = PyObject_GetAttrString(rosidl_buffer_mod, "_get_buffer_ptr");
+            if (get_ptr_func != NULL) {
+              PyObject * ptr_result = PyObject_CallFunctionObjArgs(get_ptr_func, field, NULL);
+              if (ptr_result != NULL) {
+                uintptr_t buffer_ptr = (uintptr_t)PyLong_AsUnsignedLongLong(ptr_result);
+                ros_message->@(member.name).data = (uint8_t *)buffer_ptr;
+                ros_message->@(member.name).size = 0;
+                ros_message->@(member.name).capacity = 0;
+                ros_message->@(member.name).is_rosidl_buffer = true;
+                ros_message->@(member.name).owns_rosidl_buffer = false;
+                Py_DECREF(ptr_result);
+              }
+              Py_DECREF(get_ptr_func);
+            }
+            Py_DECREF(rosidl_buffer_mod);
+          }
+          Py_DECREF(backend_attr);
+          Py_DECREF(field);
+          // Sentinel is set, skip normal conversion for this field
+          goto @(member.name)__done;
+        }
+        Py_DECREF(backend_attr);
+      } else {
+        PyErr_Clear();
+      }
+    }
+@[      end if]@
     if (PyObject_CheckBuffer(field)) {
       // Optimization for converting arrays of primitives
       Py_buffer view;
@@ -513,6 +564,10 @@ nested_type = '__'.join(type_.namespaced_name())
 @[  end if]@
     Py_DECREF(field);
   }
+@[  if isinstance(member.type, UnboundedSequence) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'uint8']@
+@(member.name)__done:
+  ;
+@[  end if]@
 @[end for]@
 
   return true;
@@ -569,60 +624,100 @@ if isinstance(type_, AbstractNestedType):
     memcpy(dst, src, @(member.type.size) * sizeof(@primitive_msg_type_to_c(member.type.value_type)));
     Py_DECREF(field);
 @[    elif isinstance(member.type, AbstractSequence)]@
-    field = PyObject_GetAttrString(_pymessage, "@(member.name)");
-    if (!field) {
-      return NULL;
-    }
-    assert(field->ob_type != NULL);
-    assert(field->ob_type->tp_name != NULL);
-    assert(strcmp(field->ob_type->tp_name, "array.array") == 0);
-    // ensure that itemsize matches the sizeof of the ROS message field
-    PyObject * itemsize_attr = PyObject_GetAttrString(field, "itemsize");
-    assert(itemsize_attr != NULL);
-    size_t itemsize = PyLong_AsSize_t(itemsize_attr);
-    Py_DECREF(itemsize_attr);
-    if (itemsize != sizeof(@primitive_msg_type_to_c(member.type.value_type))) {
-      PyErr_SetString(PyExc_RuntimeError, "itemsize doesn't match expectation");
-      Py_DECREF(field);
-      return NULL;
-    }
-    // clear the array, poor approach to remove potential default values
-    Py_ssize_t length = PyObject_Length(field);
-    if (-1 == length) {
-      Py_DECREF(field);
-      return NULL;
-    }
-    if (length > 0) {
-      PyObject * pop = PyObject_GetAttrString(field, "pop");
-      assert(pop != NULL);
-      for (Py_ssize_t i = 0; i < length; ++i) {
-        PyObject * ret = PyObject_CallFunctionObjArgs(pop, NULL);
-        if (!ret) {
-          Py_DECREF(pop);
-          Py_DECREF(field);
-          return NULL;
+@[      if isinstance(member.type, UnboundedSequence) and member.type.value_type.typename == 'uint8']@
+    if (ros_message->@(member.name).is_rosidl_buffer) {
+      // The RMW deserialized into a vendor-backed buffer — wrap it in a Python Buffer.
+      // All C++ operations go through the rosidl_buffer._rosidl_buffer_py module since this
+      // file is compiled as C.
+      PyObject * rosidl_buffer_internal = PyImport_ImportModule("rosidl_buffer");
+      if (rosidl_buffer_internal != NULL) {
+        PyObject * take_func = PyObject_GetAttrString(rosidl_buffer_internal, "_take_buffer_from_ptr");
+        if (take_func != NULL) {
+          PyObject * ptr_arg = PyLong_FromUnsignedLongLong(
+            (uint64_t)(uintptr_t)ros_message->@(member.name).data);
+          field = PyObject_CallFunctionObjArgs(take_func, ptr_arg, NULL);
+          Py_XDECREF(ptr_arg);
+          Py_DECREF(take_func);
+          if (field != NULL) {
+            // Ownership transferred to Python — clear the C sequence immediately
+            ros_message->@(member.name).data = NULL;
+            ros_message->@(member.name).size = 0;
+            ros_message->@(member.name).capacity = 0;
+            ros_message->@(member.name).is_rosidl_buffer = false;
+            ros_message->@(member.name).owns_rosidl_buffer = false;
+          }
         }
-        Py_DECREF(ret);
+        Py_DECREF(rosidl_buffer_internal);
       }
-      Py_DECREF(pop);
-    }
-    if (ros_message->@(member.name).size > 0) {
-      // populating the array.array using the frombytes method
-      PyObject * frombytes = PyObject_GetAttrString(field, "frombytes");
-      assert(frombytes != NULL);
-      @primitive_msg_type_to_c(member.type.value_type) * src = &(ros_message->@(member.name).data[0]);
-      PyObject * data = PyBytes_FromStringAndSize((const char *)src, ros_message->@(member.name).size * sizeof(@primitive_msg_type_to_c(member.type.value_type)));
-      assert(data != NULL);
-      PyObject * ret = PyObject_CallFunctionObjArgs(frombytes, data, NULL);
-      Py_DECREF(data);
-      Py_DECREF(frombytes);
-      if (!ret) {
+      if (field == NULL) {
+        return NULL;
+      }
+      // Set the Buffer on the Python message object
+      if (PyObject_SetAttrString(_pymessage, "@(member.name)", field) == -1) {
         Py_DECREF(field);
         return NULL;
       }
-      Py_DECREF(ret);
-    }
-    Py_DECREF(field);
+      Py_DECREF(field);
+    } else {
+@[      end if]@
+@{bi = '  ' if (isinstance(member.type, UnboundedSequence) and member.type.value_type.typename == 'uint8') else ''}@
+@(bi)    field = PyObject_GetAttrString(_pymessage, "@(member.name)");
+@(bi)    if (!field) {
+@(bi)      return NULL;
+@(bi)    }
+@(bi)    assert(field->ob_type != NULL);
+@(bi)    assert(field->ob_type->tp_name != NULL);
+@(bi)    assert(strcmp(field->ob_type->tp_name, "array.array") == 0);
+@(bi)    // ensure that itemsize matches the sizeof of the ROS message field
+@(bi)    PyObject * itemsize_attr = PyObject_GetAttrString(field, "itemsize");
+@(bi)    assert(itemsize_attr != NULL);
+@(bi)    size_t itemsize = PyLong_AsSize_t(itemsize_attr);
+@(bi)    Py_DECREF(itemsize_attr);
+@(bi)    if (itemsize != sizeof(@primitive_msg_type_to_c(member.type.value_type))) {
+@(bi)      PyErr_SetString(PyExc_RuntimeError, "itemsize doesn't match expectation");
+@(bi)      Py_DECREF(field);
+@(bi)      return NULL;
+@(bi)    }
+@(bi)    // clear the array, poor approach to remove potential default values
+@(bi)    Py_ssize_t length = PyObject_Length(field);
+@(bi)    if (-1 == length) {
+@(bi)      Py_DECREF(field);
+@(bi)      return NULL;
+@(bi)    }
+@(bi)    if (length > 0) {
+@(bi)      PyObject * pop = PyObject_GetAttrString(field, "pop");
+@(bi)      assert(pop != NULL);
+@(bi)      for (Py_ssize_t i = 0; i < length; ++i) {
+@(bi)        PyObject * ret = PyObject_CallFunctionObjArgs(pop, NULL);
+@(bi)        if (!ret) {
+@(bi)          Py_DECREF(pop);
+@(bi)          Py_DECREF(field);
+@(bi)          return NULL;
+@(bi)        }
+@(bi)        Py_DECREF(ret);
+@(bi)      }
+@(bi)      Py_DECREF(pop);
+@(bi)    }
+@(bi)    if (ros_message->@(member.name).size > 0) {
+@(bi)      // populating the array.array using the frombytes method
+@(bi)      PyObject * frombytes = PyObject_GetAttrString(field, "frombytes");
+@(bi)      assert(frombytes != NULL);
+@(bi)      @primitive_msg_type_to_c(member.type.value_type) * src = &(ros_message->@(member.name).data[0]);
+@(bi)      PyObject * data = PyBytes_FromStringAndSize((const char *)src, ros_message->@(member.name).size * sizeof(@primitive_msg_type_to_c(member.type.value_type)));
+@(bi)      assert(data != NULL);
+@(bi)      PyObject * ret = PyObject_CallFunctionObjArgs(frombytes, data, NULL);
+@(bi)      Py_DECREF(data);
+@(bi)      Py_DECREF(frombytes);
+@(bi)      if (!ret) {
+@(bi)        Py_DECREF(field);
+@(bi)        return NULL;
+@(bi)      }
+@(bi)      Py_DECREF(ret);
+@(bi)    }
+@(bi)    Py_DECREF(field);
+@[      if isinstance(member.type, UnboundedSequence) and member.type.value_type.typename == 'uint8']@
+    }  // end else (non-buffer path)
+@[      end if]@
 @[    end if]@
 @[ else]@
 @[  if isinstance(type_, NamespacedType)]@

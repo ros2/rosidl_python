@@ -134,11 +134,12 @@ rosidl_write_generator_arguments(
   TARGET_DEPENDENCIES ${target_dependencies}
 )
 
-if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
-  ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR "${_output_path}")
-endif()
-
 set(_target_suffix "__py")
+
+if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
+  ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR "${_output_path}"
+  DEPENDS ${rosidl_generate_interfaces_TARGET}${_target_suffix})
+endif()
 
 # move custom command into a subdirectory to avoid multiple invocations on Windows
 set(_subdir "${CMAKE_CURRENT_BINARY_DIR}/${rosidl_generate_interfaces_TARGET}${_target_suffix}")

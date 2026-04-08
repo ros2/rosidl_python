@@ -398,7 +398,7 @@ def get_absolute_namespaced_typehint(type_: NamespacedType, type_imports: set[st
         type_name_rsplit = type_.name.rsplit('_', 1)
         lower_case_name = convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])
         type_imports.add(f'import {joined_type_namespaces}._{lower_case_name}')
-        return f'import {joined_type_namespaces}._{lower_case_name}.{type_.name}'
+        return f'{joined_type_namespaces}._{lower_case_name}.{type_.name}'
     else:
         type_imports.add(f'import {joined_type_namespaces}')
         return f'{joined_type_namespaces}.{type_.name}'

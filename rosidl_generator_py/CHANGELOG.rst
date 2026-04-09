@@ -2,6 +2,12 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.27.1 (2026-04-09)
+-------------------
+* Feature: add depends flag for ament_python_install_package (`#254 <https://github.com/ros2/rosidl_python/issues/254>`_)
+* Add support for rosidl::Buffer in rosidl Python path for rclpy (`#250 <https://github.com/ros2/rosidl_python/issues/250>`_)
+* Contributors: CY Chen, Nadav Elkabets
+
 0.27.0 (2026-03-03)
 -------------------
 * Cast Sequence to list on assignment (with templates) (`#249 <https://github.com/ros2/rosidl_python/issues/249>`_)

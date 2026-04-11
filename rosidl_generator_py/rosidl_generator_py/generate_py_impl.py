@@ -387,6 +387,23 @@ def get_type_annotation_constant_default(constant: Union[Constant, Member],
     assert False, f"unknown type '{type_}'"
 
 
+def get_absolute_namespaced_typehint(type_: NamespacedType, type_imports: set[str]) -> str:
+    joined_type_namespaces = '.'.join(type_.namespaces)
+    if (
+        type_.name.endswith(ACTION_GOAL_SUFFIX)
+        or type_.name.endswith(ACTION_RESULT_SUFFIX)
+        or type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
+    ):
+
+        type_name_rsplit = type_.name.rsplit('_', 1)
+        lower_case_name = convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])
+        type_imports.add(f'import {joined_type_namespaces}._{lower_case_name}')
+        return f'{joined_type_namespaces}._{lower_case_name}.{type_.name}'
+    else:
+        type_imports.add(f'import {joined_type_namespaces}')
+        return f'{joined_type_namespaces}.{type_.name}'
+
+
 def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[str, str]:
     """From a member return the setter and getter type annotations. Add needed type_imports."""
     type_ = member.type
@@ -402,14 +419,17 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
     if (
         isinstance(member.type, AbstractNestedType)
     ):
+        if isinstance(type_, NamespacedType):
+            python_type = get_absolute_namespaced_typehint(type_, type_imports)
+
         if (
             isinstance(type_, BasicType) and
             type_.typename in SPECIAL_NESTED_BASIC_TYPES
         ):
             if isinstance(member.type, Array):
-                type_imports.add('from numpy.typing import NDArray')
+                type_imports.add('import numpy.typing')
                 dtype = SPECIAL_NESTED_BASIC_TYPES[type_.typename]['dtype']
-                type_annotation = f'NDArray[{dtype}]'
+                type_annotation = f'numpy.typing.NDArray[{dtype}]'
             elif isinstance(member.type, AbstractSequence):
                 type_annotation = f'array.array[{python_type}]'
         else:
@@ -431,27 +451,17 @@ def get_setter_and_getter_type(member: Member, type_imports: set[str]) -> tuple[
             type_annotation = sequence_type
 
     elif isinstance(member.type, AbstractGenericString) and member.type.has_maximum_size():
-        type_imports.add('from collections import UserString')
-        type_annotation = 'typing.Union[str, UserString]'
+        type_imports.add('import collections')
+        type_annotation = 'typing.Union[str, collections.UserString]'
     elif isinstance(type_, BasicType) and type_.typename == 'char':
-        type_imports.add('from collections import UserString')
-        type_annotation = 'typing.Union[str, UserString]'
+        type_imports.add('import collections')
+        type_annotation = 'typing.Union[str, collections.UserString]'
     elif isinstance(type_, BasicType) and type_.typename == 'octet':
         type_annotation = 'typing.Union[bytes, collections.abc.ByteString]'
+    elif isinstance(type_, NamespacedType):
+        type_annotation = get_absolute_namespaced_typehint(type_, type_imports)
     else:
         type_annotation = python_type
-
-    if isinstance(type_, NamespacedType):
-        joined_type_namespaces = '.'.join(type_.namespaces)
-        if type_.name.endswith(ACTION_GOAL_SUFFIX) or type_.name.endswith(ACTION_RESULT_SUFFIX) \
-           or type_.name.endswith(ACTION_FEEDBACK_SUFFIX):
-
-            type_name_rsplit = type_.name.rsplit('_', 1)
-            lower_case_name = convert_camel_case_to_lower_case_underscore(type_name_rsplit[0])
-            type_imports.add(f'from {joined_type_namespaces}._{lower_case_name} '
-                             f'import {type_.name}')
-        else:
-            type_imports.add(f'from {joined_type_namespaces} import {type_.name}')
 
     type_annotations_setter = type_annotation
 

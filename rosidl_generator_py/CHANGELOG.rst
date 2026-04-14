@@ -2,6 +2,13 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.27.2 (2026-04-14)
+-------------------
+
+* Use absolute names for type hints (`#258 <https://github.com/ros2/rosidl_python/issues/258>`_)
+
+* Contributors: Michael Carlstrom
+
 0.27.1 (2026-04-09)
 -------------------
 * Feature: add depends flag for ament_python_install_package (`#254 <https://github.com/ros2/rosidl_python/issues/254>`_)

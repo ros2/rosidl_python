@@ -13,8 +13,10 @@
 # limitations under the License.
 
 import array
+import ctypes
 import math
 import sys
+from typing import Any
 
 import numpy
 import pytest
@@ -37,6 +39,48 @@ from rosidl_parser.definition import BoundedString
 from rosidl_parser.definition import NamespacedType
 from rosidl_parser.definition import UnboundedSequence
 from rosidl_parser.definition import UnboundedString
+
+
+_PY_CAPSULE_GET_POINTER = ctypes.pythonapi.PyCapsule_GetPointer
+_PY_CAPSULE_GET_POINTER.argtypes = [ctypes.py_object, ctypes.c_char_p]
+_PY_CAPSULE_GET_POINTER.restype = ctypes.c_void_p
+
+
+def _get_capsule_pointer(capsule: object) -> int:
+    pointer = _PY_CAPSULE_GET_POINTER(capsule, None)
+    assert pointer is not None
+    return pointer
+
+
+def _convert_through_type_support(message_type: Any, message: Any) -> Any:
+    message_type.__import_type_support__()
+    assert message_type._CREATE_ROS_MESSAGE is not None
+    assert message_type._CONVERT_FROM_PY is not None
+    assert message_type._CONVERT_TO_PY is not None
+    assert message_type._DESTROY_ROS_MESSAGE is not None
+
+    create_ros_message_type = ctypes.PYFUNCTYPE(ctypes.c_void_p)
+    convert_from_py_type = ctypes.PYFUNCTYPE(
+        ctypes.c_bool, ctypes.py_object, ctypes.c_void_p)
+    convert_to_py_type = ctypes.PYFUNCTYPE(ctypes.py_object, ctypes.c_void_p)
+    destroy_ros_message_type = ctypes.PYFUNCTYPE(None, ctypes.c_void_p)
+
+    create_ros_message = create_ros_message_type(
+        _get_capsule_pointer(message_type._CREATE_ROS_MESSAGE))
+    convert_from_py = convert_from_py_type(
+        _get_capsule_pointer(message_type._CONVERT_FROM_PY))
+    convert_to_py = convert_to_py_type(
+        _get_capsule_pointer(message_type._CONVERT_TO_PY))
+    destroy_ros_message = destroy_ros_message_type(
+        _get_capsule_pointer(message_type._DESTROY_ROS_MESSAGE))
+
+    ros_message = create_ros_message()
+    assert ros_message is not None
+    try:
+        assert convert_from_py(message, ros_message)
+        return convert_to_py(ros_message)
+    finally:
+        destroy_ros_message(ros_message)
 
 
 def test_basic_types() -> None:
@@ -763,6 +807,33 @@ def test_bounded_sequences() -> None:
     msg.bool_values = (True, False)
     assert isinstance(msg.bool_values, list)
     assert msg.bool_values == [True, False]
+
+
+@pytest.mark.parametrize(
+    ('message_type', 'field_name', 'type_code', 'values'),
+    (
+        (BoundedSequences, 'char_values', 'B', [0, 1, 255]),
+        (BoundedSequences, 'float32_values', 'f', [0.0, 1.25, -2.5]),
+        (BoundedSequences, 'int16_values', 'h', [0, -32768, 32767]),
+        (UnboundedSequences, 'uint16_values', 'H', [0, 1, 65535]),
+        (UnboundedSequences, 'int32_values', 'l', [0, -2147483648, 2147483647]),
+        (UnboundedSequences, 'uint64_values', 'Q', [0, 1, 18446744073709551615]),
+    ),
+)
+def test_primitive_sequences_convert_to_py(
+    message_type: Any,
+    field_name: str,
+    type_code: str,
+    values: list[Any],
+) -> None:
+    msg = message_type(check_fields=True)
+    setattr(msg, field_name, values)
+
+    converted_msg = _convert_through_type_support(message_type, msg)
+    converted_field = getattr(converted_msg, field_name)
+
+    assert converted_field.typecode == type_code
+    assert converted_field == array.array(type_code, values)
 
 
 def test_unbounded_sequences() -> None:

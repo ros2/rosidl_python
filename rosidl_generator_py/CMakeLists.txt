@@ -14,6 +14,7 @@ ament_python_install_package(${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
 
+  find_package(builtin_interfaces REQUIRED)
   find_package(rmw REQUIRED)
   find_package(rosidl_cmake REQUIRED)
 
@@ -47,8 +48,11 @@ if(BUILD_TESTING)
       ${test_interface_files_MSG_FILES}
       # Cases not covered by test_interface_files
       msg/BuiltinTypeSequencesIdl.idl
+      msg/Duration.msg
+      msg/DurationArraySequence.msg
       msg/StringArrays.msg
       msg/Property.msg
+      DEPENDENCIES builtin_interfaces
       ADD_LINTER_TESTS
       SKIP_INSTALL
     )

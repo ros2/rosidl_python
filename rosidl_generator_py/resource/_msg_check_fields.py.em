@@ -3,6 +3,9 @@ from rosidl_parser.definition import AbstractGenericString
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractSequence
 from rosidl_parser.definition import Array
+from rosidl_parser.definition import ACTION_FEEDBACK_SUFFIX
+from rosidl_parser.definition import ACTION_GOAL_SUFFIX
+from rosidl_parser.definition import ACTION_RESULT_SUFFIX
 from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import BOOLEAN_TYPE
 from rosidl_parser.definition import INTEGER_TYPES
@@ -11,8 +14,35 @@ from rosidl_parser.definition import FLOATING_POINT_TYPES
 from rosidl_parser.definition import SIGNED_INTEGER_TYPES
 from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
 from rosidl_parser.definition import NamespacedType
+from rosidl_pycommon import convert_camel_case_to_lower_case_underscore
 from rosidl_generator_py.generate_py_impl import get_python_type
 from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
+
+
+def get_importable_namespaced_type(
+    type_: NamespacedType,
+    action_goal_suffix: str = ACTION_GOAL_SUFFIX,
+    action_result_suffix: str = ACTION_RESULT_SUFFIX,
+    action_feedback_suffix: str = ACTION_FEEDBACK_SUFFIX,
+    camel_to_snake=convert_camel_case_to_lower_case_underscore,
+) -> tuple[str, str]:
+    joined_type_namespaces = '.'.join(type_.namespaces)
+    if (
+        type_.name.endswith(action_goal_suffix) or
+        type_.name.endswith(action_result_suffix) or
+        type_.name.endswith(action_feedback_suffix)
+    ):
+        action_name, _ = type_.name.rsplit('_', 1)
+        lower_case_name = camel_to_snake(action_name)
+        module_name = f'{joined_type_namespaces}._{lower_case_name}'
+    else:
+        module_name = joined_type_namespaces
+    return module_name, f'{module_name}.{type_.name}'
+}@
+@{
+python_type = get_python_type(type_)
+if isinstance(type_, NamespacedType):
+    _, python_type = get_importable_namespaced_type(type_)
 }@
         if self._check_fields:
 @[  if isinstance(member.type, AbstractNestedType)]@
@@ -61,8 +91,8 @@ from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
 @{assert_msg_suffixes.insert(1, 'with length %d' % member.type.size)}@
 @[        end if]@
 @[      end if]@
-                     all(isinstance(v, @(get_python_type(type_))) for v in value) and
-@{assert_msg_suffixes.append("and each value of type '%s'" % get_python_type(type_))}@
+                     all(isinstance(v, @(python_type)) for v in value) and
+@{assert_msg_suffixes.append("and each value of type '%s'" % python_type)}@
 @[      if isinstance(type_, BasicType) and type_.typename in SIGNED_INTEGER_TYPES]@
 @{
 nbits = int(type_.typename[3:])
@@ -106,7 +136,7 @@ bound = 1.7976931348623157e+308
                     "The '@(member.name)' field must be string value " \
                     'not longer than @(type_.maximum_size)'
 @[  elif isinstance(type_, NamespacedType)]@
-                    isinstance(value, @(type_.name)), \
+                    isinstance(value, @(python_type)), \
                     "The '@(member.name)' field must be a sub message of type '@(type_.name)'"
 @[  elif isinstance(type_, BasicType) and type_.typename == 'octet']@
                     (isinstance(value, (bytes, bytearray, memoryview)) and

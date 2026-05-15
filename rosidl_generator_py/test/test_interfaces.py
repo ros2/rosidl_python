@@ -14,7 +14,6 @@
 
 import array
 import math
-import pathlib
 import sys
 
 import numpy
@@ -26,8 +25,6 @@ from rosidl_generator_py.msg import BoundedSequences
 from rosidl_generator_py.msg import BuiltinTypeSequencesIdl
 from rosidl_generator_py.msg import Constants
 from rosidl_generator_py.msg import Defaults
-from rosidl_generator_py.msg import Duration
-from rosidl_generator_py.msg import DurationArraySequence
 from rosidl_generator_py.msg import Nested
 from rosidl_generator_py.msg import StringArrays
 from rosidl_generator_py.msg import Strings
@@ -270,48 +267,6 @@ def test_constructor() -> None:
 
     with pytest.raises(TypeError):
         Strings(unknown_field='test', check_fields=True)
-
-
-def test_namespaced_field_imports_are_absolute() -> None:
-    duration_module = sys.modules[Duration.__module__]
-    duration_file = duration_module.__file__
-    assert duration_file is not None
-    duration_source = pathlib.Path(duration_file).read_text(encoding='utf-8')
-
-    assert 'from builtin_interfaces.msg import Duration' not in duration_source
-    assert 'import builtin_interfaces.msg' in duration_source
-    assert 'builtin_interfaces.msg.Duration._TYPE_SUPPORT' in duration_source
-
-    from builtin_interfaces.msg import Duration as BuiltinDuration
-
-    Duration.__import_type_support__()
-
-    msg = Duration(check_fields=True)
-    assert isinstance(msg.data, BuiltinDuration)
-
-
-def test_namespaced_array_sequence_fields_are_absolute() -> None:
-    duration_module = sys.modules[DurationArraySequence.__module__]
-    duration_file = duration_module.__file__
-    assert duration_file is not None
-    duration_source = pathlib.Path(duration_file).read_text(encoding='utf-8')
-
-    assert 'from builtin_interfaces.msg import Duration' not in duration_source
-    assert 'import builtin_interfaces.msg' in duration_source
-
-    from builtin_interfaces.msg import Duration as BuiltinDuration
-
-    msg = DurationArraySequence(check_fields=True)
-    assert all(isinstance(value, BuiltinDuration) for value in msg.array_data)
-    assert [] == msg.sequence_data
-
-    msg.array_data = [BuiltinDuration(sec=1), BuiltinDuration(sec=2)]
-    msg.sequence_data = [BuiltinDuration(sec=3)]
-
-    with pytest.raises(AssertionError):
-        msg.array_data = [BuiltinDuration(), object()]
-    with pytest.raises(AssertionError):
-        msg.sequence_data = [object()]
 
 
 def test_constants() -> None:

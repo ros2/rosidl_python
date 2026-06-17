@@ -959,6 +959,40 @@ def test_string_slot_attributes() -> None:
         assert expected_slot_type == string_slot_types_dict[expected_field]
 
 
+def test_string_slot_attributes_msg_syntax() -> None:
+    msg = StringArrays(check_fields=True)
+    assert hasattr(msg, 'get_fields_and_field_types')
+    string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')(syntax='msg')
+    expected_string_slot_types_dict = {
+        'ub_string_static_array_value': 'string<=5[3]',
+        'ub_string_ub_array_value': 'string<=5[<=10]',
+        'ub_string_dynamic_array_value': 'string<=5[]',
+        'string_dynamic_array_value': 'string[]',
+        'string_static_array_value': 'string[3]',
+        'string_bounded_array_value': 'string[<=10]',
+        'def_string_dynamic_array_value': 'string[]',
+        'def_string_static_array_value': 'string[3]',
+        'def_string_bounded_array_value': 'string[<=10]',
+        'def_various_quotes': 'string[]',
+        'def_various_commas': 'string[]',
+    }
+
+    assert len(string_slot_types_dict) == len(expected_string_slot_types_dict)
+
+    for expected_field, expected_slot_type in expected_string_slot_types_dict.items():
+        assert expected_field in string_slot_types_dict.keys()
+        assert expected_slot_type == string_slot_types_dict[expected_field]
+
+
+def test_get_fields_and_field_types_invalid_syntax() -> None:
+    msg = StringArrays(check_fields=True)
+    try:
+        getattr(msg, 'get_fields_and_field_types')(syntax='bogus')
+        assert False, 'expected ValueError for unknown syntax'
+    except ValueError:
+        pass
+
+
 def test_modifying_slot_fields_and_types() -> None:
     msg = StringArrays(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')

@@ -15,9 +15,10 @@
 import logging
 import traceback
 
+from .field_type_syntax import idl_to_msg_syntax
 from .import_type_support_impl import import_type_support
 
-__all__ = ['import_type_support']
+__all__ = ['idl_to_msg_syntax', 'import_type_support']
 
 try:
     from .generate_py_impl import generate_py  # noqa: F401

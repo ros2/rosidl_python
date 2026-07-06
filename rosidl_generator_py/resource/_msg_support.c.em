@@ -152,6 +152,9 @@ nested_header += '__functions.h'
 msg_typename = '__'.join(message.structure.namespaced_type.namespaced_name())
 }@
 @
+@{
+declared_types = set()
+}@
 @[for member in message.structure.members]@
 @{
 type_ = member.type
@@ -159,6 +162,11 @@ if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 }@
 @[  if isinstance(type_, NamespacedType)]@
+@{
+type_key = tuple(type_.namespaced_name())
+if type_key not in declared_types:
+    declared_types.add(type_key)
+}@
 @[    if type_.namespaces[0] != package_name]@
 ROSIDL_GENERATOR_C_IMPORT
 @[    end if]@
@@ -179,30 +187,45 @@ ROSIDL_GENERATOR_C_EXPORT
 bool @('__'.join(message.structure.namespaced_type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)]))__convert_from_py(PyObject * _pymsg, void * _ros_message)
 {
   // check that the passed message is of the expected Python class
-  {
-    PyObject * class_attr = PyObject_GetAttrString(_pymsg, "__class__");
-    if (class_attr == NULL) {
+  static PyObject * cached_expected_class = NULL;
+  if (cached_expected_class == NULL) {
+    PyObject * pymessage_module = PyImport_ImportModule("@('.'.join(message.structure.namespaced_type.namespaces)).@(module_name)");
+    if (pymessage_module == NULL) {
       return false;
     }
-    PyObject * name_attr = PyObject_GetAttrString(class_attr, "__name__");
-    if (name_attr == NULL) {
-      Py_DECREF(class_attr);
+    cached_expected_class = PyObject_GetAttrString(pymessage_module, "@(message.structure.namespaced_type.name)");
+    Py_DECREF(pymessage_module);
+    if (cached_expected_class == NULL) {
       return false;
     }
-    PyObject * module_attr = PyObject_GetAttrString(class_attr, "__module__");
-    if (module_attr == NULL) {
-      Py_DECREF(name_attr);
-      Py_DECREF(class_attr);
+  }
+  if (!PyObject_IsInstance(_pymsg, cached_expected_class)) {
+    return false;
+  }
+  // cache interned attribute names for faster attribute access
+@[for i, member in enumerate(message.structure.members)]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+  static PyObject * cached_attr_@(member.name) = NULL;
+@[end for]@
+  static bool cached_attrs_initialized = false;
+  if (!cached_attrs_initialized) {
+@[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+    cached_attr_@(member.name) = PyUnicode_InternFromString("@(member.name)");
+@[end for]@
+@[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+    if (cached_attr_@(member.name) == NULL) {
       return false;
     }
-
-    // PyUnicode_1BYTE_DATA is just a cast
-    assert(strncmp("@(class_module)", (char *)PyUnicode_1BYTE_DATA(module_attr), @(len(class_module))) == 0);
-    assert(strncmp("@(namespaced_type)", (char *)PyUnicode_1BYTE_DATA(name_attr), @(len(namespaced_type))) == 0);
-
-    Py_DECREF(module_attr);
-    Py_DECREF(name_attr);
-    Py_DECREF(class_attr);
+@[end for]@
+    cached_attrs_initialized = true;
   }
   @(msg_typename) * ros_message = _ros_message;
 @[for member in message.structure.members]@
@@ -216,7 +239,7 @@ if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
 }@
   {  // @(member.name)
-    PyObject * field = PyObject_GetAttrString(_pymsg, "@(member.name)");
+    PyObject * field = PyObject_GetAttr(_pymsg, cached_attr_@(member.name));
     if (!field) {
       return false;
     }
@@ -231,12 +254,7 @@ nested_type = '__'.join(type_.namespaced_name())
       return false;
     }
 @[      if isinstance(member.type, AbstractSequence)]@
-    Py_ssize_t size = PySequence_Size(field);
-    if (-1 == size) {
-      Py_DECREF(seq_field);
-      Py_DECREF(field);
-      return false;
-    }
+    Py_ssize_t size = PySequence_Fast_GET_SIZE(seq_field);
     if (!@(nested_type)__Sequence__init(&(ros_message->@(member.name)), size)) {
       PyErr_SetString(PyExc_RuntimeError, "unable to create @(nested_type)__Sequence ros_message");
       Py_DECREF(seq_field);
@@ -345,12 +363,7 @@ nested_type = '__'.join(type_.namespaced_name())
       }
 @[    end if]@
 @[    if isinstance(member.type, AbstractSequence)]@
-      Py_ssize_t size = PySequence_Size(field);
-      if (-1 == size) {
-        Py_DECREF(seq_field);
-        Py_DECREF(field);
-        return false;
-      }
+      Py_ssize_t size = PySequence_Fast_GET_SIZE(seq_field);
 @[      if isinstance(member.type.value_type, AbstractString)]@
       if (!rosidl_runtime_c__String__Sequence__init(&(ros_message->@(member.name)), size)) {
         PyErr_SetString(PyExc_RuntimeError, "unable to create String__Sequence ros_message");
@@ -410,7 +423,7 @@ nested_type = '__'.join(type_.namespaced_name())
           Py_DECREF(field);
           return false;
         }
-        rosidl_runtime_c__String__assign(&dest[i], PyBytes_AS_STRING(encoded_item));
+        rosidl_runtime_c__String__assignn(&dest[i], PyBytes_AS_STRING(encoded_item), PyBytes_GET_SIZE(encoded_item));
         Py_DECREF(encoded_item);
 @[    elif isinstance(member.type.value_type, AbstractWString)]@
         assert(PyUnicode_Check(item));
@@ -440,7 +453,7 @@ nested_type = '__'.join(type_.namespaced_name())
         }
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'boolean']@
         assert(PyBool_Check(item));
-        @primitive_msg_type_to_c(member.type.value_type) tmp = (item == Py_True);
+        @primitive_msg_type_to_c(member.type.value_type) tmp = PyObject_IsTrue(item);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in ('float', 'double')]@
         assert(PyFloat_Check(item));
 @[      if member.type.value_type.typename == 'float']@
@@ -498,7 +511,7 @@ nested_type = '__'.join(type_.namespaced_name())
       Py_DECREF(field);
       return false;
     }
-    rosidl_runtime_c__String__assign(&ros_message->@(member.name), PyBytes_AS_STRING(encoded_field));
+    rosidl_runtime_c__String__assignn(&ros_message->@(member.name), PyBytes_AS_STRING(encoded_field), PyBytes_GET_SIZE(encoded_field));
     Py_DECREF(encoded_field);
 @[  elif isinstance(member.type, AbstractWString)]@
     assert(PyUnicode_Check(field));
@@ -527,7 +540,7 @@ nested_type = '__'.join(type_.namespaced_name())
     }
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'boolean']@
     assert(PyBool_Check(field));
-    ros_message->@(member.name) = (Py_True == field);
+    ros_message->@(member.name) = PyObject_IsTrue(field);
 @[  elif isinstance(member.type, BasicType) and member.type.typename in ('float', 'double')]@
     assert(PyFloat_Check(field));
 @[    if member.type.typename == 'float']@
@@ -577,18 +590,47 @@ ROSIDL_GENERATOR_C_EXPORT
 PyObject * @('__'.join(message.structure.namespaced_type.namespaces + [convert_camel_case_to_lower_case_underscore(message.structure.namespaced_type.name)]))__convert_to_py(void * raw_ros_message)
 {
   /* NOTE(esteve): Call constructor of @(message.structure.namespaced_type.name) */
+  static PyObject * cached_pymessage_class = NULL;
   PyObject * _pymessage = NULL;
-  {
+  if (cached_pymessage_class == NULL) {
     PyObject * pymessage_module = PyImport_ImportModule("@('.'.join(message.structure.namespaced_type.namespaces)).@(module_name)");
-    assert(pymessage_module);
-    PyObject * pymessage_class = PyObject_GetAttrString(pymessage_module, "@(message.structure.namespaced_type.name)");
-    assert(pymessage_class);
-    Py_DECREF(pymessage_module);
-    _pymessage = PyObject_CallObject(pymessage_class, NULL);
-    Py_DECREF(pymessage_class);
-    if (!_pymessage) {
+    if (pymessage_module == NULL) {
       return NULL;
     }
+    cached_pymessage_class = PyObject_GetAttrString(pymessage_module, "@(message.structure.namespaced_type.name)");
+    Py_DECREF(pymessage_module);
+    if (cached_pymessage_class == NULL) {
+      return NULL;
+    }
+  }
+  _pymessage = PyObject_CallObject(cached_pymessage_class, NULL);
+  if (!_pymessage) {
+    return NULL;
+  }
+  // cache interned attribute names for faster attribute access
+@[for i, member in enumerate(message.structure.members)]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+  static PyObject * cached_py_attr_@(member.name) = NULL;
+@[end for]@
+  static bool cached_py_attrs_initialized = false;
+  if (!cached_py_attrs_initialized) {
+@[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+    cached_py_attr_@(member.name) = PyUnicode_InternFromString("@(member.name)");
+@[end for]@
+@[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+    if (cached_py_attr_@(member.name) == NULL) {
+      return NULL;
+    }
+@[end for]@
+    cached_py_attrs_initialized = true;
   }
 @[if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
   (void)raw_ros_message;
@@ -608,7 +650,7 @@ if isinstance(type_, AbstractNestedType):
     PyObject * field = NULL;
 @[ if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@
-    field = PyObject_GetAttrString(_pymessage, "@(member.name)");
+    field = PyObject_GetAttr(_pymessage, cached_py_attr_@(member.name));
     if (!field) {
       return NULL;
     }
@@ -653,7 +695,7 @@ if isinstance(type_, AbstractNestedType):
         return NULL;
       }
       // Set the Buffer on the Python message object
-      if (PyObject_SetAttrString(_pymessage, "@(member.name)", field) == -1) {
+      if (PyObject_SetAttr(_pymessage, cached_py_attr_@(member.name), field) == -1) {
         Py_DECREF(field);
         return NULL;
       }
@@ -661,7 +703,7 @@ if isinstance(type_, AbstractNestedType):
     } else {
 @[      end if]@
 @{bi = '  ' if (isinstance(member.type, UnboundedSequence) and member.type.value_type.typename == 'uint8') else ''}@
-@(bi)    field = PyObject_GetAttrString(_pymessage, "@(member.name)");
+@(bi)    field = PyObject_GetAttr(_pymessage, cached_py_attr_@(member.name));
 @(bi)    if (!field) {
 @(bi)      return NULL;
 @(bi)    }
@@ -779,7 +821,7 @@ nested_type = '__'.join(type_.namespaced_name())
       (void)rc;
       assert(rc == 0);
 @[    elif isinstance(member.type.value_type, AbstractString)]@
-      PyObject * decoded_item = PyUnicode_DecodeUTF8(src[i].data, strlen(src[i].data), "replace");
+      PyObject * decoded_item = PyUnicode_DecodeUTF8(src[i].data, src[i].size, "replace");
       if (!decoded_item) {
         return NULL;
       }
@@ -844,7 +886,7 @@ nested_type = '__'.join(type_.namespaced_name())
 @[  elif isinstance(member.type, AbstractString)]@
     field = PyUnicode_DecodeUTF8(
       ros_message->@(member.name).data,
-      strlen(ros_message->@(member.name).data),
+      ros_message->@(member.name).size,
       "replace");
     if (!field) {
       return NULL;
@@ -883,7 +925,7 @@ nested_type = '__'.join(type_.namespaced_name())
     assert(false);
 @[  end if]@
     {
-      int rc = PyObject_SetAttrString(_pymessage, "@(member.name)", field);
+      int rc = PyObject_SetAttr(_pymessage, cached_py_attr_@(member.name), field);
       Py_DECREF(field);
       if (rc) {
         return NULL;

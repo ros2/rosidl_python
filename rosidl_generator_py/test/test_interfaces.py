@@ -938,6 +938,8 @@ def test_string_slot_attributes() -> None:
     assert hasattr(msg, 'get_fields_and_field_types')
     assert hasattr(msg, '__slots__')
     string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')()
+    string_slot_types_dict_explicit = getattr(msg, 'get_fields_and_field_types')(syntax='omg')
+    assert string_slot_types_dict == string_slot_types_dict_explicit
     expected_string_slot_types_dict = {
         'ub_string_static_array_value': 'string<5>[3]',
         'ub_string_ub_array_value': 'sequence<string<5>, 10>',
@@ -959,10 +961,10 @@ def test_string_slot_attributes() -> None:
         assert expected_slot_type == string_slot_types_dict[expected_field]
 
 
-def test_string_slot_attributes_msg_syntax() -> None:
+def test_string_slot_attributes_ros_syntax() -> None:
     msg = StringArrays(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')
-    string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')(syntax='msg')
+    string_slot_types_dict = getattr(msg, 'get_fields_and_field_types')(syntax='ros')
     expected_string_slot_types_dict = {
         'ub_string_static_array_value': 'string<=5[3]',
         'ub_string_ub_array_value': 'string<=5[<=10]',

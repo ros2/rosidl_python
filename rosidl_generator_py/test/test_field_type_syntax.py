@@ -14,11 +14,11 @@
 
 import pytest
 
-from rosidl_generator_py import idl_to_msg_syntax
+from rosidl_generator_py.field_type_syntax import omg_to_ros_syntax
 
 
 @pytest.mark.parametrize(
-    'idl_type,expected_msg_type',
+    'omg_type,expected_ros_type',
     [
         ('string<5>', 'string<=5'),
         ('wstring<5>', 'wstring<=5'),
@@ -31,5 +31,5 @@ from rosidl_generator_py import idl_to_msg_syntax
         ('sequence<string<5>, 10>', 'string<=5[<=10]'),
     ],
 )
-def test_idl_to_msg_syntax(idl_type: str, expected_msg_type: str) -> None:
-    assert idl_to_msg_syntax(idl_type) == expected_msg_type
+def test_omg_to_ros_syntax(omg_type: str, expected_ros_type: str) -> None:
+    assert omg_to_ros_syntax(omg_type) == expected_ros_type

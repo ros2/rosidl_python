@@ -53,6 +53,21 @@ if(BUILD_TESTING)
       SKIP_INSTALL
     )
 
+    # Ensure build directory contains a complete package by symlinking/copying python files from source
+    foreach(_pypath
+      "__init__.py"
+      "cli.py"
+      "field_type_syntax.py"
+      "generate_py_impl.py"
+      "import_type_support_impl.py"
+    )
+      file(CREATE_LINK
+        "${CMAKE_CURRENT_SOURCE_DIR}/rosidl_generator_py/${_pypath}"
+        "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py/rosidl_generator_py/${_pypath}"
+        SYMBOLIC
+        COPY_ON_ERROR)
+    endforeach()
+
     set(_append_library_dirs "")
     if(WIN32)
       set(_append_library_dirs "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")

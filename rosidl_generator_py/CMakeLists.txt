@@ -68,6 +68,12 @@ if(BUILD_TESTING)
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
     )
 
+    ament_add_pytest_test(test_convert_round_trip_py "test/test_convert_round_trip.py"
+      APPEND_ENV "PYTHONPATH=${pythonpath}"
+      APPEND_LIBRARY_DIRS "${_append_library_dirs}"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
+    )
+
     ament_add_pytest_test(test_cli_extension test/test_cli_extension.py)
 
     ament_add_pytest_test(test_property_py test/test_property.py

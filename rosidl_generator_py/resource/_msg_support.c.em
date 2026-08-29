@@ -678,25 +678,15 @@ if isinstance(type_, AbstractNestedType):
 @(bi)      Py_DECREF(field);
 @(bi)      return NULL;
 @(bi)    }
-@(bi)    // clear the array, poor approach to remove potential default values
+@(bi)    // clear the array to remove potential default values
 @(bi)    Py_ssize_t length = PyObject_Length(field);
 @(bi)    if (-1 == length) {
 @(bi)      Py_DECREF(field);
 @(bi)      return NULL;
 @(bi)    }
-@(bi)    if (length > 0) {
-@(bi)      PyObject * pop = PyObject_GetAttrString(field, "pop");
-@(bi)      assert(pop != NULL);
-@(bi)      for (Py_ssize_t i = 0; i < length; ++i) {
-@(bi)        PyObject * ret = PyObject_CallFunctionObjArgs(pop, NULL);
-@(bi)        if (!ret) {
-@(bi)          Py_DECREF(pop);
-@(bi)          Py_DECREF(field);
-@(bi)          return NULL;
-@(bi)        }
-@(bi)        Py_DECREF(ret);
-@(bi)      }
-@(bi)      Py_DECREF(pop);
+@(bi)    if (PySequence_DelSlice(field, 0, length) == -1) {
+@(bi)      Py_DECREF(field);
+@(bi)      return NULL;
 @(bi)    }
 @(bi)    if (ros_message->@(member.name).size > 0) {
 @(bi)      // populating the array.array using the frombytes method

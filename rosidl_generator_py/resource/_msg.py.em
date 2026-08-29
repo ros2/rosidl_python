@@ -457,9 +457,24 @@ if isinstance(type_, AbstractNestedType):
         return True
 
     @@classmethod
-    def get_fields_and_field_types(cls) -> dict[str, str]:
+    def get_fields_and_field_types(cls, *, syntax: str = 'omg') -> dict[str, str]:
+        """
+        Return a dict of field name to field type string.
+
+        :param syntax: Either 'omg' (default) for the OMG IDL 4.2 type
+            strings historically returned by this method (e.g.
+            ``sequence<string<256>, 32>``), or 'ros' for ROS 2 .msg-syntax
+            type strings (e.g. ``string<=256[<=32]``) as expected by
+            .msg-based tooling such as the MCAP ros2msg schema encoding.
+        """
         from copy import copy
-        return copy(cls._fields_and_field_types)
+        fields = copy(cls._fields_and_field_types)
+        if syntax == 'omg':
+            return fields
+        if syntax == 'ros':
+            from rosidl_generator_py.field_type_syntax import omg_to_ros_syntax
+            return {name: omg_to_ros_syntax(t) for name, t in fields.items()}
+        raise ValueError(f"Unknown syntax {syntax!r}: expected 'omg' or 'ros'")
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@

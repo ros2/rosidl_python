@@ -69,6 +69,7 @@ if(BUILD_TESTING)
     )
 
     ament_add_pytest_test(test_cli_extension test/test_cli_extension.py)
+    ament_add_pytest_test(test_template_imports_py test/test_template_imports.py)
 
     ament_add_pytest_test(test_property_py test/test_property.py
       APPEND_ENV "PYTHONPATH=${pythonpath}"

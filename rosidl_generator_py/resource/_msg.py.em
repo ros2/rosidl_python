@@ -83,6 +83,9 @@ for member in message.structure.members:
     if member.name != EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME:
         imports.setdefault(
             'import builtins', [])  # used for @builtins.property
+    if member.has_annotation('deprecated'):
+        imports.setdefault(
+            'from typing_extensions import deprecated as _deprecated', [])
     if isinstance(type_, BasicType) and type_.typename in FLOATING_POINT_TYPES:
         imports.setdefault(
             'import math', [])  # used for math.isinf
@@ -417,7 +420,7 @@ if isinstance(type_, AbstractNestedType):
         typename.append(self.__class__.__name__)
         args: list[str] = []
         for s, t in zip(self.get_fields_and_field_types().keys(), self.SLOT_TYPES):
-            field = getattr(self, s)
+            field = getattr(self, '_' + s)
             fieldstr = repr(field)
             # We use Python array type for fields that can be directly stored
             # in them, and "normal" sequences for everything else.  If it is
@@ -448,9 +451,9 @@ if isinstance(type_, AbstractNestedType):
 @[    continue]@
 @[  end if]@
 @[  if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
-        if any(self.@(member.name) != other.@(member.name)):
+        if any(self._@(member.name) != other._@(member.name)):
 @[  else]@
-        if self.@(member.name) != other.@(member.name):
+        if self._@(member.name) != other._@(member.name):
 @[  end if]@
             return False
 @[end for]@
@@ -478,12 +481,24 @@ array_type_commment = ''
 if isinstance(member.type, (Array, AbstractSequence)):
     array_type_commment = '   # typing.Annotated can be remove after mypy 1.16+ see mypy#3004'
 }@
+@[  if member.has_annotation('deprecated')]@
+@{
+deprecation_annotation = member.get_annotation_value('deprecated')
+deprecation_text = deprecation_annotation.get('text', '') if isinstance(deprecation_annotation, dict) else ''
+}@
+@[  end if]@
     @@builtins.property@(noqa_string)
+@[  if member.has_annotation('deprecated')]@
+    @@_deprecated('@(deprecation_text)')@(noqa_string)
+@[  end if]@
     def @(member.name)(self) -> @(type_annotations_getter[member.name]):@(noqa_string)@(array_type_commment)
         """Message field '@(member.name)'."""
         return self._@(member.name)
 
     @@@(member.name).setter@(noqa_string)
+@[  if member.has_annotation('deprecated')]@
+    @@_deprecated('@(deprecation_text)')@(noqa_string)
+@[  end if]@
     def @(member.name)(self, value: @(type_annotations_setter[member.name])) -> None:@(noqa_string)
 @[  if isinstance(member.type, AbstractNestedType)]@
         if isinstance(value, collections.abc.Set):

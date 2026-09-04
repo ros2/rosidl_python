@@ -164,17 +164,19 @@ if isinstance(type_, AbstractNestedType):
 @[  if isinstance(type_, NamespacedType)]@
 @{
 type_key = tuple(type_.namespaced_name())
-if type_key not in declared_types:
-    declared_types.add(type_key)
+already_declared = type_key in declared_types
+declared_types.add(type_key)
 }@
-@[    if type_.namespaces[0] != package_name]@
+@[    if not already_declared]@
+@[      if type_.namespaces[0] != package_name]@
 ROSIDL_GENERATOR_C_IMPORT
-@[    end if]@
+@[      end if]@
 bool @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_from_py(PyObject * _pymsg, void * _ros_message);
-@[    if type_.namespaces[0] != package_name]@
+@[      if type_.namespaces[0] != package_name]@
 ROSIDL_GENERATOR_C_IMPORT
-@[    end if]@
+@[      end if]@
 PyObject * @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_to_py(void * raw_ros_message);
+@[    end if]@
 @[  end if]@
 @[end for]@
 
@@ -199,8 +201,17 @@ bool @('__'.join(message.structure.namespaced_type.namespaces + [convert_camel_c
       return false;
     }
   }
-  if (!PyObject_IsInstance(_pymsg, cached_expected_class)) {
-    return false;
+  {
+    int is_instance = PyObject_IsInstance(_pymsg, cached_expected_class);
+    if (is_instance < 0) {
+      return false;
+    }
+    if (is_instance == 0) {
+      PyErr_Format(
+        PyExc_TypeError, "expected an instance of '@(class_module).@(namespaced_type)', got '%s'",
+        Py_TYPE(_pymsg)->tp_name);
+      return false;
+    }
   }
   // Cache interned attribute names for faster attribute access. The private slot
   // names are used rather than the public property names so that reading a field
@@ -456,7 +467,7 @@ nested_type = '__'.join(type_.namespaced_name())
         }
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'boolean']@
         assert(PyBool_Check(item));
-        @primitive_msg_type_to_c(member.type.value_type) tmp = PyObject_IsTrue(item);
+        @primitive_msg_type_to_c(member.type.value_type) tmp = (item == Py_True);
 @[    elif isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in ('float', 'double')]@
         assert(PyFloat_Check(item));
 @[      if member.type.value_type.typename == 'float']@
@@ -543,7 +554,7 @@ nested_type = '__'.join(type_.namespaced_name())
     }
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'boolean']@
     assert(PyBool_Check(field));
-    ros_message->@(member.name) = PyObject_IsTrue(field);
+    ros_message->@(member.name) = (Py_True == field);
 @[  elif isinstance(member.type, BasicType) and member.type.typename in ('float', 'double')]@
     assert(PyFloat_Check(field));
 @[    if member.type.typename == 'float']@
@@ -598,6 +609,7 @@ PyObject * @('__'.join(message.structure.namespaced_type.namespaces + [convert_c
   PyObject * _pymessage = NULL;
   if (cached_pymessage_class == NULL) {
     PyObject * pymessage_module = PyImport_ImportModule("@('.'.join(message.structure.namespaced_type.namespaces)).@(module_name)");
+    assert(pymessage_module);
     if (pymessage_module == NULL) {
       return NULL;
     }
@@ -605,6 +617,7 @@ PyObject * @('__'.join(message.structure.namespaced_type.namespaces + [convert_c
     // global is read rather than the environment variable directly because Python
     // evaluates it once at import time and it must not change afterwards.
     PyObject * check_fields_setting = PyObject_GetAttrString(pymessage_module, "ros_python_check_fields");
+    assert(check_fields_setting);
     if (check_fields_setting == NULL) {
       Py_DECREF(pymessage_module);
       return NULL;
@@ -614,15 +627,118 @@ PyObject * @('__'.join(message.structure.namespaced_type.namespaces + [convert_c
       PyUnicode_CompareWithASCIIString(check_fields_setting, "1") == 0);
     Py_DECREF(check_fields_setting);
     cached_py_attr__check_fields = PyUnicode_InternFromString("_check_fields");
+    assert(cached_py_attr__check_fields);
+    assert(cached_check_fields_default);
     if (cached_check_fields_default == NULL || cached_py_attr__check_fields == NULL) {
       Py_DECREF(pymessage_module);
       return NULL;
     }
     cached_pymessage_class = PyObject_GetAttrString(pymessage_module, "@(message.structure.namespaced_type.name)");
     Py_DECREF(pymessage_module);
+    assert(cached_pymessage_class);
     if (cached_pymessage_class == NULL) {
       return NULL;
     }
+  }
+  // Cache interned attribute names for faster attribute access. The private slot
+  // names are used rather than the public property names so that assigning a field
+  // is a plain slot write instead of a call into the generated property setter.
+  // The values below are built by this function and are correct by construction,
+  // so the type assertions those setters perform would be pure overhead.
+  // The numpy and array.array helpers used to build the special nested basic type
+  // fields are cached alongside. All of it is initialized before the instance is
+  // allocated so that no partially built message has to be cleaned up on failure,
+  // and the flag is set last so that a failed attempt is retried from scratch.
+@[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+  static PyObject * cached_py_attr_@(member.name) = NULL;
+@[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
+@[    if isinstance(member.type, Array)]@
+  static PyObject * cached_numpy_empty_@(member.name) = NULL;
+  static PyObject * cached_numpy_args_@(member.name) = NULL;
+  static PyObject * cached_numpy_kwargs_@(member.name) = NULL;
+@[    elif isinstance(member.type, AbstractSequence)]@
+  static PyObject * cached_array_type_@(member.name) = NULL;
+  static PyObject * cached_array_typecode_@(member.name) = NULL;
+@[    end if]@
+@[  end if]@
+@[end for]@
+  static bool cached_py_attrs_initialized = false;
+  if (!cached_py_attrs_initialized) {
+@[for member in message.structure.members]@
+@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
+@[    continue]@
+@[  end if]@
+    if (cached_py_attr_@(member.name) == NULL) {
+      cached_py_attr_@(member.name) = PyUnicode_InternFromString("_@(member.name)");
+      assert(cached_py_attr_@(member.name));
+      if (cached_py_attr_@(member.name) == NULL) {
+        return NULL;
+      }
+    }
+@[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
+@[    if isinstance(member.type, Array)]@
+    // The numpy C API table is never initialized in this translation unit, so
+    // PyArray_SimpleNew is not available and numpy.empty is called instead.
+    if (cached_numpy_empty_@(member.name) == NULL) {
+      PyObject * numpy_module = PyImport_ImportModule("numpy");
+      assert(numpy_module);
+      if (numpy_module == NULL) {
+        return NULL;
+      }
+      PyObject * dtype = PyObject_GetAttrString(numpy_module, "@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', ''))");
+      PyObject * numpy_empty = PyObject_GetAttrString(numpy_module, "empty");
+      Py_DECREF(numpy_module);
+      assert(dtype);
+      assert(numpy_empty);
+      if (dtype == NULL || numpy_empty == NULL) {
+        Py_XDECREF(dtype);
+        Py_XDECREF(numpy_empty);
+        return NULL;
+      }
+      PyObject * numpy_args = Py_BuildValue("(n)", (Py_ssize_t)@(member.type.size));
+      PyObject * numpy_kwargs = Py_BuildValue("{s:O}", "dtype", dtype);
+      Py_DECREF(dtype);
+      assert(numpy_args);
+      assert(numpy_kwargs);
+      if (numpy_args == NULL || numpy_kwargs == NULL) {
+        Py_XDECREF(numpy_args);
+        Py_XDECREF(numpy_kwargs);
+        Py_DECREF(numpy_empty);
+        return NULL;
+      }
+      cached_numpy_args_@(member.name) = numpy_args;
+      cached_numpy_kwargs_@(member.name) = numpy_kwargs;
+      // assigned last as it guards the block
+      cached_numpy_empty_@(member.name) = numpy_empty;
+    }
+@[    elif isinstance(member.type, AbstractSequence)]@
+    if (cached_array_type_@(member.name) == NULL) {
+      PyObject * array_module = PyImport_ImportModule("array");
+      assert(array_module);
+      if (array_module == NULL) {
+        return NULL;
+      }
+      PyObject * array_type = PyObject_GetAttrString(array_module, "array");
+      Py_DECREF(array_module);
+      PyObject * array_typecode = PyUnicode_InternFromString("@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])");
+      assert(array_type);
+      assert(array_typecode);
+      if (array_type == NULL || array_typecode == NULL) {
+        Py_XDECREF(array_type);
+        Py_XDECREF(array_typecode);
+        return NULL;
+      }
+      cached_array_typecode_@(member.name) = array_typecode;
+      // assigned last as it guards the block
+      cached_array_type_@(member.name) = array_type;
+    }
+@[    end if]@
+@[  end if]@
+@[end for]@
+    cached_py_attrs_initialized = true;
   }
   // Allocate the instance without running __init__, which would recursively build
   // a default value for every field only for all of them to be overwritten below.
@@ -638,35 +754,6 @@ PyObject * @('__'.join(message.structure.namespaced_type.namespaces + [convert_c
       Py_DECREF(_pymessage);
       return NULL;
     }
-  }
-  // Cache interned attribute names for faster attribute access. The private slot
-  // names are used rather than the public property names so that assigning a field
-  // is a plain slot write instead of a call into the generated property setter.
-  // The values below are built by this function and are correct by construction,
-  // so the type assertions those setters perform would be pure overhead.
-@[for i, member in enumerate(message.structure.members)]@
-@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
-@[    continue]@
-@[  end if]@
-  static PyObject * cached_py_attr_@(member.name) = NULL;
-@[end for]@
-  static bool cached_py_attrs_initialized = false;
-  if (!cached_py_attrs_initialized) {
-@[for member in message.structure.members]@
-@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
-@[    continue]@
-@[  end if]@
-    cached_py_attr_@(member.name) = PyUnicode_InternFromString("_@(member.name)");
-@[end for]@
-@[for member in message.structure.members]@
-@[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
-@[    continue]@
-@[  end if]@
-    if (cached_py_attr_@(member.name) == NULL) {
-      return NULL;
-    }
-@[end for]@
-    cached_py_attrs_initialized = true;
   }
 @[if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
   (void)raw_ros_message;
@@ -686,38 +773,14 @@ if isinstance(type_, AbstractNestedType):
     PyObject * field = NULL;
 @[ if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
 @[    if isinstance(member.type, Array)]@
-    // Create the numpy array that __init__ used to provide. The numpy C API table
-    // is never initialized in this translation unit, so PyArray_SimpleNew is not
-    // available and numpy.empty is called instead. Caching the callable together
-    // with its argument tuple keeps that call cheap, and since the whole array is
-    // overwritten below there is no need to zero it first.
-    static PyObject * cached_numpy_empty_@(member.name) = NULL;
-    static PyObject * cached_numpy_args_@(member.name) = NULL;
-    static PyObject * cached_numpy_kwargs_@(member.name) = NULL;
-    if (cached_numpy_empty_@(member.name) == NULL) {
-      PyObject * numpy_module = PyImport_ImportModule("numpy");
-      if (numpy_module == NULL) {
-        return NULL;
-      }
-      PyObject * dtype = PyObject_GetAttrString(numpy_module, "@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['dtype'].replace('numpy.', ''))");
-      cached_numpy_empty_@(member.name) = PyObject_GetAttrString(numpy_module, "empty");
-      Py_DECREF(numpy_module);
-      if (dtype == NULL || cached_numpy_empty_@(member.name) == NULL) {
-        Py_XDECREF(dtype);
-        return NULL;
-      }
-      cached_numpy_args_@(member.name) = Py_BuildValue("(n)", (Py_ssize_t)@(member.type.size));
-      cached_numpy_kwargs_@(member.name) = Py_BuildValue("{s:O}", "dtype", dtype);
-      Py_DECREF(dtype);
-      if (cached_numpy_args_@(member.name) == NULL || cached_numpy_kwargs_@(member.name) == NULL) {
-        return NULL;
-      }
-    }
+    // Create the numpy array that __init__ used to provide. Since the whole array
+    // is overwritten below there is no need to zero it first.
     field = PyObject_Call(
       cached_numpy_empty_@(member.name),
       cached_numpy_args_@(member.name),
       cached_numpy_kwargs_@(member.name));
     if (!field) {
+      Py_DECREF(_pymessage);
       return NULL;
     }
     assert(field->ob_type != NULL);
@@ -734,6 +797,7 @@ if isinstance(type_, AbstractNestedType):
       int rc = PyObject_SetAttr(_pymessage, cached_py_attr_@(member.name), field);
       Py_DECREF(field);
       if (rc) {
+        Py_DECREF(_pymessage);
         return NULL;
       }
     }
@@ -764,11 +828,13 @@ if isinstance(type_, AbstractNestedType):
         Py_DECREF(rosidl_buffer_internal);
       }
       if (field == NULL) {
+        Py_DECREF(_pymessage);
         return NULL;
       }
       // Set the Buffer on the Python message object
       if (PyObject_SetAttr(_pymessage, cached_py_attr_@(member.name), field) == -1) {
         Py_DECREF(field);
+        Py_DECREF(_pymessage);
         return NULL;
       }
       Py_DECREF(field);
@@ -778,20 +844,8 @@ if isinstance(type_, AbstractNestedType):
 @(bi)    // Create the array.array that __init__ used to provide. Building it straight
 @(bi)    // from the raw bytes replaces the previous sequence of a getattr, an itemsize
 @(bi)    // check, a pop() loop to discard the default values and a frombytes() call.
-@(bi)    static PyObject * cached_array_type_@(member.name) = NULL;
-@(bi)    static PyObject * cached_array_typecode_@(member.name) = NULL;
-@(bi)    if (cached_array_type_@(member.name) == NULL) {
-@(bi)      PyObject * array_module = PyImport_ImportModule("array");
-@(bi)      if (array_module == NULL) {
-@(bi)        return NULL;
-@(bi)      }
-@(bi)      cached_array_type_@(member.name) = PyObject_GetAttrString(array_module, "array");
-@(bi)      Py_DECREF(array_module);
-@(bi)      cached_array_typecode_@(member.name) = PyUnicode_InternFromString("@(SPECIAL_NESTED_BASIC_TYPES[member.type.value_type.typename]['type_code'])");
-@(bi)      if (cached_array_type_@(member.name) == NULL || cached_array_typecode_@(member.name) == NULL) {
-@(bi)        return NULL;
-@(bi)      }
-@(bi)    }
+@(bi)    // array.array interprets a bytes initializer as machine values, so the
+@(bi)    // itemsize of the typecode has to match the C type for the length to be right.
 @(bi)    {
 @(bi)      // the data pointer may be NULL for an empty sequence, which is fine here
 @(bi)      // because only a zero length is derived from it in that case
@@ -799,19 +853,23 @@ if isinstance(type_, AbstractNestedType):
 @(bi)        (const char *)ros_message->@(member.name).data,
 @(bi)        ros_message->@(member.name).size * sizeof(@primitive_msg_type_to_c(member.type.value_type)));
 @(bi)      if (!data) {
+@(bi)        Py_DECREF(_pymessage);
 @(bi)        return NULL;
 @(bi)      }
 @(bi)      field = PyObject_CallFunctionObjArgs(
 @(bi)        cached_array_type_@(member.name), cached_array_typecode_@(member.name), data, NULL);
 @(bi)      Py_DECREF(data);
 @(bi)      if (!field) {
+@(bi)        Py_DECREF(_pymessage);
 @(bi)        return NULL;
 @(bi)      }
+@(bi)      assert(PySequence_Size(field) == (Py_ssize_t)ros_message->@(member.name).size);
 @(bi)    }
 @(bi)    {
 @(bi)      int rc = PyObject_SetAttr(_pymessage, cached_py_attr_@(member.name), field);
 @(bi)      Py_DECREF(field);
 @(bi)      if (rc) {
+@(bi)        Py_DECREF(_pymessage);
 @(bi)        return NULL;
 @(bi)      }
 @(bi)    }
@@ -832,6 +890,7 @@ nested_type = '__'.join(type_.namespaced_name())
 @[      end if]@
     field = PyList_New(size);
     if (!field) {
+      Py_DECREF(_pymessage);
       return NULL;
     }
     @(nested_type) * item;
@@ -844,6 +903,7 @@ nested_type = '__'.join(type_.namespaced_name())
       PyObject * pyitem = @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_to_py(item);
       if (!pyitem) {
         Py_DECREF(field);
+        Py_DECREF(_pymessage);
         return NULL;
       }
       int rc = PyList_SetItem(field, i, pyitem);
@@ -854,6 +914,7 @@ nested_type = '__'.join(type_.namespaced_name())
 @[    else]@
     field = @('__'.join(type_.namespaces + [convert_camel_case_to_lower_case_underscore(type_.name)]))__convert_to_py(&ros_message->@(member.name));
     if (!field) {
+      Py_DECREF(_pymessage);
       return NULL;
     }
 @[    end if]@
@@ -867,6 +928,7 @@ nested_type = '__'.join(type_.namespaced_name())
 @[    end if]@
     field = PyList_New(size);
     if (!field) {
+      Py_DECREF(_pymessage);
       return NULL;
     }
     for (size_t i = 0; i < size; ++i) {
@@ -881,6 +943,8 @@ nested_type = '__'.join(type_.namespaced_name())
 @[    elif isinstance(member.type.value_type, AbstractString)]@
       PyObject * decoded_item = PyUnicode_DecodeUTF8(src[i].data, src[i].size, "replace");
       if (!decoded_item) {
+        Py_DECREF(field);
+        Py_DECREF(_pymessage);
         return NULL;
       }
       int rc = PyList_SetItem(field, i, decoded_item);
@@ -890,6 +954,8 @@ nested_type = '__'.join(type_.namespaced_name())
       int byteorder = 0;
       PyObject * decoded_item = PyUnicode_DecodeUTF16((const char *)src[i].data, src[i].size * sizeof(uint16_t), NULL, &byteorder);
       if (!decoded_item) {
+        Py_DECREF(field);
+        Py_DECREF(_pymessage);
         return NULL;
       }
       int rc = PyList_SetItem(field, i, decoded_item);
@@ -933,31 +999,19 @@ nested_type = '__'.join(type_.namespaced_name())
     assert(PySequence_Check(field));
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'char']@
     field = Py_BuildValue("C", ros_message->@(member.name));
-    if (!field) {
-      return NULL;
-    }
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'octet']@
     field = PyBytes_FromStringAndSize((const char *)&ros_message->@(member.name), 1);
-    if (!field) {
-      return NULL;
-    }
 @[  elif isinstance(member.type, AbstractString)]@
     field = PyUnicode_DecodeUTF8(
       ros_message->@(member.name).data,
       ros_message->@(member.name).size,
       "replace");
-    if (!field) {
-      return NULL;
-    }
 @[  elif isinstance(member.type, AbstractWString)]@
     int byteorder = 0;
     field = PyUnicode_DecodeUTF16(
       (const char *)ros_message->@(member.name).data,
       ros_message->@(member.name).size * sizeof(uint16_t),
       NULL, &byteorder);
-    if (!field) {
-      return NULL;
-    }
 @[  elif isinstance(member.type, BasicType) and member.type.typename == 'boolean']@
 @# using PyBool_FromLong allows treating the variable uniformly by calling Py_DECREF on it later
     field = PyBool_FromLong(ros_message->@(member.name) ? 1 : 0);
@@ -982,10 +1036,15 @@ nested_type = '__'.join(type_.namespaced_name())
 @[  else]@
     assert(false);
 @[  end if]@
+    if (!field) {
+      Py_DECREF(_pymessage);
+      return NULL;
+    }
     {
       int rc = PyObject_SetAttr(_pymessage, cached_py_attr_@(member.name), field);
       Py_DECREF(field);
       if (rc) {
+        Py_DECREF(_pymessage);
         return NULL;
       }
     }

@@ -286,6 +286,25 @@ def test_converted_message_is_usable() -> None:
         converted.basic_types_value.int32_value = 'not an int'
 
 
+def test_wrong_message_type_raises() -> None:
+    """convert_from_py rejects a message of another type with a TypeError."""
+    convert_from_py = ctypes.PYFUNCTYPE(
+        ctypes.c_bool, ctypes.py_object, ctypes.c_void_p)(
+            _PyCapsule_GetPointer(_capsule(Nested, 'convert_from_py'), None))
+    create = ctypes.PYFUNCTYPE(ctypes.c_void_p)(
+        _PyCapsule_GetPointer(_capsule(Nested, 'create_ros_message'), None))
+    destroy = ctypes.PYFUNCTYPE(None, ctypes.c_void_p)(
+        _PyCapsule_GetPointer(_capsule(Nested, 'destroy_ros_message'), None))
+
+    ros_message = create()
+    try:
+        # PYFUNCTYPE re-raises the exception that the C function left set.
+        with pytest.raises(TypeError, match='Nested'):
+            convert_from_py(BasicTypes(), ros_message)
+    finally:
+        destroy(ros_message)
+
+
 def test_no_reference_leak() -> None:
     """Repeated conversions do not accumulate references to the message class."""
     import sys

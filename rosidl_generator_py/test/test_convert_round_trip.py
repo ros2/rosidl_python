@@ -121,6 +121,11 @@ def _capsule(message_type: type, function: str) -> Any:
     same way ``rosidl_generator_py.import_type_support`` would.
     """
     package, *middle, module = message_type.__module__.split('.')
+    typesupport_dir = os.getenv('ROSIDL_GENERATOR_PY_TYPESUPPORT_DIR')
+    if typesupport_dir:
+        package_path = getattr(importlib.import_module(package), '__path__')
+        if typesupport_dir not in package_path:
+            package_path.append(typesupport_dir)
     suffix = '__'.join(middle + [module[1:]])
     typesupport = importlib.import_module(
         '.{}_s__rosidl_typesupport_c'.format(package), package=package)

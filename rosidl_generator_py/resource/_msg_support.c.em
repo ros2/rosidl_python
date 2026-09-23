@@ -29,14 +29,6 @@ def primitive_msg_type_to_c(type_):
     return BASIC_IDL_TYPES_TO_C[type_.typename]
 
 
-# Check if this message has any uint8[] buffer fields
-has_buffer_fields = False
-for member in message.structure.members:
-    if isinstance(member.type, UnboundedSequence) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename == 'uint8':
-        has_buffer_fields = True
-        break
-
-
 include_parts = [package_name] + list(interface_path.parents[0].parts) + [
     'detail', convert_camel_case_to_lower_case_underscore(interface_path.stem)]
 include_base = '/'.join(include_parts)
@@ -44,9 +36,8 @@ include_base = '/'.join(include_parts)
 header_files = [
     'Python.h',
     'stdbool.h',
+    'stdint.h',
 ]
-if has_buffer_fields:
-    header_files.append('stdint.h')
 header_files += [
     'numpy/ndarrayobject.h',
     'rosidl_runtime_c/visibility_control.h',

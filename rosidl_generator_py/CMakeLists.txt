@@ -55,7 +55,14 @@ if(BUILD_TESTING)
 
     set(_append_library_dirs "")
     if(WIN32)
-      set(_append_library_dirs "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
+      # Single config generators put the libraries directly in the binary
+      # directory, not in a per-config subdirectory.
+      get_property(_is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+      if(_is_multi_config)
+        set(_append_library_dirs "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
+      else()
+        set(_append_library_dirs "${CMAKE_CURRENT_BINARY_DIR}")
+      endif()
     endif()
 
     set(pythonpath "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py;${CMAKE_CURRENT_SOURCE_DIR}")

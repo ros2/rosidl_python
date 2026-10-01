@@ -38,6 +38,8 @@ if(NOT TARGET Python3::Module OR NOT TARGET Python3::NumPy)
   find_package(Python3 REQUIRED COMPONENTS Interpreter Development NumPy)
 endif()
 
+set(rosidl_generator_py_suffix "__rosidl_generator_py")
+
 # Get a list of typesupport implementations from valid rmw implementations.
 rosidl_generator_py_get_typesupports(_typesupport_impls)
 
@@ -168,7 +170,7 @@ add_dependencies(
 target_link_libraries(
   ${_target_name_lib} PRIVATE
   Python3::NumPy
-  Python3::Python
+  Python3::Module
 )
 target_include_directories(${_target_name_lib}
   PRIVATE
@@ -262,7 +264,7 @@ if(NOT rosidl_generate_interfaces_SKIP_INSTALL)
 
   # Export this target so downstream interface packages can depend on it
   rosidl_export_typesupport_targets("${rosidl_generator_py_suffix}" "${_target_name_lib}")
-  ament_export_targets(export_${_target_name_lib})
+  ament_export_targets(export_${_target_name_lib} EXCLUDE_FROM_PACKAGE_TARGETS)
 endif()
 
 if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)

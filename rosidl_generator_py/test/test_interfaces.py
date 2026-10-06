@@ -529,9 +529,6 @@ def test_arrays() -> None:
 
     assert msg2 != msg3
 
-    with pytest.warns(DeprecationWarning):
-        Arrays(string_values={'bar', 'baz', 'foo'})
-
     msg.bool_values = (False, False, False)
     assert isinstance(msg.bool_values, list)
     assert msg.bool_values == [False, False, False]

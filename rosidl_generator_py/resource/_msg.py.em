@@ -485,14 +485,6 @@ if isinstance(member.type, (Array, AbstractSequence)):
 
     @@@(member.name).setter@(noqa_string)
     def @(member.name)(self, value: @(type_annotations_setter[member.name])) -> None:@(noqa_string)
-@[  if isinstance(member.type, AbstractNestedType)]@
-        if isinstance(value, collections.abc.Set):
-            import warnings
-            warnings.warn(
-                'Using set or subclass of set is deprecated,'
-                ' please use a subclass of collections.abc.Sequence like list',
-                DeprecationWarning)
-@[  end if]@
 @# Buffer type dispatch for uint8[] fields must run unconditionally (not behind _check_fields)
 @# because it is a type dispatch, not a validation check.
 @[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@

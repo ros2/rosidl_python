@@ -43,8 +43,7 @@ from rosidl_generator_py.generate_py_impl import SPECIAL_NESTED_BASIC_TYPES
             else:
                 assert \
 @[  if isinstance(member.type, AbstractNestedType)]@
-                    ((isinstance(value, collections.abc.Sequence) or
-                     isinstance(value, collections.abc.Set)) and
+                    (isinstance(value, collections.abc.Sequence) and
                      not isinstance(value, str) and
                      not isinstance(value, collections.UserString) and
 @{assert_msg_suffixes = ['sequence']}@

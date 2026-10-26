@@ -21,6 +21,19 @@ include_directives = set()
 register_functions = []
 }@
 #include <Python.h>
+#include <string.h>
+
+// Convert a function pointer to void * via memcpy for use with PyCapsule_New().
+static inline void *
+_funcptr_to_capsule_ptr(void (* fn)(void))
+{
+  _Static_assert(
+    sizeof(void *) == sizeof(fn),
+    "void * and function pointer must have the same size");
+  void * ptr;
+  memcpy(&ptr, &fn, sizeof(ptr));
+  return ptr;
+}
 
 static PyMethodDef @(package_name)__methods[] = {
   {NULL, NULL, 0, NULL}  /* sentinel */

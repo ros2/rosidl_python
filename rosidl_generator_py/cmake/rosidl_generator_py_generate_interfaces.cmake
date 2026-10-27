@@ -210,9 +210,12 @@ foreach(_typesupport_impl ${_typesupport_impls})
   # TODO(sloretz) use target_compile_options when python extension passes -Wpedantic
   set_target_properties(${_target_name} PROPERTIES COMPILE_OPTIONS "${_extension_compile_flags}")
 
+  # Multi-config generators append a per-configuration subdirectory unless the
+  # output directory contains a generator expression. That subdirectory would
+  # end up in the Python package, which is installed as a whole.
   set_target_properties(${_target_name} PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${_output_path}
-    RUNTIME_OUTPUT_DIRECTORY ${_output_path})
+    LIBRARY_OUTPUT_DIRECTORY "$<1:${_output_path}>"
+    RUNTIME_OUTPUT_DIRECTORY "$<1:${_output_path}>")
 
   target_link_libraries(
     ${_target_name} PRIVATE

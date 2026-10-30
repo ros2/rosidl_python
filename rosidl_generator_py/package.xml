@@ -33,7 +33,6 @@
        so ideally a 'test_export_depend' (similar to 'build_export_depend') would be used.
        Since that feature doesn't exist yet, they are 'exec_depend'-ed.
        See https://github.com/ros2/rosidl_python/pull/199 -->
-  <exec_depend>ament_cmake_cppcheck</exec_depend>
   <exec_depend>ament_cmake_cpplint</exec_depend>
   <exec_depend>ament_cmake_flake8</exec_depend>
   <exec_depend>ament_cmake_mypy</exec_depend>

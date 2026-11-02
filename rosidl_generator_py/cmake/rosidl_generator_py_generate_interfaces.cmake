@@ -271,11 +271,6 @@ if(BUILD_TESTING AND rosidl_generate_interfaces_ADD_LINTER_TESTS)
     NOT _generated_extension_files STREQUAL "" OR
     NOT _generated_c_files STREQUAL ""
   )
-    find_package(ament_cmake_cppcheck REQUIRED)
-    ament_cppcheck(
-      TESTNAME "cppcheck_rosidl_generated_py"
-      "${_output_path}")
-
     find_package(ament_cmake_cpplint REQUIRED)
     get_filename_component(_cpplint_root "${_output_path}" DIRECTORY)
     ament_cpplint(

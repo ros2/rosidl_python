@@ -915,6 +915,31 @@ def test_unbounded_sequences() -> None:
     assert msg.bool_values == [True, False, True, False]
 
 
+def test_unbounded_uint8_sequence_from_bytes() -> None:
+    # Assigning a bytes-like object to an unbounded uint8[] field takes a
+    # dedicated path that skips the per-element field checks, because a
+    # bytes-like object cannot violate them.  The result must be identical to
+    # assigning the equivalent list.  See ros2/rosidl_python#156.
+    for check_fields in (True, False):
+        msg = UnboundedSequences(check_fields=check_fields)
+
+        msg.uint8_values = b'\x00\x01\xff'
+        assert isinstance(msg.uint8_values, array.array)
+        assert msg.uint8_values.typecode == 'B'
+        assert array.array('B', [0, 1, 255]) == msg.uint8_values
+
+        msg.uint8_values = bytearray(b'\x2a')
+        assert isinstance(msg.uint8_values, array.array)
+        assert array.array('B', [42]) == msg.uint8_values
+
+        msg.uint8_values = b''
+        assert array.array('B', []) == msg.uint8_values
+
+        # the bytes path must not be taken for other integer sequence types
+        msg.int8_values = [0, -128, 127]
+        assert array.array('b', [0, -128, 127]) == msg.int8_values
+
+
 def test_slot_attributes() -> None:
     msg = Nested(check_fields=True)
     assert hasattr(msg, 'get_fields_and_field_types')

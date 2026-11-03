@@ -493,6 +493,14 @@ if isinstance(member.type, (Array, AbstractSequence)):
         if isinstance(value, _RosidlBuffer):
             self._@(member.name) = value  # type: ignore[assignment]
             return
+        if isinstance(value, (bytes, bytearray)):
+            # A bytes-like object cannot hold a non-int, nor a value outside
+            # [0, 255] -- those are invariants of the type itself.  The field
+            # checks below would therefore always pass, at the cost of three
+            # O(n) comprehensions over the whole payload.  Convert through the
+            # buffer protocol instead.  See ros2/rosidl_python#156.
+            self._@(member.name) = array.array('B', value)  # type: ignore[assignment]
+            return
 @[    end if]@
 @[  end if]@
 @[  if isinstance(type_, NamespacedType)]@

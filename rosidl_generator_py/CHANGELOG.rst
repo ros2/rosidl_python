@@ -2,6 +2,17 @@
 Changelog for package rosidl_generator_py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.28.1 (2026-11-03)
+-------------------
+* Remove custom ament_cppcheck usage. (`#274 <https://github.com/ros2/rosidl_python/issues/274>`_)
+* Use rosidl_find_package_idl() to find .idl file paths (`#268 <https://github.com/ros2/rosidl_python/issues/268>`_)
+* Remove set support (`#271 <https://github.com/ros2/rosidl_python/issues/271>`_)
+* Fix test library dirs for single config generators (`#270 <https://github.com/ros2/rosidl_python/issues/270>`_)
+* Use the SPDX identifier Apache-2.0 in package.xml license tags (`#267 <https://github.com/ros2/rosidl_python/issues/267>`_)
+* feat: Cache internal string 3x speedup (`#265 <https://github.com/ros2/rosidl_python/issues/265>`_)
+* Skip redundant find_package(Python3) in generator extensions (`#266 <https://github.com/ros2/rosidl_python/issues/266>`_)
+* Contributors: Chris Lalancette, Janosch Machowinski, Michael Carlstrom, Michael Carroll, Nathan Wiebe Neufeldt
+
 0.28.0 (2026-05-05)
 -------------------
 

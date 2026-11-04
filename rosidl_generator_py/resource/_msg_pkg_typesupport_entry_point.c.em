@@ -74,7 +74,7 @@ function_names = ['create_ros_message', 'destroy_ros_message', 'convert_from_py'
   PyObject * pyobject_@(function_name) = NULL;
   pyobject_@(function_name) = PyCapsule_New(
 @[    if function_name != 'type_support']@
-    (void *)&@('__'.join(message.structure.namespaced_type.namespaces + [module_name]))__@(function_name),
+    _funcptr_to_capsule_ptr((void (*)(void)) & @('__'.join(message.structure.namespaced_type.namespaces + [module_name]))__@(function_name)),
 @[    else]@
     (void *)ROSIDL_GET_MSG_TYPE_SUPPORT(@(', '.join(message.structure.namespaced_type.namespaced_name()))),
 @[    end if]@

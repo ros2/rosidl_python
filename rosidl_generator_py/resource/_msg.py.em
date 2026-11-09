@@ -441,6 +441,9 @@ if isinstance(type_, AbstractNestedType):
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 
     def __eq__(self, other: object) -> bool:
+        # A message must compare equal to itself, even when fields contain NaN.
+        if self is other:
+            return True
         if not isinstance(other, @(message.structure.namespaced_type.name)):
             return False
 @[for member in message.structure.members]@

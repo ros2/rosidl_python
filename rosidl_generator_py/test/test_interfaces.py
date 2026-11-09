@@ -182,6 +182,10 @@ def test_equality_with_nan_scalar_fields() -> None:
     assert first != second
     assert second != first
 
+    second.float64_value = math.nan
+    second.float32_value = 0.0
+    assert first != second
+
 
 def test_equality_with_nan_fixed_arrays() -> None:
     first = Arrays(check_fields=True)
@@ -215,6 +219,10 @@ def test_equality_with_nan_sequences() -> None:
         assert first != second
         second.float32_values = [math.nan, 1.0]
         second.float64_values = [1.0, 2.0]
+        assert first != second
+
+        second.float64_values = [1.0, math.nan]
+        second.float32_values = [1.0, math.nan]
         assert first != second
 
 

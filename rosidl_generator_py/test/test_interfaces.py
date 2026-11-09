@@ -163,6 +163,61 @@ def test_equality_is_reflexive_with_nan() -> None:
     assert array_msg == array_msg
 
 
+def test_equality_with_nan_scalar_fields() -> None:
+    first = BasicTypes(check_fields=True)
+    second = BasicTypes(check_fields=True)
+    first.float32_value = math.nan
+    second.float32_value = math.nan
+    first.float64_value = math.nan
+    second.float64_value = math.nan
+
+    # Separate messages with equivalent NaN fields should compare equal.
+    assert first == second
+    assert second == first
+
+    # The same comparison should work recursively for nested message fields.
+    assert Nested(basic_types_value=first) == Nested(basic_types_value=second)
+
+    second.float64_value = 42.0
+    assert first != second
+    assert second != first
+
+
+def test_equality_with_nan_fixed_arrays() -> None:
+    first = Arrays(check_fields=True)
+    second = Arrays(check_fields=True)
+    first.float32_values = [math.nan, 1.0, 2.0]
+    second.float32_values = [math.nan, 1.0, 2.0]
+    first.float64_values = [1.0, math.nan, math.inf]
+    second.float64_values = [1.0, math.nan, math.inf]
+    assert first == second
+
+    # NaNs must occupy the same positions, and other values must still match.
+    second.float32_values = [1.0, math.nan, 2.0]
+    assert first != second
+    second.float32_values = [math.nan, 1.0, 2.0]
+    second.float64_values = [1.0, math.nan, -math.inf]
+    assert first != second
+
+
+def test_equality_with_nan_sequences() -> None:
+    for msg_type in (BoundedSequences, UnboundedSequences):
+        first = msg_type(check_fields=True)
+        second = msg_type(check_fields=True)
+        first.float32_values = [math.nan, 1.0]
+        second.float32_values = [math.nan, 1.0]
+        first.float64_values = [1.0, math.nan]
+        second.float64_values = [1.0, math.nan]
+        assert first == second
+
+        # Sequence lengths and non-NaN values still affect equality.
+        second.float32_values = [math.nan]
+        assert first != second
+        second.float32_values = [math.nan, 1.0]
+        second.float64_values = [1.0, 2.0]
+        assert first != second
+
+
 def test_strings() -> None:
     msg = Strings(check_fields=True)
 

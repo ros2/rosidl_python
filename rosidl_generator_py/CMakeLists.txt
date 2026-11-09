@@ -46,6 +46,7 @@ if(BUILD_TESTING)
     rosidl_generate_interfaces(${PROJECT_NAME}_custom
       ${test_interface_files_MSG_FILES}
       # Cases not covered by test_interface_files
+      msg/BuiltinNamesIdl.idl
       msg/BuiltinTypeSequencesIdl.idl
       msg/StringArrays.msg
       msg/Property.msg

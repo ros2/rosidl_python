@@ -1,0 +1,12 @@
+module rosidl_generator_py {
+  module msg {
+    // Members named like the Python builtins that the generated __init__ calls
+    // to build default values. Each one is also an __init__ parameter.
+    struct BuiltinNamesIdl {
+      boolean range[2];
+      boolean flags[3];
+      octet octets[2];
+      char chr[2];
+    };
+  };
+};

@@ -22,6 +22,7 @@ import pytest
 from rosidl_generator_py.msg import Arrays
 from rosidl_generator_py.msg import BasicTypes
 from rosidl_generator_py.msg import BoundedSequences
+from rosidl_generator_py.msg import BuiltinNamesIdl
 from rosidl_generator_py.msg import BuiltinTypeSequencesIdl
 from rosidl_generator_py.msg import Constants
 from rosidl_generator_py.msg import Defaults
@@ -1013,3 +1014,21 @@ def test_builtin_sequence_slot_attributes() -> None:
     }
 
     assert len(builtin_sequence_slot_types_dict) == len(expected_builtin_sequence_slot_types_dict)
+
+
+def test_builtin_names() -> None:
+    # The __init__ parameters are named after the members, so members named range and chr shadow
+    # the builtins that build the default values of every member.
+    msg = BuiltinNamesIdl(check_fields=True)
+    assert [False, False] == msg.range
+    assert [False, False, False] == msg.flags
+    assert [b'\x00', b'\x00'] == msg.octets
+    assert ['\x00', '\x00'] == msg.chr
+
+    msg = BuiltinNamesIdl(
+        range=[True, False], flags=[True, True, False], octets=[b'\x01', b'\x02'], chr=['a', 'b'],
+        check_fields=True)
+    assert [True, False] == msg.range
+    assert [True, True, False] == msg.flags
+    assert [b'\x01', b'\x02'] == msg.octets
+    assert ['a', 'b'] == msg.chr

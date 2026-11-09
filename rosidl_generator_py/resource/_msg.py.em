@@ -450,7 +450,23 @@ if isinstance(type_, AbstractNestedType):
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@
 @[  end if]@
-@[  if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
+@[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in FLOATING_POINT_TYPES]@
+@[    if isinstance(member.type, Array)]@
+        if not numpy.array_equal(self.@(member.name), other.@(member.name), equal_nan=True):
+@[    else]@
+        if (
+            len(self.@(member.name)) != len(other.@(member.name)) or
+            any(
+                a != b and not (math.isnan(a) and math.isnan(b))
+                for a, b in zip(self.@(member.name), other.@(member.name))
+            )
+        ):
+@[    end if]@
+@[  elif isinstance(member.type, BasicType) and member.type.typename in FLOATING_POINT_TYPES]@
+        if self.@(member.name) != other.@(member.name) and not (
+            math.isnan(self.@(member.name)) and math.isnan(other.@(member.name))
+        ):
+@[  elif isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
         if any(self.@(member.name) != other.@(member.name)):
 @[  else]@
         if self.@(member.name) != other.@(member.name):

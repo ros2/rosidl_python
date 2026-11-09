@@ -454,7 +454,7 @@ if isinstance(type_, AbstractNestedType):
 @[    if isinstance(member.type, Array)]@
         if not numpy.array_equal(self.@(member.name), other.@(member.name), equal_nan=True):
 @[    else]@
-        if (
+        if self.@(member.name) != other.@(member.name) and (
             len(self.@(member.name)) != len(other.@(member.name)) or
             any(
                 a != b and not (math.isnan(a) and math.isnan(b))

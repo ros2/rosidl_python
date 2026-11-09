@@ -148,6 +148,21 @@ def test_basic_types() -> None:
     assert math.isinf(msg.float64_value)
 
 
+def test_equality_is_reflexive_with_nan() -> None:
+    # IEEE 754 NaN does not compare equal to itself, but a message must be
+    # equal to the same message instance.
+    msg = BasicTypes(check_fields=True)
+    msg.float32_value = math.nan
+    msg.float64_value = math.nan
+    assert msg == msg
+
+    # Cover both float array paths in the generated __eq__ method.
+    array_msg = Arrays(check_fields=True)
+    array_msg.float32_values = numpy.array([math.nan, 1.0, 2.0], dtype=numpy.float32)
+    array_msg.float64_values = numpy.array([1.0, math.nan, 2.0], dtype=numpy.float64)
+    assert array_msg == array_msg
+
+
 def test_strings() -> None:
     msg = Strings(check_fields=True)
 

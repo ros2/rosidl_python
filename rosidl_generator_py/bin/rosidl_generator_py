@@ -14,10 +14,13 @@ except ImportError:
         rosidl_generator_py_root, 'rosidl_generator_py', '__init__.py')
     if not os.path.exists(rosidl_generator_py_module):
         raise
-    from importlib.machinery import SourceFileLoader
+    import importlib.util
 
-    loader = SourceFileLoader('rosidl_generator_py', rosidl_generator_py_module)
-    rosidl_generator_py = loader.load_module()
+    spec = importlib.util.spec_from_file_location(
+    'rosidl_generator_py', rosidl_generator_py_module)
+    rosidl_generator_py = importlib.util.module_from_spec(spec)
+    sys.modules['rosidl_generator_py'] = rosidl_generator_py
+    spec.loader.exec_module(rosidl_generator_py)
     generate_py = rosidl_generator_py.generate_py
 
 

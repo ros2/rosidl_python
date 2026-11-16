@@ -18,7 +18,17 @@ if(BUILD_TESTING)
   find_package(rosidl_cmake REQUIRED)
 
   find_package(ament_lint_auto REQUIRED)
+  list(APPEND AMENT_LINT_AUTO_EXCLUDE
+    ament_cmake_flake8
+    ament_cmake_mypy
+  )
   ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_flake8 REQUIRED)
+  ament_flake8(. bin/rosidl_generator_py)
+
+  find_package(ament_cmake_mypy REQUIRED)
+  ament_mypy(. bin/rosidl_generator_py)
 
   find_package(test_interface_files REQUIRED)
 

@@ -49,6 +49,8 @@
   <exec_depend>rosidl_runtime_c</exec_depend>
   <exec_depend>rpyutils</exec_depend>
 
+  <test_depend>ament_cmake_flake8</test_depend>
+  <test_depend>ament_cmake_mypy</test_depend>
   <test_depend>ament_cmake_pytest</test_depend>
   <test_depend>ament_index_python</test_depend>
   <test_depend>ament_lint_auto</test_depend>

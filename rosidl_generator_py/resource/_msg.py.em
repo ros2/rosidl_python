@@ -365,6 +365,11 @@ if member.name in dict(inspect.getmembers(builtins)).keys():
 type_ = member.type
 if isinstance(type_, AbstractNestedType):
     type_ = type_.value_type
+# The parameters of __init__ are named after the members, so a member named like a builtin
+# (range, bool, int, str, bytes, chr) shadows it here: reach the builtins through the module.
+python_type = get_python_type(type_)
+if not isinstance(type_, NamespacedType):
+    python_type = 'builtins.' + python_type
 }@
 @[  if member.has_annotation('default')]@
         self.@(member.name) = @(member.name) if @(member.name) is not None else @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT
@@ -382,9 +387,9 @@ if isinstance(type_, AbstractNestedType):
 @[    end if]@
 @[    if isinstance(member.type, Array)]@
 @[      if isinstance(type_, BasicType) and type_.typename == 'octet']@
-        self.@(member.name) = @(member.name) if @(member.name) is not None else [bytes([0]) for x in range(@(member.type.size))]
+        self.@(member.name) = @(member.name) if @(member.name) is not None else [builtins.bytes([0]) for x in builtins.range(@(member.type.size))]
 @[      elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
-        self.@(member.name) = @(member.name) if @(member.name) is not None else [chr(0) for x in range(@(member.type.size))]
+        self.@(member.name) = @(member.name) if @(member.name) is not None else [builtins.chr(0) for x in builtins.range(@(member.type.size))]
 @[      else]@
 @[        if isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
         if @(member.name) is None:
@@ -392,7 +397,7 @@ if isinstance(type_, AbstractNestedType):
         else:
             self.@(member.name) = @(member.name)
 @[        else]@
-        self.@(member.name) = @(member.name) if @(member.name) is not None else [@(get_python_type(type_))() for x in range(@(member.type.size))]
+        self.@(member.name) = @(member.name) if @(member.name) is not None else [@(python_type)() for x in builtins.range(@(member.type.size))]
 @[        end if]@
 @[      end if]@
 @[    elif isinstance(member.type, AbstractSequence)]@
@@ -402,11 +407,11 @@ if isinstance(type_, AbstractNestedType):
         self.@(member.name) = @(member.name) if @(member.name) is not None else []
 @[      end if]@
 @[    elif isinstance(type_, BasicType) and type_.typename == 'octet']@
-        self.@(member.name) = @(member.name) if @(member.name) is not None else bytes([0])
+        self.@(member.name) = @(member.name) if @(member.name) is not None else builtins.bytes([0])
 @[    elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
-        self.@(member.name) = @(member.name) if @(member.name) is not None else chr(0)
+        self.@(member.name) = @(member.name) if @(member.name) is not None else builtins.chr(0)
 @[    else]@
-        self.@(member.name) = @(member.name) if @(member.name) is not None else @(get_python_type(type_))()
+        self.@(member.name) = @(member.name) if @(member.name) is not None else @(python_type)()
 @[    end if]@
 @[  end if]@
 @[end for]@

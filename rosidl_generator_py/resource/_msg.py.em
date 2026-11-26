@@ -441,13 +441,32 @@ if isinstance(type_, AbstractNestedType):
         return '%s(%s)' % ('.'.join(typename), ', '.join(args))
 
     def __eq__(self, other: object) -> bool:
+        # A message must compare equal to itself, even when fields contain NaN.
+        if self is other:
+            return True
         if not isinstance(other, @(message.structure.namespaced_type.name)):
             return False
 @[for member in message.structure.members]@
 @[  if len(message.structure.members) == 1 and member.name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME]@
 @[    continue]@
 @[  end if]@
-@[  if isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
+@[  if isinstance(member.type, AbstractNestedType) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in FLOATING_POINT_TYPES]@
+@[    if isinstance(member.type, Array)]@
+        if not numpy.array_equal(self.@(member.name), other.@(member.name), equal_nan=True):
+@[    else]@
+        if self.@(member.name) != other.@(member.name) and (
+            len(self.@(member.name)) != len(other.@(member.name)) or
+            any(
+                a != b and not (math.isnan(a) and math.isnan(b))
+                for a, b in zip(self.@(member.name), other.@(member.name))
+            )
+        ):
+@[    end if]@
+@[  elif isinstance(member.type, BasicType) and member.type.typename in FLOATING_POINT_TYPES]@
+        if self.@(member.name) != other.@(member.name) and not (
+            math.isnan(self.@(member.name)) and math.isnan(other.@(member.name))
+        ):
+@[  elif isinstance(member.type, Array) and isinstance(member.type.value_type, BasicType) and member.type.value_type.typename in SPECIAL_NESTED_BASIC_TYPES]@
         if any(self.@(member.name) != other.@(member.name)):
 @[  else]@
         if self.@(member.name) != other.@(member.name):

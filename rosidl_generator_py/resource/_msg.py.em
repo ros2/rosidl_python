@@ -30,6 +30,27 @@ from rosidl_parser.definition import NamespacedType
 from rosidl_parser.definition import SIGNED_INTEGER_TYPES
 from rosidl_parser.definition import UnboundedSequence
 from rosidl_parser.definition import UNSIGNED_INTEGER_TYPES
+
+
+def get_importable_namespaced_type(
+    type_: NamespacedType,
+    action_goal_suffix: str = ACTION_GOAL_SUFFIX,
+    action_result_suffix: str = ACTION_RESULT_SUFFIX,
+    action_feedback_suffix: str = ACTION_FEEDBACK_SUFFIX,
+    camel_to_snake=convert_camel_case_to_lower_case_underscore,
+) -> tuple[str, str]:
+    joined_type_namespaces = '.'.join(type_.namespaces)
+    if (
+        type_.name.endswith(action_goal_suffix) or
+        type_.name.endswith(action_result_suffix) or
+        type_.name.endswith(action_feedback_suffix)
+    ):
+        action_name, _ = type_.name.rsplit('_', 1)
+        lower_case_name = camel_to_snake(action_name)
+        module_name = f'{joined_type_namespaces}._{lower_case_name}'
+    else:
+        module_name = joined_type_namespaces
+    return module_name, f'{module_name}.{type_.name}'
 }@
 @{
 import_type_checking = False
@@ -182,22 +203,13 @@ for member in message.structure.members:
             type_.name.endswith(SERVICE_REQUEST_MESSAGE_SUFFIX)
         ):
             continue
-        if (
-            type_.name.endswith(ACTION_GOAL_SUFFIX) or
-            type_.name.endswith(ACTION_RESULT_SUFFIX) or
-            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
-        ):
-            action_name, suffix = type_.name.rsplit('_', 1)
-            typename = (*type_.namespaces, action_name, action_name + '.' + suffix)
-        else:
-            typename = (*type_.namespaces, type_.name, type_.name)
-        importable_typesupports.add(typename)
+        importable_typesupports.add(get_importable_namespaced_type(type_))
 }@
-@[for typename in sorted(importable_typesupports)]@
+@[for module_name, type_name in sorted(importable_typesupports)]@
 
-            from @('.'.join(typename[:-2])) import @(typename[-2])
-            if @(typename[-1])._TYPE_SUPPORT is None:
-                @(typename[-1]).__import_type_support__()
+            import @(module_name)
+            if @(type_name)._TYPE_SUPPORT is None:
+                @(type_name).__import_type_support__()
 @[end for]@
 
     @@classmethod
@@ -370,15 +382,10 @@ if isinstance(type_, AbstractNestedType):
         self.@(member.name) = @(member.name) if @(member.name) is not None else @(message.structure.namespaced_type.name).@(member.name.upper())__DEFAULT
 @[  else]@
 @[    if isinstance(type_, NamespacedType) and not isinstance(member.type, AbstractSequence)]@
-@[      if (
-            type_.name.endswith(ACTION_GOAL_SUFFIX) or
-            type_.name.endswith(ACTION_RESULT_SUFFIX) or
-            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
-        )]@
-        from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
-@[      else]@
-        from @('.'.join(type_.namespaces)) import @(type_.name)
-@[      end if]@
+@{
+module_name, type_name = get_importable_namespaced_type(type_)
+}@
+        import @(module_name)
 @[    end if]@
 @[    if isinstance(member.type, Array)]@
 @[      if isinstance(type_, BasicType) and type_.typename == 'octet']@
@@ -392,7 +399,8 @@ if isinstance(type_, AbstractNestedType):
         else:
             self.@(member.name) = @(member.name)
 @[        else]@
-        self.@(member.name) = @(member.name) if @(member.name) is not None else [@(get_python_type(type_))() for x in range(@(member.type.size))]
+@{default_type = type_name if isinstance(type_, NamespacedType) else get_python_type(type_)}@
+        self.@(member.name) = @(member.name) if @(member.name) is not None else [@(default_type)() for x in range(@(member.type.size))]
 @[        end if]@
 @[      end if]@
 @[    elif isinstance(member.type, AbstractSequence)]@
@@ -405,6 +413,8 @@ if isinstance(type_, AbstractNestedType):
         self.@(member.name) = @(member.name) if @(member.name) is not None else bytes([0])
 @[    elif isinstance(type_, BasicType) and type_.typename in CHARACTER_TYPES]@
         self.@(member.name) = @(member.name) if @(member.name) is not None else chr(0)
+@[    elif isinstance(type_, NamespacedType)]@
+        self.@(member.name) = @(member.name) if @(member.name) is not None else @(type_name)()
 @[    else]@
         self.@(member.name) = @(member.name) if @(member.name) is not None else @(get_python_type(type_))()
 @[    end if]@
@@ -504,15 +514,10 @@ if isinstance(member.type, (Array, AbstractSequence)):
 @[    end if]@
 @[  end if]@
 @[  if isinstance(type_, NamespacedType)]@
-@[      if (
-            type_.name.endswith(ACTION_GOAL_SUFFIX) or
-            type_.name.endswith(ACTION_RESULT_SUFFIX) or
-            type_.name.endswith(ACTION_FEEDBACK_SUFFIX)
-        )]@
-        from @('.'.join(type_.namespaces))._@(convert_camel_case_to_lower_case_underscore(type_.name.rsplit('_', 1)[0])) import @(type_.name)
-@[      else]@
-        from @('.'.join(type_.namespaces)) import @(type_.name)
-@[      end if]@
+@{
+module_name, type_name = get_importable_namespaced_type(type_)
+}@
+        import @(module_name)
 @[  end if]@
 
 @{
